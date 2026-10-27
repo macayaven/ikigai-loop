@@ -16,4 +16,4 @@ Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medi
   and ran feasibility checks on Oct 27 outside this repo (one call each to Muse Glimmer,
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
 - It wrote no code in this repository and made no commits. All code here was produced
-  by Carlos with Muse Code, as recorded in `docs/sessions/`.
+  by Carlos with Muse Code, as summarised in `docs/sessions/`.
