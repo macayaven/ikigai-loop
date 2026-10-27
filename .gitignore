@@ -1,0 +1,18 @@
+# environments
+.venv/
+.uv-cache/
+.pre-commit-home/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# eval artifacts
+logs/
+*.eval
+
+# caches
+__pycache__/
+.pytest_cache/
+.ruff_cache/

@@ -1,0 +1,28 @@
+[project]
+name = "ikigai-loop"
+version = "0.1.0"
+description = "Two objective profiles, one signal stream, two diverging apps."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic",
+    "inspect-ai",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+    "pyright",
+    "pre-commit",
+]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.pyright]
+typeCheckingMode = "standard"
+strict = ["framework"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

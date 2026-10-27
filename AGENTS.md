@@ -10,12 +10,10 @@ Spec: [docs/SPEC.md](docs/SPEC.md). Workflow: [docs/WORKFLOW.md](docs/WORKFLOW.m
 
 ## Commands
 
-Planned (ticket 1): the `Makefile` does not exist yet.
-
-- `make check` — ruff, pyright strict on `framework/`, pytest, gitleaks.
+- `make check` — ruff, pyright, pytest, gitleaks.
 - `make test` — pytest only.
-- `make eval` — Inspect AI eval gate (L0–L4) and mutant suite.
-- `make demo` — run the public demo on fixtures.
+- `make eval` — hello task on the mock model today; the gate (L0–L4) and mutants arrive in later tickets.
+- `make demo` — placeholder, prints `not yet`.
 
 ## Layout
 
@@ -70,4 +68,4 @@ Planned (ticket 1): the `Makefile` does not exist yet.
 - Don't use `--yolo`; safety comes from the worktree, the restricted permission profile, and the eval gate.
 - Don't ship without a gate pass; rollback is a pointer flip to the last known good manifest.
 
-Planned (ticket 1): CI fails any PR that commits hidden criteria or copies them from `HIDDEN_CRITERIA_DIR` into the repo without the `eval-owner` label, which only Carlos applies.
+Planned (follow-up ticket): CI fails any PR that commits hidden criteria or copies them from `HIDDEN_CRITERIA_DIR` into the repo without the `eval-owner` label, which only Carlos applies.
