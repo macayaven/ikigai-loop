@@ -84,7 +84,7 @@ Issue ──► PLAN ──► (Carlos approves; Claude reviews plan) ──► 
 | **Review** | **New** Wonder session, read-only | `muse exec --model muse-wonder-1.0 --output-schema review.schema.json "review the diff vs main against docs/plans/012"` | JSON findings |
 | **Second opinion** | Claude | You paste `git diff main...` or the PR link | Ranked findings |
 | **Fix** | Spark | Address findings, re-verify | |
-| **Ship** | Spark + `ship` skill | `gh pr create`, CI, squash-merge | PR + evidence note `docs/sessions/012-slug.md` (models, efforts, wall time, tokens, plan/review rounds, AT results); the raw `muse export --redacted` is kept privately and published only if gitleaks plus a manual check of names and context is clean. One fresh Muse session per ticket. |
+| **Ship** | Spark + `ship` skill | `gh pr create`, CI, squash-merge | PR + evidence note `docs/sessions/012-slug.md` (models, efforts, wall time, tokens, plan/review rounds, AT results); the raw `muse export --redacted` is kept privately and published only if gitleaks plus a manual check of names and context is clean. Two sessions per ticket: plan (muse-wonder-1.0, high) and implementation (muse-spark-1.3, medium); the approved plan file is the handoff. |
 
 Model split: check per-model defaults with `muse model-profile show muse-spark-1.3 --effort medium` (**verify**). Measure cost and rework per ticket for 2 days, then adjust.
 
@@ -105,7 +105,7 @@ Structured findings let you count blockers per ticket. That number is good mater
 - [ ] `make check` is green: ruff, pyright strict on `framework/`, pytest, gitleaks.
 - [ ] If an eval or block changed: the Inspect log is attached, and all 7 mutants are still caught.
 - [ ] The review has no open blockers. Majors are fixed or recorded as issues.
-- [ ] The evidence note `docs/sessions/NNN-slug.md` (models, efforts, wall time, tokens, plan/review rounds, AT results) is in `docs/sessions/`, and the PR links the plan and the note; the raw `muse export --redacted` is kept privately and published only if gitleaks plus a manual check of names and context is clean. One fresh Muse session per ticket.
+- [ ] The evidence note `docs/sessions/NNN-slug.md` (models, efforts, wall time, tokens, plan/review rounds, AT results, plus the `muse --version` output) is in `docs/sessions/`, and the PR links the plan and the note; the raw `muse export --redacted` is kept privately and published only if gitleaks plus a manual check of names and context is clean. Two sessions per ticket: plan (muse-wonder-1.0, high) and implementation (muse-spark-1.3, medium); the approved plan file is the handoff.
 - [ ] `CONTRIBUTIONS.md` is updated with what was built, when, with which Muse models, and the advisory role.
 
 ---
