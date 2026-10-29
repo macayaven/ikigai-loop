@@ -1,0 +1,101 @@
+{
+  "blocks": {
+    "calendar_slots#calls": {
+      "config": {
+        "label": "Call slots",
+        "max_slots": 3,
+        "rule": "weekday afternoons"
+      },
+      "dimension": "world_needs",
+      "rationale": "Synthetic builder call slots.",
+      "type": "calendar_slots"
+    },
+    "checkin#energy": {
+      "config": {
+        "label": "Energy check",
+        "metric": "energy",
+        "prompt": "Energy right now?"
+      },
+      "dimension": "limit",
+      "rationale": "Synthetic builder energy pace.",
+      "type": "checkin"
+    },
+    "checklist#ship": {
+      "config": {
+        "items": [
+          {
+            "done": true,
+            "id": "draft",
+            "label": "Draft the change"
+          },
+          {
+            "done": false,
+            "id": "test",
+            "label": "Run the tests"
+          },
+          {
+            "done": false,
+            "id": "publish",
+            "label": "Publish the artifact"
+          }
+        ],
+        "label": "Ship one artifact today"
+      },
+      "dimension": "good_at",
+      "rationale": "Synthetic builder artifact checklist.",
+      "type": "checklist"
+    },
+    "focus_session#build": {
+      "config": {
+        "goal": "One artifact by 23:30",
+        "label": "Deep build window",
+        "minutes": 50
+      },
+      "dimension": "good_at",
+      "rationale": "Synthetic builder focus window.",
+      "type": "focus_session"
+    },
+    "insight_card#today": {
+      "config": {
+        "fact_ids": [
+          "fact_builder_1"
+        ],
+        "label": "Today in one line"
+      },
+      "dimension": "love",
+      "rationale": "Synthetic builder insight.",
+      "type": "insight_card"
+    },
+    "link_list#reading": {
+      "config": {
+        "label": "Worth a look",
+        "links": [
+          {
+            "label": "Synthetic paper one",
+            "note": "why it matters",
+            "url": "https://example.invalid/paper-1"
+          },
+          {
+            "label": "Synthetic paper two",
+            "note": "",
+            "url": "https://example.invalid/paper-2"
+          }
+        ]
+      },
+      "dimension": "world_needs",
+      "rationale": "Synthetic builder reading list.",
+      "type": "link_list"
+    }
+  },
+  "changelog": [],
+  "layout": [
+    "checklist#ship",
+    "focus_session#build",
+    "checkin#energy",
+    "calendar_slots#calls",
+    "insight_card#today",
+    "link_list#reading"
+  ],
+  "parent": null,
+  "version": "sample-builder"
+}

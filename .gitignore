@@ -19,3 +19,6 @@ __pycache__/
 
 # local event data
 data/
+
+# rendered samples
+out/
