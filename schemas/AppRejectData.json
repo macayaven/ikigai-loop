@@ -1,0 +1,32 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "card_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Card Id"
+    },
+    "manifest_version": {
+      "title": "Manifest Version",
+      "type": "string"
+    },
+    "type": {
+      "const": "app.reject",
+      "default": "app.reject",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "manifest_version"
+  ],
+  "title": "AppRejectData",
+  "type": "object"
+}

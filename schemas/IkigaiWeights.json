@@ -1,0 +1,37 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "good_at": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Good At",
+      "type": "number"
+    },
+    "love": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Love",
+      "type": "number"
+    },
+    "paid_for": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Paid For",
+      "type": "number"
+    },
+    "world_needs": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "World Needs",
+      "type": "number"
+    }
+  },
+  "required": [
+    "love",
+    "good_at",
+    "world_needs",
+    "paid_for"
+  ],
+  "title": "IkigaiWeights",
+  "type": "object"
+}

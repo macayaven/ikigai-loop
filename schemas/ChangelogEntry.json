@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "change": {
+      "title": "Change",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence",
+      "type": "array"
+    },
+    "from": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "From"
+    },
+    "why": {
+      "title": "Why",
+      "type": "string"
+    }
+  },
+  "required": [
+    "change",
+    "why",
+    "evidence"
+  ],
+  "title": "ChangelogEntry",
+  "type": "object"
+}

@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "device": {
+      "enum": [
+        "mac",
+        "iphone"
+      ],
+      "title": "Device",
+      "type": "string"
+    },
+    "minutes_by_category": {
+      "additionalProperties": {
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Minutes By Category",
+      "type": "object"
+    },
+    "type": {
+      "const": "screen.hour",
+      "default": "screen.hour",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "device",
+    "minutes_by_category"
+  ],
+  "title": "ScreenHourData",
+  "type": "object"
+}

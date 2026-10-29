@@ -1,0 +1,36 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "score": {
+      "minimum": 0,
+      "title": "Score",
+      "type": "number"
+    },
+    "source": {
+      "title": "Source",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "type": {
+      "const": "feed.item",
+      "default": "feed.item",
+      "title": "Type",
+      "type": "string"
+    },
+    "url": {
+      "title": "Url",
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "url",
+    "source",
+    "score"
+  ],
+  "title": "FeedItemData",
+  "type": "object"
+}

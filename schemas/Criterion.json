@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "dimension": {
+      "enum": [
+        "love",
+        "good_at",
+        "world_needs",
+        "paid_for",
+        "limit",
+        "contrast"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "type": "boolean"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "profile_id": {
+      "minLength": 1,
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "id",
+    "profile_id",
+    "dimension",
+    "text",
+    "hidden",
+    "version"
+  ],
+  "title": "Criterion",
+  "type": "object"
+}

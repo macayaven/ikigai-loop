@@ -1,0 +1,965 @@
+{
+  "$defs": {
+    "AppApproveData": {
+      "additionalProperties": false,
+      "properties": {
+        "card_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Card Id"
+        },
+        "manifest_version": {
+          "title": "Manifest Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "app.approve",
+          "default": "app.approve",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "manifest_version"
+      ],
+      "title": "AppApproveData",
+      "type": "object"
+    },
+    "AppCheckinData": {
+      "additionalProperties": false,
+      "properties": {
+        "energy": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Energy",
+          "type": "integer"
+        },
+        "type": {
+          "const": "app.checkin",
+          "default": "app.checkin",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "energy"
+      ],
+      "title": "AppCheckinData",
+      "type": "object"
+    },
+    "AppJournalData": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "type": {
+          "const": "app.journal",
+          "default": "app.journal",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "AppJournalData",
+      "type": "object"
+    },
+    "AppRatingData": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Id"
+        },
+        "type": {
+          "const": "app.rating",
+          "default": "app.rating",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "AppRatingData",
+      "type": "object"
+    },
+    "AppRejectData": {
+      "additionalProperties": false,
+      "properties": {
+        "card_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Card Id"
+        },
+        "manifest_version": {
+          "title": "Manifest Version",
+          "type": "string"
+        },
+        "type": {
+          "const": "app.reject",
+          "default": "app.reject",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "manifest_version"
+      ],
+      "title": "AppRejectData",
+      "type": "object"
+    },
+    "AppTapData": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "title": "Block Id",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "type": {
+          "const": "app.tap",
+          "default": "app.tap",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "block_id",
+        "target"
+      ],
+      "title": "AppTapData",
+      "type": "object"
+    },
+    "AppThumbData": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "title": "Block Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "app.thumb",
+          "default": "app.thumb",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "enum": [
+            -1,
+            1
+          ],
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "block_id",
+        "value"
+      ],
+      "title": "AppThumbData",
+      "type": "object"
+    },
+    "AppViewData": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "title": "Block Id",
+          "type": "string"
+        },
+        "screen": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Screen"
+        },
+        "type": {
+          "const": "app.view",
+          "default": "app.view",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "block_id"
+      ],
+      "title": "AppViewData",
+      "type": "object"
+    },
+    "CalendarEventCancelledData": {
+      "additionalProperties": false,
+      "properties": {
+        "busy": {
+          "title": "Busy",
+          "type": "boolean"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "is_new": {
+          "title": "Is New",
+          "type": "boolean"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "type": {
+          "const": "calendar.event.cancelled",
+          "default": "calendar.event.cancelled",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "busy",
+        "category",
+        "tags",
+        "is_new"
+      ],
+      "title": "CalendarEventCancelledData",
+      "type": "object"
+    },
+    "CalendarEventCreatedData": {
+      "additionalProperties": false,
+      "properties": {
+        "busy": {
+          "title": "Busy",
+          "type": "boolean"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "is_new": {
+          "title": "Is New",
+          "type": "boolean"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "type": {
+          "const": "calendar.event.created",
+          "default": "calendar.event.created",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "busy",
+        "category",
+        "tags",
+        "is_new"
+      ],
+      "title": "CalendarEventCreatedData",
+      "type": "object"
+    },
+    "CalendarEventUpdatedData": {
+      "additionalProperties": false,
+      "properties": {
+        "busy": {
+          "title": "Busy",
+          "type": "boolean"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "is_new": {
+          "title": "Is New",
+          "type": "boolean"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "type": {
+          "const": "calendar.event.updated",
+          "default": "calendar.event.updated",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "busy",
+        "category",
+        "tags",
+        "is_new"
+      ],
+      "title": "CalendarEventUpdatedData",
+      "type": "object"
+    },
+    "EditorHourData": {
+      "additionalProperties": false,
+      "properties": {
+        "language": {
+          "title": "Language",
+          "type": "string"
+        },
+        "minutes": {
+          "minimum": 0,
+          "title": "Minutes",
+          "type": "number"
+        },
+        "project": {
+          "title": "Project",
+          "type": "string"
+        },
+        "type": {
+          "const": "editor.hour",
+          "default": "editor.hour",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project",
+        "language",
+        "minutes"
+      ],
+      "title": "EditorHourData",
+      "type": "object"
+    },
+    "FeedItemData": {
+      "additionalProperties": false,
+      "properties": {
+        "score": {
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "type": {
+          "const": "feed.item",
+          "default": "feed.item",
+          "title": "Type",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "url",
+        "source",
+        "score"
+      ],
+      "title": "FeedItemData",
+      "type": "object"
+    },
+    "GitHubIssueData": {
+      "additionalProperties": false,
+      "properties": {
+        "counts": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "repo": {
+          "title": "Repo",
+          "type": "string"
+        },
+        "type": {
+          "const": "github.issue",
+          "default": "github.issue",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repo",
+        "counts"
+      ],
+      "title": "GitHubIssueData",
+      "type": "object"
+    },
+    "GitHubPrData": {
+      "additionalProperties": false,
+      "properties": {
+        "counts": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "repo": {
+          "title": "Repo",
+          "type": "string"
+        },
+        "type": {
+          "const": "github.pr",
+          "default": "github.pr",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repo",
+        "counts"
+      ],
+      "title": "GitHubPrData",
+      "type": "object"
+    },
+    "GitHubPushData": {
+      "additionalProperties": false,
+      "properties": {
+        "counts": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "repo": {
+          "title": "Repo",
+          "type": "string"
+        },
+        "type": {
+          "const": "github.push",
+          "default": "github.push",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repo",
+        "counts"
+      ],
+      "title": "GitHubPushData",
+      "type": "object"
+    },
+    "GitHubReleaseData": {
+      "additionalProperties": false,
+      "properties": {
+        "counts": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "repo": {
+          "title": "Repo",
+          "type": "string"
+        },
+        "type": {
+          "const": "github.release",
+          "default": "github.release",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repo",
+        "counts"
+      ],
+      "title": "GitHubReleaseData",
+      "type": "object"
+    },
+    "HealthDailyData": {
+      "additionalProperties": false,
+      "properties": {
+        "exercise_min": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exercise Min"
+        },
+        "hrv_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hrv Ms"
+        },
+        "mindful_min": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mindful Min"
+        },
+        "mood_valence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mood Valence"
+        },
+        "resting_hr": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resting Hr"
+        },
+        "sleep_h": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sleep H"
+        },
+        "steps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Steps"
+        },
+        "type": {
+          "const": "health.daily",
+          "default": "health.daily",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "HealthDailyData",
+      "type": "object"
+    },
+    "JobStageCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "applied": {
+          "minimum": 0,
+          "title": "Applied",
+          "type": "integer"
+        },
+        "interview": {
+          "minimum": 0,
+          "title": "Interview",
+          "type": "integer"
+        },
+        "offer": {
+          "minimum": 0,
+          "title": "Offer",
+          "type": "integer"
+        },
+        "screen": {
+          "minimum": 0,
+          "title": "Screen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "applied",
+        "screen",
+        "interview",
+        "offer"
+      ],
+      "title": "JobStageCounts",
+      "type": "object"
+    },
+    "JobsSnapshotData": {
+      "additionalProperties": false,
+      "properties": {
+        "counts": {
+          "$ref": "#/$defs/JobStageCounts"
+        },
+        "type": {
+          "const": "jobs.snapshot",
+          "default": "jobs.snapshot",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "counts"
+      ],
+      "title": "JobsSnapshotData",
+      "type": "object"
+    },
+    "MusicPlayData": {
+      "additionalProperties": false,
+      "properties": {
+        "artist": {
+          "title": "Artist",
+          "type": "string"
+        },
+        "played_at": {
+          "format": "date-time",
+          "title": "Played At",
+          "type": "string"
+        },
+        "track": {
+          "title": "Track",
+          "type": "string"
+        },
+        "type": {
+          "const": "music.play",
+          "default": "music.play",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "track",
+        "artist",
+        "played_at"
+      ],
+      "title": "MusicPlayData",
+      "type": "object"
+    },
+    "ScreenHourData": {
+      "additionalProperties": false,
+      "properties": {
+        "device": {
+          "enum": [
+            "mac",
+            "iphone"
+          ],
+          "title": "Device",
+          "type": "string"
+        },
+        "minutes_by_category": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Minutes By Category",
+          "type": "object"
+        },
+        "type": {
+          "const": "screen.hour",
+          "default": "screen.hour",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "device",
+        "minutes_by_category"
+      ],
+      "title": "ScreenHourData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "collected_at": {
+      "format": "date-time",
+      "title": "Collected At",
+      "type": "string"
+    },
+    "collector_version": {
+      "minLength": 1,
+      "title": "Collector Version",
+      "type": "string"
+    },
+    "data": {
+      "discriminator": {
+        "mapping": {
+          "app.approve": "#/$defs/AppApproveData",
+          "app.checkin": "#/$defs/AppCheckinData",
+          "app.journal": "#/$defs/AppJournalData",
+          "app.rating": "#/$defs/AppRatingData",
+          "app.reject": "#/$defs/AppRejectData",
+          "app.tap": "#/$defs/AppTapData",
+          "app.thumb": "#/$defs/AppThumbData",
+          "app.view": "#/$defs/AppViewData",
+          "calendar.event.cancelled": "#/$defs/CalendarEventCancelledData",
+          "calendar.event.created": "#/$defs/CalendarEventCreatedData",
+          "calendar.event.updated": "#/$defs/CalendarEventUpdatedData",
+          "editor.hour": "#/$defs/EditorHourData",
+          "feed.item": "#/$defs/FeedItemData",
+          "github.issue": "#/$defs/GitHubIssueData",
+          "github.pr": "#/$defs/GitHubPrData",
+          "github.push": "#/$defs/GitHubPushData",
+          "github.release": "#/$defs/GitHubReleaseData",
+          "health.daily": "#/$defs/HealthDailyData",
+          "jobs.snapshot": "#/$defs/JobsSnapshotData",
+          "music.play": "#/$defs/MusicPlayData",
+          "screen.hour": "#/$defs/ScreenHourData"
+        },
+        "propertyName": "type"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CalendarEventCreatedData"
+        },
+        {
+          "$ref": "#/$defs/CalendarEventUpdatedData"
+        },
+        {
+          "$ref": "#/$defs/CalendarEventCancelledData"
+        },
+        {
+          "$ref": "#/$defs/GitHubPushData"
+        },
+        {
+          "$ref": "#/$defs/GitHubPrData"
+        },
+        {
+          "$ref": "#/$defs/GitHubIssueData"
+        },
+        {
+          "$ref": "#/$defs/GitHubReleaseData"
+        },
+        {
+          "$ref": "#/$defs/FeedItemData"
+        },
+        {
+          "$ref": "#/$defs/MusicPlayData"
+        },
+        {
+          "$ref": "#/$defs/HealthDailyData"
+        },
+        {
+          "$ref": "#/$defs/ScreenHourData"
+        },
+        {
+          "$ref": "#/$defs/EditorHourData"
+        },
+        {
+          "$ref": "#/$defs/JobsSnapshotData"
+        },
+        {
+          "$ref": "#/$defs/AppViewData"
+        },
+        {
+          "$ref": "#/$defs/AppTapData"
+        },
+        {
+          "$ref": "#/$defs/AppThumbData"
+        },
+        {
+          "$ref": "#/$defs/AppRatingData"
+        },
+        {
+          "$ref": "#/$defs/AppApproveData"
+        },
+        {
+          "$ref": "#/$defs/AppRejectData"
+        },
+        {
+          "$ref": "#/$defs/AppCheckinData"
+        },
+        {
+          "$ref": "#/$defs/AppJournalData"
+        }
+      ],
+      "title": "Data"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "source": {
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "source_id": {
+      "minLength": 1,
+      "title": "Source Id",
+      "type": "string"
+    },
+    "subject_id": {
+      "minLength": 1,
+      "title": "Subject Id",
+      "type": "string"
+    },
+    "tier": {
+      "enum": [
+        "public",
+        "private",
+        "sensitive"
+      ],
+      "title": "Tier",
+      "type": "string"
+    },
+    "time": {
+      "format": "date-time",
+      "title": "Time",
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "calendar.event.created",
+        "calendar.event.updated",
+        "calendar.event.cancelled",
+        "github.push",
+        "github.pr",
+        "github.issue",
+        "github.release",
+        "feed.item",
+        "music.play",
+        "health.daily",
+        "screen.hour",
+        "editor.hour",
+        "jobs.snapshot",
+        "app.view",
+        "app.tap",
+        "app.thumb",
+        "app.rating",
+        "app.approve",
+        "app.reject",
+        "app.checkin",
+        "app.journal"
+      ],
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "subject_id",
+    "source",
+    "type",
+    "time",
+    "source_id",
+    "data",
+    "tier",
+    "collected_at",
+    "collector_version"
+  ],
+  "title": "Event",
+  "type": "object"
+}

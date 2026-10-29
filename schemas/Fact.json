@@ -1,0 +1,74 @@
+{
+  "$defs": {
+    "FactWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "FactWindow",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "evidence": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence",
+      "type": "array"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "statement": {
+      "minLength": 1,
+      "title": "Statement",
+      "type": "string"
+    },
+    "subject_id": {
+      "minLength": 1,
+      "title": "Subject Id",
+      "type": "string"
+    },
+    "tier": {
+      "enum": [
+        "public",
+        "private",
+        "sensitive"
+      ],
+      "title": "Tier",
+      "type": "string"
+    },
+    "window": {
+      "$ref": "#/$defs/FactWindow"
+    }
+  },
+  "required": [
+    "id",
+    "subject_id",
+    "window",
+    "statement",
+    "evidence",
+    "tier"
+  ],
+  "title": "Fact",
+  "type": "object"
+}

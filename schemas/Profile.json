@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "IkigaiWeights": {
+      "additionalProperties": false,
+      "properties": {
+        "good_at": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Good At",
+          "type": "number"
+        },
+        "love": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Love",
+          "type": "number"
+        },
+        "paid_for": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Paid For",
+          "type": "number"
+        },
+        "world_needs": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "World Needs",
+          "type": "number"
+        }
+      },
+      "required": [
+        "love",
+        "good_at",
+        "world_needs",
+        "paid_for"
+      ],
+      "title": "IkigaiWeights",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "label": {
+      "title": "Label",
+      "type": "string"
+    },
+    "profile_id": {
+      "minLength": 1,
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "subject_id": {
+      "minLength": 1,
+      "title": "Subject Id",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "weights": {
+      "$ref": "#/$defs/IkigaiWeights"
+    }
+  },
+  "required": [
+    "subject_id",
+    "profile_id",
+    "label",
+    "version",
+    "weights"
+  ],
+  "title": "Profile",
+  "type": "object"
+}

@@ -1,0 +1,21 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "type": {
+      "const": "app.journal",
+      "default": "app.journal",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "text"
+  ],
+  "title": "AppJournalData",
+  "type": "object"
+}
