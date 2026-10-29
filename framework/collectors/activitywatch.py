@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import urllib.error
+import urllib.parse
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
@@ -279,10 +280,11 @@ class ActivityWatchCollector:
     def _bucket_events(
         self, base: str, bucket_id: str, start_iso: str, end_iso: str
     ) -> list[Any]:
-        url = (
-            f"{base}/api/0/buckets/{bucket_id}/events"
-            f"?start={start_iso}&end={end_iso}&limit=-1"
+        query = urllib.parse.urlencode(
+            {"start": start_iso, "end": end_iso, "limit": -1}
         )
+        segment = urllib.parse.quote(bucket_id, safe="")
+        url = f"{base}/api/0/buckets/{segment}/events?{query}"
         response = self._get(url, {})
         if response.status != 200:
             raise CollectorError(

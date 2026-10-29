@@ -251,6 +251,19 @@ def test_cli_run_activitywatch_is_argparse_error(
     assert excinfo.value.code == 2
 
 
+def aw_cli_events_url(bucket_id: str) -> str:
+    from urllib.parse import quote, urlencode
+
+    query = urlencode(
+        {
+            "start": "2026-10-28T12:00:00+00:00",
+            "end": "2026-10-30T12:00:00+00:00",
+            "limit": -1,
+        }
+    )
+    return f"http://127.0.0.1:5600/api/0/buckets/{quote(bucket_id, safe='')}/events?{query}"
+
+
 def aw_cli_get(url: str, headers: dict[str, str]):
     from framework.collectors.common import HttpResponse
 
@@ -265,7 +278,10 @@ def aw_cli_get(url: str, headers: dict[str, str]):
                 }
             ).encode(),
         )
-    assert url.startswith("http://127.0.0.1:5600/api/0/buckets/")
+    assert url in (
+        aw_cli_events_url("aw-watcher-window-synthetic"),
+        aw_cli_events_url("aw-watcher-afk-synthetic"),
+    ), f"unexpected AW URL: {url}"
     return HttpResponse(
         status=200,
         headers={},
@@ -339,6 +355,7 @@ def test_cli_push_activitywatch_missing_env_reports_variable(
     code = main(
         ["push", "activitywatch"],
         http_get=aw_cli_get,
+        now_fn=lambda: AW_NOW,
         db_path=tmp_path / "y.db",
     )
     assert code == 1

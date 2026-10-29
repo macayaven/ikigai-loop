@@ -4,6 +4,7 @@ import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote, urlencode
 
 import pytest
 
@@ -61,10 +62,14 @@ class FakeAw:
         self.calls: list[str] = []
 
     def events_url(self, bucket_id: str) -> str:
-        return (
-            f"{BASE}/api/0/buckets/{bucket_id}/events"
-            f"?start={WINDOW_START.isoformat()}&end={WINDOW_END.isoformat()}&limit=-1"
+        query = urlencode(
+            {
+                "start": WINDOW_START.isoformat(),
+                "end": WINDOW_END.isoformat(),
+                "limit": -1,
+            }
         )
+        return f"{BASE}/api/0/buckets/{quote(bucket_id, safe='')}/events?{query}"
 
     def __call__(self, url: str, headers: dict[str, str]) -> HttpResponse:
         self.calls.append(url)

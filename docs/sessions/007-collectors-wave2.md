@@ -142,6 +142,33 @@ Muse Code 1.4.14 (1.4.14-R7309.1)
   `test_ingest.py` 15, `test_activitywatch.py` 18,
   `test_collectors_cli.py` 15 (6 pre-existing + 9 new).
 
+## Post-review fixes (second commit, same models/efforts)
+
+Two live-only bugs found after the T7 commit, fixed in a second commit on
+`t7-collectors-wave2` (not pushed):
+
+1. `serve_ingest` used `ThreadingHTTPServer`, but `EventStore`'s sqlite
+   connection is bound to its creating thread, so every request died with
+   `sqlite3.ProgrammingError` (client saw `RemoteDisconnected`). Now uses
+   single-threaded `http.server.HTTPServer`; the store, `serve_forever`,
+   and request handling share one thread, matching the store's contract.
+   Bearer comparison now uses `hmac.compare_digest`, and
+   `Content-Length > 1_000_000` is rejected with `413` and an empty body.
+   New tests: `test_live_loopback_server_health_round_trip` (the only test
+   allowed to bind a socket — loopback, ephemeral port, real `HTTPServer`
+   in a daemon thread with the store created in the server thread, stdlib
+   `urllib` POST asserting `201` plus one stored event) and
+   `test_ingest_handler_body_over_limit_is_413`.
+2. `_bucket_events` built `?start=...+00:00` unencoded, which AW decodes
+   (`+` as space) and rejects with `400`. The query is now built with
+   `urllib.parse.urlencode` and the bucket id segment with
+   `urllib.parse.quote(bucket_id, safe="")`. The `FakeAw` and CLI fakes
+   assert the exact encoded URLs (`%3A`/`%2B` form), so an unencoded URL
+   fails the test.
+
+`make check` green again after both fixes (full pytest including the live
+loopback test, gitleaks clean).
+
 ## Notes
 
 - Public-repo sweep over every touched file: no real names (beyond the

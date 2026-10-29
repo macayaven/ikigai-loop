@@ -3,7 +3,10 @@
 import hashlib
 import io
 import json
+import threading
+import urllib.request
 from datetime import UTC, datetime
+from http.server import HTTPServer
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -257,6 +260,7 @@ def drive_handler(
     headers: dict[str, str],
     body: bytes,
     subject_id: str = "subject-1",
+    content_length: int | None = None,
 ) -> tuple[int, bytes]:
     handler_cls = make_ingest_handler(
         store, subject_id=subject_id, now_fn=lambda: NOW, token=token
@@ -264,7 +268,9 @@ def drive_handler(
     lines = [f"{method} {path} HTTP/1.1", "Host: synthetic.invalid"]
     for key, value in headers.items():
         lines.append(f"{key}: {value}")
-    lines.append(f"Content-Length: {len(body)}")
+    lines.append(
+        f"Content-Length: {len(body) if content_length is None else content_length}"
+    )
     raw = ("\r\n".join(lines) + "\r\n\r\n").encode() + body
     request = FakeSocketRequest(raw)
     handler_cls(request, ("127.0.0.1", 1), None)  # type: ignore[arg-type]
@@ -405,3 +411,83 @@ def test_ingest_handler_screen_hour_counts_only(tmp_path: Path) -> None:
         )
         assert len(stored) == 2
         assert ScreenHourData in [type(e.data) for e in stored]
+
+
+def test_ingest_handler_body_over_limit_is_413(tmp_path: Path) -> None:
+    from framework.collectors.ingest import MAX_BODY_BYTES
+
+    body = json.dumps(FULL_PAYLOAD).encode()
+    with EventStore(tmp_path / "ingest.db") as store:
+        status, response = drive_handler(
+            store,
+            TOKEN,
+            "POST",
+            "/health/daily",
+            {"Authorization": f"Bearer {TOKEN}"},
+            body,
+            content_length=MAX_BODY_BYTES + 1,
+        )
+        assert status == 413
+        assert response == b""
+        assert (
+            store.events_between(
+                "subject-1",
+                datetime(2026, 10, 28, tzinfo=UTC),
+                datetime(2026, 10, 30, tzinfo=UTC),
+            )
+            == []
+        )
+
+
+def test_live_loopback_server_health_round_trip(tmp_path: Path) -> None:
+    """The only test allowed to bind a socket: loopback, ephemeral port.
+
+    The store is created in the server thread, mirroring serve_ingest where
+    the store, serve_forever, and (single-threaded) request handling share
+    one thread.
+    """
+    db_path = tmp_path / "live.db"
+    ready = threading.Event()
+    holders: dict[str, Any] = {}
+
+    def run() -> None:
+        store = EventStore(db_path)
+        try:
+            handler = make_ingest_handler(
+                store, subject_id="subject-1", now_fn=lambda: NOW, token=TOKEN
+            )
+            server = HTTPServer(("127.0.0.1", 0), handler)
+            holders["server"] = server
+            ready.set()
+            server.serve_forever()
+        finally:
+            store.close()
+
+    thread = threading.Thread(target=run, daemon=True)
+    thread.start()
+    assert ready.wait(timeout=15.0)
+    server = holders["server"]
+    try:
+        port = server.server_address[1]
+        request = urllib.request.Request(
+            f"http://127.0.0.1:{port}/health/daily",
+            data=json.dumps(FULL_PAYLOAD).encode(),
+            headers={
+                "Authorization": f"Bearer {TOKEN}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(request, timeout=15.0) as reply:
+            assert reply.status == 201
+    finally:
+        server.shutdown()
+        thread.join(timeout=15.0)
+    with EventStore(db_path) as store:
+        stored = store.events_between(
+            "subject-1",
+            datetime(2026, 10, 28, tzinfo=UTC),
+            datetime(2026, 10, 30, tzinfo=UTC),
+        )
+        assert len(stored) == 1
+        assert stored[0].source_id == expected_source_id(FULL_PAYLOAD)

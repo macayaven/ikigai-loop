@@ -11,11 +11,12 @@ that hour, never an update and never a conflict.
 """
 
 import hashlib
+import hmac
 import json
 import os
 from collections.abc import Callable
 from datetime import UTC, date, datetime
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -37,6 +38,12 @@ MADRID = ZoneInfo("Europe/Madrid")
 
 HEALTH_SOURCE = "health"
 HEALTH_VERSION = "health@0.1.0"
+
+MAX_BODY_BYTES = 1_000_000
+
+
+class _BodyTooLarge(Exception):
+    """A request body over MAX_BODY_BYTES; the handler answers 413."""
 
 
 def _decode_object(body: bytes, label: str) -> dict[str, Any]:
@@ -140,7 +147,8 @@ def make_ingest_handler(
 
     class IngestHandler(BaseHTTPRequestHandler):
         def do_POST(self) -> None:
-            if self.headers.get("Authorization") != f"Bearer {token}":
+            presented = self.headers.get("Authorization") or ""
+            if not hmac.compare_digest(presented, f"Bearer {token}"):
                 self._reply(401, b"")
                 return
             if self.path == "/health/daily":
@@ -151,7 +159,11 @@ def make_ingest_handler(
                 self._reply(404, b"")
 
         def _handle_health(self) -> None:
-            body = self._read_body()
+            try:
+                body = self._read_body()
+            except _BodyTooLarge:
+                self._reply(413, b"")
+                return
             if body is None:
                 self._reply(400, _counts_body(0, 0))
                 return
@@ -168,7 +180,11 @@ def make_ingest_handler(
                 self._reply(200, _counts_body(0, 1))
 
         def _handle_screen_hour(self) -> None:
-            body = self._read_body()
+            try:
+                body = self._read_body()
+            except _BodyTooLarge:
+                self._reply(413, b"")
+                return
             if body is None:
                 self._reply(400, _counts_body(0, 0))
                 return
@@ -190,6 +206,8 @@ def make_ingest_handler(
                 return None
             if length < 0:
                 return None
+            if length > MAX_BODY_BYTES:
+                raise _BodyTooLarge
             try:
                 return self.rfile.read(length)
             except (OSError, ValueError):
@@ -221,5 +239,5 @@ def serve_ingest(host: str, port: int, db_path: Path | None) -> None:
             now_fn=lambda: datetime.now(UTC),
             token=token,
         )
-        server = ThreadingHTTPServer((host, port), handler)
+        server = HTTPServer((host, port), handler)
         server.serve_forever()
