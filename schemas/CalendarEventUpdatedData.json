@@ -1,0 +1,50 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "busy": {
+      "title": "Busy",
+      "type": "boolean"
+    },
+    "category": {
+      "title": "Category",
+      "type": "string"
+    },
+    "end": {
+      "format": "date-time",
+      "title": "End",
+      "type": "string"
+    },
+    "is_new": {
+      "title": "Is New",
+      "type": "boolean"
+    },
+    "start": {
+      "format": "date-time",
+      "title": "Start",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "type": {
+      "const": "calendar.event.updated",
+      "default": "calendar.event.updated",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "start",
+    "end",
+    "busy",
+    "category",
+    "tags",
+    "is_new"
+  ],
+  "title": "CalendarEventUpdatedData",
+  "type": "object"
+}

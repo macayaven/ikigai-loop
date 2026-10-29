@@ -18,6 +18,16 @@ Built on branch `t2-spec-v04` per [docs/plans/002-spec-v04.md](docs/plans/002-sp
 
 Plan and implementation: muse-wonder-1.0 (effort high), in Muse Code.
 
+## Ticket 3 — core schemas (2026-10-29)
+
+Built on branch `t3-core-schemas` per [docs/plans/003-core-schemas.md](docs/plans/003-core-schemas.md):
+Pydantic v2 core schemas in `framework/schemas/` (Event envelope with discriminated
+`data` union for 21 event types, Fact, Profile, Criterion, Manifest/BlockConfig,
+Decision), JSON Schema exports in `schemas/`, round-trip/rejection/drift tests,
+and the README Status section.
+
+Plan and implementation: muse-wonder-1.0 (effort high), in Muse Code.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

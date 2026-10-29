@@ -1,0 +1,25 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "block_id": {
+      "title": "Block Id",
+      "type": "string"
+    },
+    "target": {
+      "title": "Target",
+      "type": "string"
+    },
+    "type": {
+      "const": "app.tap",
+      "default": "app.tap",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "block_id",
+    "target"
+  ],
+  "title": "AppTapData",
+  "type": "object"
+}

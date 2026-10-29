@@ -1,0 +1,132 @@
+{
+  "$defs": {
+    "BlockConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "additionalProperties": true,
+          "title": "Config",
+          "type": "object"
+        },
+        "dimension": {
+          "enum": [
+            "love",
+            "good_at",
+            "world_needs",
+            "paid_for",
+            "limit",
+            "contrast"
+          ],
+          "title": "Dimension",
+          "type": "string"
+        },
+        "rationale": {
+          "default": "",
+          "title": "Rationale",
+          "type": "string"
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "dimension"
+      ],
+      "title": "BlockConfig",
+      "type": "object"
+    },
+    "ChangelogEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "change": {
+          "title": "Change",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From"
+        },
+        "why": {
+          "title": "Why",
+          "type": "string"
+        }
+      },
+      "required": [
+        "change",
+        "why",
+        "evidence"
+      ],
+      "title": "ChangelogEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "blocks": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BlockConfig"
+      },
+      "title": "Blocks",
+      "type": "object"
+    },
+    "changelog": {
+      "items": {
+        "$ref": "#/$defs/ChangelogEntry"
+      },
+      "title": "Changelog",
+      "type": "array"
+    },
+    "layout": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Layout",
+      "type": "array"
+    },
+    "parent": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Parent"
+    },
+    "version": {
+      "minLength": 1,
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "version",
+    "parent",
+    "layout",
+    "blocks",
+    "changelog"
+  ],
+  "title": "Manifest",
+  "type": "object"
+}

@@ -1,0 +1,22 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "energy": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Energy",
+      "type": "integer"
+    },
+    "type": {
+      "const": "app.checkin",
+      "default": "app.checkin",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "energy"
+  ],
+  "title": "AppCheckinData",
+  "type": "object"
+}

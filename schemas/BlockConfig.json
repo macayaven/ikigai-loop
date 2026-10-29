@@ -1,0 +1,38 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "config": {
+      "additionalProperties": true,
+      "title": "Config",
+      "type": "object"
+    },
+    "dimension": {
+      "enum": [
+        "love",
+        "good_at",
+        "world_needs",
+        "paid_for",
+        "limit",
+        "contrast"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "rationale": {
+      "default": "",
+      "title": "Rationale",
+      "type": "string"
+    },
+    "type": {
+      "minLength": 1,
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "dimension"
+  ],
+  "title": "BlockConfig",
+  "type": "object"
+}

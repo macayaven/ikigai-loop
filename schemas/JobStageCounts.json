@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "applied": {
+      "minimum": 0,
+      "title": "Applied",
+      "type": "integer"
+    },
+    "interview": {
+      "minimum": 0,
+      "title": "Interview",
+      "type": "integer"
+    },
+    "offer": {
+      "minimum": 0,
+      "title": "Offer",
+      "type": "integer"
+    },
+    "screen": {
+      "minimum": 0,
+      "title": "Screen",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "applied",
+    "screen",
+    "interview",
+    "offer"
+  ],
+  "title": "JobStageCounts",
+  "type": "object"
+}
