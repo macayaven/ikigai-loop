@@ -20,6 +20,8 @@ class HttpResponse:
 
 HttpGet = Callable[[str, dict[str, str]], HttpResponse]
 
+HttpPost = Callable[[str, dict[str, str], bytes], HttpResponse]
+
 
 def as_dict(value: Any) -> dict[str, Any] | None:
     """Narrow an opaque JSON value to a str-keyed dict, else None."""
@@ -42,6 +44,30 @@ class CollectorError(Exception):
 def urllib_http_get(url: str, headers: dict[str, str]) -> HttpResponse:
     """Fetch with stdlib urllib; HTTPError becomes a response, the rest a CollectorError."""
     request = urllib.request.Request(url, headers=headers or {})
+    try:
+        with urllib.request.urlopen(request, timeout=15.0) as response:
+            raw_headers = response.headers
+            return HttpResponse(
+                status=int(response.status),
+                headers={k.lower(): v for k, v in raw_headers.items()},
+                body=response.read(),
+            )
+    except urllib.error.HTTPError as exc:
+        raw = exc.headers or {}
+        return HttpResponse(
+            status=int(exc.code),
+            headers={k.lower(): v for k, v in raw.items()},
+            body=exc.read(),
+        )
+    except (urllib.error.URLError, OSError, TimeoutError):
+        raise CollectorError("network error") from None
+
+
+def urllib_http_post(url: str, headers: dict[str, str], body: bytes) -> HttpResponse:
+    """Post with stdlib urllib; HTTPError becomes a response, the rest a CollectorError."""
+    request = urllib.request.Request(
+        url, data=body, headers=headers or {}, method="POST"
+    )
     try:
         with urllib.request.urlopen(request, timeout=15.0) as response:
             raw_headers = response.headers

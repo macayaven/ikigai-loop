@@ -17,7 +17,7 @@ v0.4 applies decisions D1–D10 from [docs/PLAN.md](PLAN.md). The museum contrac
 |---|---|
 | D1 | Profile A is Builder: "make original, useful things that are mine"; no expiry-driven goal remains |
 | D2 | Shared signals gain Apple Health daily aggregates, ActivityWatch app categories (Mac), and the public build feed |
-| D3 | Email and iPhone Screen Time move to Won't |
+| D3 | Email moves to Won't; iPhone Screen Time moves to Could (arrives via ActivityWatch's Screen Time import; category minutes only) |
 | D4 | GitHub signal excludes this repo itself |
 | D5 | Collectors are deterministic, write to an append-only event log; no live source calls from agents; stream identical for both profiles and replayable |
 | D6 | Privacy expanded to two tiers: raw events never leave the local machine, Wonder sees only derived facts, public outputs carry IDs, aggregates and scores |
@@ -73,7 +73,7 @@ Both are real sides of the same week, so usage and feedback signals stay honest.
 | Inspect AI eval suite + meta-eval | Autonomy level A2 | Spotify playback inside the app | Social network data |
 | Glimmer cycle, Wonder decisions, manifest diffs | L3 canary | Public demo instance on fixtures | Multi-user auth |
 | Autonomy A0/A1, rollback, kill switch | Synthetic personas ×3 | | Email |
-| Calibration UI (pairwise ratings), blind attribution test | Langfuse runtime traces | Null-objective control profile (equal weights, no statements) | iPhone Screen Time |
+| Calibration UI (pairwise ratings), blind attribution test | Langfuse runtime traces | Null-objective control profile (equal weights, no statements), iPhone Screen Time (via ActivityWatch import; category minutes only) | |
 
 ## 2. Hard constraints
 
