@@ -85,6 +85,7 @@ class HealthDailyData(SchemaModel):
     steps: NonNegativeInt | None = None
     exercise_min: NonNegativeFloat | None = None
     mindful_min: NonNegativeFloat | None = None
+    daylight_min: NonNegativeFloat | None = None
     mood_valence: Annotated[float, Field(ge=-1, le=1)] | None = None
 
 

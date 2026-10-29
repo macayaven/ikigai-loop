@@ -80,6 +80,27 @@ page tests.
 
 Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
 
+## Ticket 7 — collectors wave 2 (2026-10-29)
+
+Built on branch `t7-collectors-wave2` per [docs/plans/007-collectors-wave2.md](docs/plans/007-collectors-wave2.md):
+`HealthDailyData` gains optional `daylight_min` (schema JSONs regenerated);
+SPEC D3 moves iPhone Screen Time from Won't to Could (via the ActivityWatch
+Screen Time import, category minutes only) while Email stays Won't;
+`SpotifyCollector` (`spotify@0.1.0`) with a per-poll refresh-token POST and
+`after_ms` cursor over `music.play` events; `ActivityWatchCollector`
+(`activitywatch@0.1.0`) as a push source building `screen.hour` per-category
+minutes over the last 48 complete UTC hours with AFK clipping and the pinned
+category table (titles and URLs dropped at the collector); a single stdlib
+`ingest.py` server with `POST /health/daily` (yesterday-in-Madrid dating,
+content-hash `source_id`, corrected re-posts supersede) and
+`POST /events/screen-hour` behind a required `INGEST_TOKEN` bearer; CLI
+`run spotify`, `push activitywatch`, `ingest-health`, `serve-ingest`; the
+`http_post` seam in `common.py`; `ops/health-shortcut.md` and
+`ops/spotify-auth.md`; offline tests on synthetic fixtures only. No live
+poll, live Shortcut POST, or live push was run.
+
+Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

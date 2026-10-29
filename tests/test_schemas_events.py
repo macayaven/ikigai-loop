@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from framework.schemas import Event
+from framework.schemas import Event, HealthDailyData
 
 NOW = datetime(2026, 10, 29, 18, 0, tzinfo=UTC)
 LATER = datetime(2026, 10, 29, 19, 0, tzinfo=UTC)
@@ -83,6 +83,7 @@ CASES: list[tuple[str, str, dict[str, object]]] = [
             "steps": 8000,
             "exercise_min": 30.0,
             "mindful_min": 5.0,
+            "daylight_min": 12.5,
             "mood_valence": 0.5,
         },
     ),
@@ -180,10 +181,13 @@ def test_health_daily_all_metrics_none_round_trip() -> None:
         "steps": None,
         "exercise_min": None,
         "mindful_min": None,
+        "daylight_min": None,
         "mood_valence": None,
     }
     event = Event.model_validate(envelope("health.daily", "sensitive", data))
     assert Event.model_validate_json(event.model_dump_json()) == event
+    assert isinstance(event.data, HealthDailyData)
+    assert event.data.daylight_min is None
 
 
 def test_event_is_frozen() -> None:

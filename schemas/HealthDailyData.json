@@ -1,6 +1,19 @@
 {
   "additionalProperties": false,
   "properties": {
+    "daylight_min": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Daylight Min"
+    },
     "exercise_min": {
       "anyOf": [
         {
