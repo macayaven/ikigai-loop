@@ -53,6 +53,12 @@ plus a `python -m framework.collectors run <name>` CLI that prints only
 `inserted=<n> conflicts=<n>`. HTTP stays stdlib `urllib`; all tests are
 offline on synthetic fixtures, and no live poll was run.
 
+Amendment 4 (same branch, second commit, same models/efforts):
+`CalendarIcsCollector(label="personal")` with `name = calendar-<label>`,
+per-label `ICAL_URL_<LABEL>` env vars (legacy `ICAL_URL` fallback for
+`personal` only), `run calendar [--label <label>]`, and
+`ICAL_URL_PERSONAL=`/`ICAL_URL_HOME=` in `.env.example`.
+
 Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
 
 ## AI assistance outside the Muse family
