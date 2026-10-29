@@ -28,6 +28,19 @@ and the README Status section.
 
 Plan and implementation: muse-wonder-1.0 (effort high), in Muse Code.
 
+## Ticket 4 — event store and collector framework (2026-10-29)
+
+Built on branch `t4-event-store` per [docs/plans/004-event-store.md](docs/plans/004-event-store.md):
+append-only SQLite event store in `framework/store/` (stdlib `sqlite3` only:
+`events` with `UNIQUE (source, source_id)` plus trigger-blocked `UPDATE`,
+`cursors`, `batch_hashes`, `conflicts`), `Collector` protocol with the
+append-only `source_id` contract, transactional `run_collector` returning
+`(inserted, conflicts)`, `FixtureCollector` over synthetic JSONL,
+`daily_batch_hash` on Europe/Madrid days, `events_between`, and the only
+delete path `purge_before`, with store and collector tests.
+
+Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
