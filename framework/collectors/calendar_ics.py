@@ -28,6 +28,7 @@ from framework.schemas import (
 
 MADRID = ZoneInfo("Europe/Madrid")
 TAG_PATTERN = re.compile(r"iki-[a-z]+")
+LABEL_PATTERN = re.compile(r"[a-z]+")
 
 
 def _as_aware(value: date | datetime) -> datetime | None:
@@ -60,26 +61,35 @@ class CalendarIcsCollector:
         self,
         http_get: HttpGet = urllib_http_get,
         now_fn: Callable[[], datetime] = lambda: datetime.now(UTC),
+        label: str = "personal",
     ) -> None:
+        if LABEL_PATTERN.fullmatch(label) is None:
+            raise ValueError(f"invalid calendar label: {label!r}")
         self._http_get = http_get
         self._now_fn = now_fn
-        self.name = "calendar"
+        self.label = label
+        self.name = f"calendar-{label}"
         self.version = "calendar@0.1.0"
 
     def poll(self, cursor: Any) -> tuple[list[Event], Any]:
         now = self._now_fn()
-        url = os.environ.get("ICAL_URL")
+        env_var = f"ICAL_URL_{self.label.upper()}"
+        url = os.environ.get(env_var)
+        if not url and self.label == "personal":
+            url = os.environ.get("ICAL_URL")
         if not url:
-            raise CollectorError("calendar: ICAL_URL is not set")
+            raise CollectorError(f"{self.name}: {env_var} is not set")
         subject_id = subject_id_from_env()
         try:
             response = self._http_get(url, {})
         except CollectorError:
-            raise CollectorError("calendar: network error") from None
+            raise CollectorError(f"{self.name}: network error") from None
         except (urllib.error.URLError, OSError, TimeoutError):
-            raise CollectorError("calendar: network error") from None
+            raise CollectorError(f"{self.name}: network error") from None
         if response.status != 200:
-            raise CollectorError(f"calendar: fetch failed (status {response.status})")
+            raise CollectorError(
+                f"{self.name}: fetch failed (status {response.status})"
+            )
         try:
             cal = icalendar.Calendar.from_ical(response.body)
             window_start = now - timedelta(days=2)
@@ -89,7 +99,7 @@ class CalendarIcsCollector:
                 recurring_ical_events.of(cal).between(window_start, window_end),
             )
         except (KeyError, ValueError, AttributeError, TypeError):
-            raise CollectorError("calendar: invalid response") from None
+            raise CollectorError(f"{self.name}: invalid response") from None
 
         current: dict[str, dict[str, Any]] = {}
         for component in expanded:
@@ -229,15 +239,15 @@ class CalendarIcsCollector:
             start=start,
             end=end,
             busy=bool(data["busy"]),
-            category="personal",
+            category=self.label,
             tags=list(data["tags"]),
             is_new=bool(data["is_new"]),
         )
         source_id = str(data["source_id"])
         return Event(
-            id=event_id("calendar", source_id),
+            id=event_id(self.name, source_id),
             subject_id=subject_id,
-            source="calendar",
+            source=self.name,
             type=event_type,
             time=start,
             source_id=source_id,
@@ -256,15 +266,15 @@ class CalendarIcsCollector:
             start=start,
             end=end,
             busy=bool(stored["busy"]),
-            category="personal",
+            category=self.label,
             tags=list(stored["tags"]),
             is_new=bool(stored["is_new"]),
         )
         source_id = str(stored["source_id"]) + "#cancelled"
         return Event(
-            id=event_id("calendar", source_id),
+            id=event_id(self.name, source_id),
             subject_id=subject_id,
-            source="calendar",
+            source=self.name,
             type="calendar.event.cancelled",
             time=start,
             source_id=source_id,

@@ -20,16 +20,16 @@ def build_collector(
     name: str,
     http_get: HttpGet = urllib_http_get,
     now_fn: Callable[[], datetime] | None = None,
+    label: str = "personal",
 ) -> Collector:
-    """Build one wave-1 collector by CLI name."""
-    if name not in NAMES:
+    """Build one wave-1 collector by CLI name (label applies to calendar)."""
+    if name == "calendar":
+        if now_fn is None:
+            return CalendarIcsCollector(http_get=http_get, label=label)
+        return CalendarIcsCollector(http_get=http_get, now_fn=now_fn, label=label)
+    if name not in ("github", "feed"):
         raise ValueError(f"unknown collector: {name}")
-    makers = {
-        "calendar": CalendarIcsCollector,
-        "github": GitHubEventsCollector,
-        "feed": BuildFeedCollector,
-    }
-    cls = makers[name]
+    cls = GitHubEventsCollector if name == "github" else BuildFeedCollector
     if now_fn is None:
         return cls(http_get=http_get)
     return cls(http_get=http_get, now_fn=now_fn)
@@ -50,8 +50,13 @@ def main(
     sub = parser.add_subparsers(dest="command", required=True)
     run_parser = sub.add_parser("run", help="Poll once and record the result.")
     run_parser.add_argument("name", choices=list(NAMES))
+    run_parser.add_argument(
+        "--label", default=None, help="Calendar label (only with calendar)."
+    )
     args = parser.parse_args(argv)
-    collector = build_collector(args.name, http_get, now_fn)
+    if args.name != "calendar" and args.label is not None:
+        parser.error("--label only applies to calendar")
+    collector = build_collector(args.name, http_get, now_fn, args.label or "personal")
     try:
         with EventStore(db_path) as store:
             inserted, conflicts = run_collector(store, collector)

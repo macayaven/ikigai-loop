@@ -91,9 +91,39 @@ Muse Code 1.4.14 (1.4.14-R7309.1)
 - AT12 passed (negative control on the base tree): collection failed with
   no `framework.collectors` module and `framework/collectors/` did not
   exist.
-- Per-file pytest counts on the branch: `test_calendar_ics.py` 9,
+- Per-file pytest counts on the branch after the first commit:
+  `test_calendar_ics.py` 9, `test_github_events.py` 6,
+  `test_build_feed.py` 4, `test_collectors_cli.py` 4.
+
+## Amendment 4 — multiple calendars (same models/efforts, second commit)
+
+- `CalendarIcsCollector(label: str = "personal")`: non-`^[a-z]+$` labels
+  raise `ValueError` at construction; `name = f"calendar-{label}"` (own
+  cursor per calendar), `Event.source = name`, `category = label`,
+  `version` stays `calendar@0.1.0`. URL env var is
+  `f"ICAL_URL_{label.upper()}"`, with a `personal`-only fallback to
+  legacy `ICAL_URL`; missing-env errors name only the variable, and all
+  messages are prefixed with the collector `name`. CLI:
+  `run calendar [--label <label>]` (default `personal`; `--label` with
+  `github`/`feed` is an argparse error). `.env.example` now carries
+  `ICAL_URL_PERSONAL=` and `ICAL_URL_HOME=` instead of `ICAL_URL=`.
+- New tests: `test_two_labels_keep_independent_cursors` (personal +
+  home on one store, own cursors, `category == label`, a home-only empty
+  poll cancels only the home instance and leaves the personal cursor
+  untouched), `test_env_var_naming_and_personal_fallback`,
+  `test_home_secret_never_leaks`, `test_invalid_label_rejected`, plus
+  `test_cli_calendar_label_flag` and
+  `test_cli_label_rejected_for_other_collectors`. Existing calendar/CLI
+  tests updated to the label contract (`calendar-personal` cursors and
+  sources, `ICAL_URL_PERSONAL` env).
+- `make check` green again — ruff, ruff format, pyright strict on
+  `framework/` with 0 errors, full pytest 100 passed (29 new + 71
+  pre-existing), gitleaks no leaks. No network in any test; the CLI
+  label test pins its clock via `now_fn` so the window cannot age out.
+- Per-file pytest counts after amendment 4: `test_calendar_ics.py` 13,
   `test_github_events.py` 6, `test_build_feed.py` 4,
-  `test_collectors_cli.py` 4.
+  `test_collectors_cli.py` 6.
+- No live poll was run; Carlos runs live polls per collector after merge.
 
 ## Notes
 
