@@ -20,7 +20,7 @@ plus a manual check of names and context is clean.
 
 ## Acceptance tests
 
-AT1–AT8 and AT10 passed locally on 2026-10-27; AT9 pending CI.
+AT1–AT8 and AT10 passed locally on 2026-10-27; AT9 passed in CI on PR #1.
 
 ## Notes
 

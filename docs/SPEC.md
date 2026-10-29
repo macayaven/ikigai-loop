@@ -1,13 +1,30 @@
-# Ikigai Loop: Build Spec v0.3 (one person, two objectives)
+# Ikigai Loop: Build Spec v0.4 (one person, two objectives)
 
 Meta AI Developer Hackathon · indie track · theme "Build for Your World"
-Status: draft v0.3, 2026-10-27 · Author: Carlos · Submission due 2026-11-04 21:00 ET
+Status: draft v0.4, 2026-10-29 · Author: Carlos · Submission due 2026-11-04 21:00 ET
 Previous versions: v0.1 (naive design) and v0.2 (two people), not included in this repo.
 
 > **Pitch.** Same code, same person, same signals, two objective functions: two apps that end up with nothing in common.
 > **Thesis for the judges.** Self-improving software is only worth trusting if the evaluator is trustworthy. So we built the evaluator first, measured it against a human, and let the system earn its autonomy.
 
 ---
+
+## 0.2 What changed in v0.4 and why
+
+v0.4 applies decisions D1–D10 from [docs/PLAN.md](PLAN.md). The museum contract is [docs/MUSEUM-CONTRACT.md](MUSEUM-CONTRACT.md).
+
+| D | Change |
+|---|---|
+| D1 | Profile A is Builder: "make original, useful things that are mine"; no expiry-driven goal remains |
+| D2 | Shared signals gain Apple Health daily aggregates, ActivityWatch app categories (Mac), and the public build feed |
+| D3 | Email and iPhone Screen Time move to Won't |
+| D4 | GitHub signal excludes this repo itself |
+| D5 | Collectors are deterministic, write to an append-only event log; no live source calls from agents; stream identical for both profiles and replayable |
+| D6 | Privacy expanded to two tiers: raw events never leave the local machine, Wonder sees only derived facts, public outputs carry IDs, aggregates and scores |
+| D7 | Collectors start by Oct 30 evening so day 0 starts with history in the knowledge base |
+| D8 | Day 0 is Oct 31 13:00 Europe/Madrid (written as Oct 31 / 2026-10-31), with the fallback "Oct 31 evening or Nov 1 13:00 if T11–T13 are not done" |
+| D9 | Demo becomes the museum: one `tour.json` rendered as a 2D page and a WebXR room per profile, gated by the same eval; XR go/no-go Nov 2 13:00 Europe/Madrid. Contract: [docs/MUSEUM-CONTRACT.md](MUSEUM-CONTRACT.md) |
+| D10 | `subject_id` is separate from `profile_id` from the start; more subjects join later |
 
 ## 0.1 What changed in v0.3 and why
 
@@ -22,8 +39,8 @@ v0.2 involved a second person who isn't a registered participant. That meant thi
 | Final test | blind cross-preference (each person picks their own) | **blind attribution**: raters match apps to objectives without labels |
 | Third-party data | the friend's, with consent | none |
 
-Profiles (names provisional):
-- **A · Builder.** Ship the hackathon, top-lab interview, the public write-up.
+Profiles:
+- **A · Builder.** Make original, useful things that are mine.
 - **B · Recovery.** Rest, family, music, the people around me.
 
 Both are real sides of the same week, so usage and feedback signals stay honest. Neither is a role-played persona.
@@ -43,7 +60,7 @@ Both are real sides of the same week, so usage and feedback signals stay honest.
 
 **Goals**
 1. An evaluation framework strong enough to let software change itself unattended: validated against human judgment, adversarially tested, logged.
-2. Two objective profiles (A Builder, B Recovery) fed the **same signals** from one day-0 commit, diverging into apps that blind raters can attribute to the right objective.
+2. Two objective profiles (A Builder: make original, useful things that are mine; B Recovery) fed the **same signals** from one day-0 commit, diverging into apps that blind raters can attribute to the right objective.
 3. Real numbers for the submission and the write-up, failures included.
 
 **Non-goals:** multi-tenant product, scraping, native app, statistical claims beyond one person and two objectives.
@@ -55,8 +72,8 @@ Both are real sides of the same week, so usage and feedback signals stay honest.
 | Block library (10 blocks), manifest schema, renderer | Muse Code generating new blocks | Simulated hackathon judge panel for Carlos | Free-form app rewrites |
 | Inspect AI eval suite + meta-eval | Autonomy level A2 | Spotify playback inside the app | Social network data |
 | Glimmer cycle, Wonder decisions, manifest diffs | L3 canary | Public demo instance on fixtures | Multi-user auth |
-| Autonomy A0/A1, rollback, kill switch | Synthetic personas ×3 | | |
-| Calibration UI (pairwise ratings), blind attribution test | Langfuse runtime traces | Null-objective control profile (equal weights, no statements) | |
+| Autonomy A0/A1, rollback, kill switch | Synthetic personas ×3 | | Email |
+| Calibration UI (pairwise ratings), blind attribution test | Langfuse runtime traces | Null-objective control profile (equal weights, no statements) | iPhone Screen Time |
 
 ## 2. Hard constraints
 
@@ -64,7 +81,7 @@ Both are real sides of the same week, so usage and feedback signals stay honest.
 |---|---|---|
 | Hackathon rules | Public repo; only work built during the event; no code/data/assets without rights; my contributions identifiable | Fresh repo; `CONTRIBUTIONS.md`; gate L1 |
 | Eligibility | Only Carlos is registered and only Carlos's data is used | All commits by Carlos; no third-party data; advisory AI use disclosed in `CONTRIBUTIONS.md` |
-| Privacy | No personal data in repo or traces; ikigai texts published only as far as Carlos chooses | L1 PII + secret scan; fixtures only; redaction before tracing |
+| Privacy | No personal data in repo or traces; ikigai texts published only as far as Carlos chooses. Two tiers: raw events never leave the local machine; Wonder sees only derived facts; public outputs carry IDs, aggregates and scores | L1 PII + secret scan; fixtures only; redaction before tracing |
 | Secrets | keys from environment at runtime | `gitleaks` pre-commit and in L1 |
 | Local models | one local OpenAI-compatible endpoint via `LOCAL_LLM_BASE_URL` | Single client module |
 | Operator window | Correct with operator offline ~13.5 h/day (window 13:00–23:30) | Section 7 |
@@ -119,10 +136,12 @@ Divergence becomes measurable: Jaccard distance on block-type sets, plus config 
 
 | Shared (one copy) | Per profile |
 |---|---|
-| Signal adapters and `events` | ikigai statements, weights, criteria (visible + hidden) |
+| Signal adapters and `events` (keyed by `subject_id`) | ikigai statements, weights, criteria (visible + hidden), keyed by `profile_id` |
 | Glimmer fact extraction (objective-agnostic facts) | dimension tagging of facts, attention score, Wonder budget |
 | Block library, gate code, jury models | manifests, deploys, rollback pointer, autonomy level, κ |
 | | **feedback**: usage, 👍/👎, ratings from app A train A only, from app B train B only |
+
+`subject_id` is separate from `profile_id` from the start (D10), so more subjects join later without a schema change.
 
 Glimmer extracts facts once. Each profile then reads them through its own objective.
 
@@ -132,7 +151,7 @@ Unchanged in shape from v0.1, narrower in what it can do.
 
 ```mermaid
 flowchart TD
-    S[Signals<br/>calendar · music · GitHub · app usage] --> G[Muse Glimmer<br/>local, every 3 h]
+    S[Signals<br/>calendar · music · GitHub (excl. this repo) · Health aggregates · ActivityWatch · build feed · app usage] --> G[Muse Glimmer<br/>local, every 3 h]
     G --> KB[(Knowledge base)]
     G --> A{Attention > 0.6<br/>and budget left?}
     A -- no --> G
@@ -154,7 +173,7 @@ flowchart TD
 
 | Component | Runs on | Does | Never |
 |---|---|---|---|
-| Adapters | Spark | Calendar, Spotify, GitHub, app telemetry → `events` | Scrape |
+| Adapters (collectors) | Spark | Calendar, Spotify, GitHub (excluding the `ikigai-loop` repo itself), Apple Health daily aggregates, ActivityWatch app categories, public build feed, app telemetry → append-only `events` log. Deterministic; agents never call sources live; stream identical for both profiles and replayable | Scrape; call sources live from agents |
 | **Muse Glimmer** (open weights) | Spark via llama-swap | Every 3 h: events → KB facts; attention score; `AttentionRequest`; jury member; `insight_card` text | Decide objective, evals or code |
 | **Muse Wonder** | Meta Model API | Decision (`noop` / `evolve` / `recalibrate` / `refine_objective`); emits manifest diff or C3 spec; jury member | Ship directly |
 | **Muse Code** | Meta coding agent | C3 only: implement a new block + its tests | Touch the framework or manifests |
@@ -263,7 +282,7 @@ Report all of it, including bad results.
 
 ## 6. Data model
 
-SQLite: one shared DB for `events` and `facts`; one DB per profile for `facts`, `cycles`, `decisions`, `manifests(version, parent, json, status)`, `criteria(id, dimension, text, hidden, version)`, `verdicts(manifest_version, criterion_id, judge, pass)`, `labels(pair, human_choice, jury_choice, source)`, `feedback`, `autonomy_history`, `objective_history`. Inspect logs stored alongside, indexed by manifest version.
+SQLite: one shared DB for `events` and `facts`, keyed by `subject_id`; one DB per profile (keyed by `profile_id`, with `subject_id` carried separately per D10) for `facts`, `cycles`, `decisions`, `manifests(version, parent, json, status)`, `criteria(id, dimension, text, hidden, version)`, `verdicts(manifest_version, criterion_id, judge, pass)`, `labels(pair, human_choice, jury_choice, source)`, `feedback`, `autonomy_history`, `objective_history`. Inspect logs stored alongside, indexed by manifest version.
 
 ## 7. Resilience (unattended)
 
@@ -291,24 +310,29 @@ ikigai-loop/
 
 ## 9. Plan with checkpoints
 
+Collectors start by Oct 30 evening (D7), so day 0 starts with history in the knowledge base. Day 0 is Oct 31 13:00 Europe/Madrid (2026-10-31), with the fallback "Oct 31 evening or Nov 1 13:00 if T11–T13 are not done". Submission is Nov 4 21:00 ET. Ticket numbers (T3–T22) are from [docs/PLAN.md](PLAN.md) §3; cut order is T19 → T18 → T20 → personas to 1.
+
 | Date | Build | Checkpoint (end of day) | If it fails |
 |---|---|---|---|
 | **Oct 27** ✅ | Repo; Glimmer on llama-swap; Meta API + Muse Code headless test; Inspect hello-world task | Valid JSON from Glimmer and Wonder; Inspect log viewable (all passed) | Swap Glimmer for another open model; mark C3 as Could |
-| **Oct 28** | Manifest schema; 10 blocks + renderer; L0/L1 tasks; mutants; ikigai A and B, criteria + seed labels for both | L0/L1 catch their mutants | Cut blocks to 6 |
-| **Oct 29** | Jury, L2/L3 scorers; Glimmer cycle; Wonder → manifest diff; deployer; A0 cards; **dry-run night on 3 synthetic personas** | 100% mutants caught; personas evolve overnight without operator | Fix, second dry-run night; day 0 moves to Oct 31 at the latest |
-| **Oct 30** | **Day 0**: tag commit; start profiles A and B on the same signal stream | Both apps live at A0, byte-identical manifests | — |
-| Oct 31 – Nov 2 | Canary; recalibration; autonomy promotion; (Should) Muse Code C3; digest; traces | One unattended night per profile with zero operator fixes | Stay at A0/A1; C3 stays Could |
-| Nov 3 | Framework freeze; metrics notebook from Inspect logs; demo script; recruit 2 blind raters | Metrics regenerate from data | Jury-only attribution |
-| Nov 4 | Blind attribution; video; README; submit by 21:00 ET | Submitted | — |
+| **Oct 29** | T2 SPEC v0.4; T3 core schemas; T4 event store and collector framework; ikigai A and B | Schemas round-trip; append-only store idempotent | Slip T4; protect day 0 |
+| **Oct 30** | T5 collectors wave 1 (Calendar, GitHub with exclusion, public feed); T6 blocks v0 (6) and renderer; T7 collectors wave 2 (Spotify, Health ingest, ActivityWatch); T8 gate L0/L1 and mutants; T9 Glimmer cycle; T10 profiles and criteria. **Collectors run on a timer from Oct 30 evening** | Recorded-fixture tests pass; manifest renders; 100% mutants caught; facts cite event IDs | Cut blocks further; time-box Health; fix gate before day 0 |
+| **Oct 31 13:00 Europe/Madrid** | T11 jury/L2/L3/Wonder diff; T12 deployer/A0 cards; T13 orchestrator and ops. **Day 0**: tag commit; start profiles A and B on the same signal stream. Fallback: Oct 31 evening or Nov 1 13:00 if T11–T13 are not done | Both apps live at A0, byte-identical manifests | Use the fallback above; collectors already run, so the stream loses nothing |
+| Oct 31 – Nov 1 | T14 synthetic personas ×3 and dry run; T15 κ/calibration/autonomy; T16 run export and `tour.json`; T17 museum 2D | One unattended night per profile with zero operator fixes; tour gate passes | Stay at A0/A1; personas to 1 |
+| **Nov 2 13:00 Europe/Madrid** | T18 (Cut) C3; T19 (Cut) L4 canary; T20 museum XR **go/no-go at Nov 2 13:00** | XR decision recorded; 60 s headset recording if go | XR cut; 2D museum ships |
+| Nov 3 | T21 metrics notebook and blind attribution kit; framework freeze; recruit 2 blind raters | Metrics regenerate from data | Jury-only attribution |
+| Nov 4 | T22 blind attribution; video; README; submit by 21:00 ET | Submitted | — |
 
-Real-data experiment: 5 days (Oct 30 – Nov 4). Synthetic personas run from Oct 29.
+Real-data experiment: Oct 31 – Nov 4 (≥ 4 days of unattended cycles, per §12). Synthetic personas run from Oct 31.
 
-## 10. Demo (3 min)
+## 10. Demo (3 min): the museum
+
+The demo is a museum built from one `tour.json` per run, rendered two ways from the same file: a 2D page and a WebXR room (one room per profile, plus a shared hall). The tour is gated by the same eval (`validate_tour`); XR is gated by the Nov 2 13:00 Europe/Madrid go/no-go in §9. Full contract: [docs/MUSEUM-CONTRACT.md](MUSEUM-CONTRACT.md), which is the input to T16/T17/T20.
 
 1. (15 s) Hook: two phones, same person, same signals, same day-0 app. Only the objective differed. Now they're completely different.
 2. (35 s) The evaluator first: mutant table, κ curve, autonomy timeline ("it earned the right to ship on day 3").
 3. (50 s) One real change end to end: Glimmer attention → Wonder diff → jury verdicts in Inspect view → deploy → in-app "why I changed".
-4. (40 s) Timelapse of both manifests side by side, plus the 3 synthetic personas.
+4. (40 s) The museum: walk the hall and both rooms (2D page, or WebXR if the Nov 2 gate passed); timelapse of both manifests side by side, plus the 3 synthetic personas.
 5. (40 s) Numbers and blind attribution result, then the one-line takeaway.
 
 ## 11. Residual risks
