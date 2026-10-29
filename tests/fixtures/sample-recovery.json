@@ -1,0 +1,101 @@
+{
+  "blocks": {
+    "calendar_slots#family": {
+      "config": {
+        "label": "Family slots",
+        "max_slots": 3,
+        "rule": "afternoons, unhurried"
+      },
+      "dimension": "love",
+      "rationale": "Synthetic recovery family slots.",
+      "type": "calendar_slots"
+    },
+    "checkin#wellbeing": {
+      "config": {
+        "label": "Wellbeing check",
+        "metric": "wellbeing",
+        "prompt": "How are you, honestly?"
+      },
+      "dimension": "limit",
+      "rationale": "Synthetic recovery wind-down check.",
+      "type": "checkin"
+    },
+    "checklist#day": {
+      "config": {
+        "items": [
+          {
+            "done": false,
+            "id": "walk",
+            "label": "25 min walk this afternoon"
+          },
+          {
+            "done": false,
+            "id": "journal",
+            "label": "Write three lines"
+          },
+          {
+            "done": true,
+            "id": "music",
+            "label": "Play one record"
+          }
+        ],
+        "label": "A good day"
+      },
+      "dimension": "love",
+      "rationale": "Synthetic recovery day checklist.",
+      "type": "checklist"
+    },
+    "focus_session#rest": {
+      "config": {
+        "goal": "Music, no goal beyond listening",
+        "label": "Rest window",
+        "minutes": 15
+      },
+      "dimension": "love",
+      "rationale": "Synthetic recovery rest window.",
+      "type": "focus_session"
+    },
+    "insight_card#today": {
+      "config": {
+        "fact_ids": [
+          "fact_recovery_1"
+        ],
+        "label": "Today in one line"
+      },
+      "dimension": "love",
+      "rationale": "Synthetic recovery insight.",
+      "type": "insight_card"
+    },
+    "link_list#listen": {
+      "config": {
+        "label": "Worth a listen",
+        "links": [
+          {
+            "label": "Synthetic playlist one",
+            "note": "for the evening",
+            "url": "https://example.invalid/playlist-1"
+          },
+          {
+            "label": "Synthetic playlist two",
+            "note": "",
+            "url": "https://example.invalid/playlist-2"
+          }
+        ]
+      },
+      "dimension": "love",
+      "rationale": "Synthetic recovery listening list.",
+      "type": "link_list"
+    }
+  },
+  "changelog": [],
+  "layout": [
+    "checklist#day",
+    "focus_session#rest",
+    "checkin#wellbeing",
+    "calendar_slots#family",
+    "insight_card#today",
+    "link_list#listen"
+  ],
+  "parent": null,
+  "version": "sample-recovery"
+}

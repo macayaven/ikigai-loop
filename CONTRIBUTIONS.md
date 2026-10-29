@@ -61,6 +61,25 @@ per-label `ICAL_URL_<LABEL>` env vars (legacy `ICAL_URL` fallback for
 
 Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
 
+## Ticket 6 — blocks v0 and renderer (2026-10-29)
+
+Built on branch `t6-blocks-renderer` per [docs/plans/006-blocks-renderer.md](docs/plans/006-blocks-renderer.md):
+six block types in `framework/blocks/` (`checklist`, `focus_session`,
+`checkin`, `calendar_slots`, `insight_card`, `link_list`), each with a
+frozen Pydantic inner config validated against the existing
+`BlockConfig` envelope, a pure Jinja2-autoescaped renderer (new runtime
+dep `jinja2`), an allowed-dimension set, and an L0 sample; a registry
+with `validate_block`/`validate_manifest`/`render_block` as the L0
+entry points T8 will call; `render_manifest` for a full offline HTML
+page from display-ready `RenderContext` data only; two rendering-sample
+fixtures (`tests/fixtures/sample-builder.json`,
+`tests/fixtures/sample-recovery.json`, never deployed — day 0 starts
+both profiles from one shared seed manifest created in T13) rendered by
+`python -m framework.blocks` to gitignored `out/`, plus registry and
+page tests.
+
+Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
