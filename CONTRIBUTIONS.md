@@ -41,6 +41,20 @@ delete path `purge_before`, with store and collector tests.
 
 Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
 
+## Ticket 5 — collectors wave 1 (2026-10-29)
+
+Built on branch `t5-collectors-wave1` per [docs/plans/005-collectors-wave1.md](docs/plans/005-collectors-wave1.md):
+three deterministic collectors in `framework/collectors/` implementing the T4
+`Collector` protocol (Calendar over a secret iCal URL with `icalendar` +
+`recurring-ical-events` expansion, GitHub own-activity with ETag cursor and
+`ikigai-loop` exclusion, public build feed from HF daily papers / HN top
+stories / GitHub new-and-rising repos emitted once per Europe/Madrid day),
+plus a `python -m framework.collectors run <name>` CLI that prints only
+`inserted=<n> conflicts=<n>`. HTTP stays stdlib `urllib`; all tests are
+offline on synthetic fixtures, and no live poll was run.
+
+Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
