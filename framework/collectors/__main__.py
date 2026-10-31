@@ -94,7 +94,7 @@ def _push_activitywatch(
     except CollectorError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    print(f"inserted={inserted} conflicts={noop}")
+    print(f"inserted={inserted} noop={noop}")
     return 0
 
 

@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "MetricRef": {
+      "additionalProperties": false,
+      "description": "A numeric value cited by a claim, reconciled against a snapshot.",
+      "properties": {
+        "metric_id": {
+          "minLength": 1,
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric_id",
+        "value"
+      ],
+      "title": "MetricRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One prose statement plus its evidence (facts and/or metric refs).",
+  "properties": {
+    "fact_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Fact Ids",
+      "type": "array"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "metric_refs": {
+      "items": {
+        "$ref": "#/$defs/MetricRef"
+      },
+      "title": "Metric Refs",
+      "type": "array"
+    },
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "text"
+  ],
+  "title": "Claim",
+  "type": "object"
+}

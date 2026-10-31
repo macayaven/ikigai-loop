@@ -101,6 +101,25 @@ poll, live Shortcut POST, or live push was run.
 
 Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
 
+## Ticket 8 — briefing gate (2026-10-31)
+
+Built on branch `t8-briefing-gate` per [docs/plans/008-briefing-gate.md](docs/plans/008-briefing-gate.md):
+the artifact changes from a mutating app to a gated briefing (conflicts
+C1–C6 with SPEC/PLAN recorded in the plan, neither file edited):
+`framework/briefing/` with the `Briefing` Pydantic schema (JSON Schemas
+exported, drift-tested), the pure deterministic gate
+(`evaluate_briefing`, no network, no model call, no env/clock read —
+L0 structure, L1 rules, L1b reconciliation against reference data), and
+`evals/` Inspect tasks with deterministic scorers on `mockllm/model`;
+the pytest meta-eval catches all 16 named mutants with their stable
+violation codes and passes all 12 known-good synthetic briefings with
+0 false rejections. Also the `push activitywatch` count label fix
+(`conflicts=` to `noop=`) and the time-bounded evening-window wording in
+`profiles/builder.md`. Evidence in
+[docs/sessions/008-briefing-gate.md](docs/sessions/008-briefing-gate.md).
+
+Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

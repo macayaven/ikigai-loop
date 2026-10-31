@@ -1,0 +1,66 @@
+{
+  "additionalProperties": false,
+  "description": "One proposed item in the ``actions`` section.",
+  "properties": {
+    "dimension": {
+      "enum": [
+        "love",
+        "good_at",
+        "world_needs",
+        "paid_for",
+        "limit",
+        "contrast"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "build",
+        "write",
+        "read",
+        "apply",
+        "outreach",
+        "walk",
+        "exercise",
+        "rest",
+        "music",
+        "social",
+        "plan",
+        "checkin"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "proposed_end": {
+      "format": "date-time",
+      "title": "Proposed End",
+      "type": "string"
+    },
+    "proposed_start": {
+      "format": "date-time",
+      "title": "Proposed Start",
+      "type": "string"
+    },
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "text",
+    "dimension",
+    "proposed_start",
+    "proposed_end"
+  ],
+  "title": "Action",
+  "type": "object"
+}

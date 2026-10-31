@@ -5,6 +5,13 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from framework.briefing.context import (
+    GateContext,
+    MetricSnapshot,
+    ProfileLimits,
+    TimeInterval,
+)
+from framework.briefing.schemas import Action, Briefing, Claim, MetricRef, Section
 from framework.schemas.core import Criterion, Fact, FactWindow, IkigaiWeights, Profile
 from framework.schemas.events import (
     AppApproveData,
@@ -73,6 +80,15 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     Manifest,
     ManifestDiff,
     Decision,
+    Briefing,
+    Section,
+    Claim,
+    Action,
+    MetricRef,
+    MetricSnapshot,
+    TimeInterval,
+    ProfileLimits,
+    GateContext,
 )
 
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"

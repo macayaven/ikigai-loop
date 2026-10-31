@@ -1,0 +1,35 @@
+{
+  "additionalProperties": false,
+  "description": "Typed limits a caller encodes; the gate never parses markdown.",
+  "properties": {
+    "allowed_end": {
+      "format": "time",
+      "title": "Allowed End",
+      "type": "string"
+    },
+    "allowed_start": {
+      "format": "time",
+      "title": "Allowed Start",
+      "type": "string"
+    },
+    "max_actions": {
+      "default": 3,
+      "maximum": 3,
+      "minimum": 1,
+      "title": "Max Actions",
+      "type": "integer"
+    },
+    "timezone": {
+      "minLength": 1,
+      "title": "Timezone",
+      "type": "string"
+    }
+  },
+  "required": [
+    "timezone",
+    "allowed_start",
+    "allowed_end"
+  ],
+  "title": "ProfileLimits",
+  "type": "object"
+}

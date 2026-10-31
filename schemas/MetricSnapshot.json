@@ -1,0 +1,18 @@
+{
+  "additionalProperties": false,
+  "description": "Point-in-time metric values; empty is valid (claims-free briefings).",
+  "properties": {
+    "values": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Values",
+      "type": "object"
+    }
+  },
+  "title": "MetricSnapshot",
+  "type": "object"
+}
