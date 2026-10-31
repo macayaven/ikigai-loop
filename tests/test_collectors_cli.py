@@ -338,7 +338,7 @@ def test_cli_push_activitywatch_prints_counts_and_opens_no_db(
     )
     assert code == 0
     out, err = capsys.readouterr()
-    assert out == "inserted=1 conflicts=0\n"
+    assert out == "inserted=1 noop=0\n"
     assert err == ""
     assert not db_path.exists()
     assert "Synthetic secret window title" not in out

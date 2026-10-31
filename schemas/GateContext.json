@@ -1,0 +1,465 @@
+{
+  "$defs": {
+    "Action": {
+      "additionalProperties": false,
+      "description": "One proposed item in the ``actions`` section.",
+      "properties": {
+        "dimension": {
+          "enum": [
+            "love",
+            "good_at",
+            "world_needs",
+            "paid_for",
+            "limit",
+            "contrast"
+          ],
+          "title": "Dimension",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "build",
+            "write",
+            "read",
+            "apply",
+            "outreach",
+            "walk",
+            "exercise",
+            "rest",
+            "music",
+            "social",
+            "plan",
+            "checkin"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "proposed_end": {
+          "format": "date-time",
+          "title": "Proposed End",
+          "type": "string"
+        },
+        "proposed_start": {
+          "format": "date-time",
+          "title": "Proposed Start",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "text",
+        "dimension",
+        "proposed_start",
+        "proposed_end"
+      ],
+      "title": "Action",
+      "type": "object"
+    },
+    "Briefing": {
+      "additionalProperties": false,
+      "description": "One gated briefing for one profile at one slot.",
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "parent_briefing_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Briefing Id"
+        },
+        "profile_id": {
+          "minLength": 1,
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "sections": {
+          "items": {
+            "$ref": "#/$defs/Section"
+          },
+          "title": "Sections",
+          "type": "array"
+        },
+        "slot": {
+          "format": "date-time",
+          "title": "Slot",
+          "type": "string"
+        },
+        "subject_id": {
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "profile_id",
+        "subject_id",
+        "slot"
+      ],
+      "title": "Briefing",
+      "type": "object"
+    },
+    "Claim": {
+      "additionalProperties": false,
+      "description": "One prose statement plus its evidence (facts and/or metric refs).",
+      "properties": {
+        "fact_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Fact Ids",
+          "type": "array"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "metric_refs": {
+          "items": {
+            "$ref": "#/$defs/MetricRef"
+          },
+          "title": "Metric Refs",
+          "type": "array"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "Fact": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "statement": {
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        },
+        "subject_id": {
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "tier": {
+          "enum": [
+            "public",
+            "private",
+            "sensitive"
+          ],
+          "title": "Tier",
+          "type": "string"
+        },
+        "window": {
+          "$ref": "#/$defs/FactWindow"
+        }
+      },
+      "required": [
+        "id",
+        "subject_id",
+        "window",
+        "statement",
+        "evidence",
+        "tier"
+      ],
+      "title": "Fact",
+      "type": "object"
+    },
+    "FactWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "FactWindow",
+      "type": "object"
+    },
+    "MetricRef": {
+      "additionalProperties": false,
+      "description": "A numeric value cited by a claim, reconciled against a snapshot.",
+      "properties": {
+        "metric_id": {
+          "minLength": 1,
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric_id",
+        "value"
+      ],
+      "title": "MetricRef",
+      "type": "object"
+    },
+    "MetricSnapshot": {
+      "additionalProperties": false,
+      "description": "Point-in-time metric values; empty is valid (claims-free briefings).",
+      "properties": {
+        "values": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Values",
+          "type": "object"
+        }
+      },
+      "title": "MetricSnapshot",
+      "type": "object"
+    },
+    "ProfileLimits": {
+      "additionalProperties": false,
+      "description": "Typed limits a caller encodes; the gate never parses markdown.",
+      "properties": {
+        "allowed_end": {
+          "format": "time",
+          "title": "Allowed End",
+          "type": "string"
+        },
+        "allowed_start": {
+          "format": "time",
+          "title": "Allowed Start",
+          "type": "string"
+        },
+        "max_actions": {
+          "default": 3,
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Max Actions",
+          "type": "integer"
+        },
+        "timezone": {
+          "minLength": 1,
+          "title": "Timezone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "timezone",
+        "allowed_start",
+        "allowed_end"
+      ],
+      "title": "ProfileLimits",
+      "type": "object"
+    },
+    "Section": {
+      "additionalProperties": false,
+      "description": "One typed section; its ``type`` is its identity (no ``id`` field).",
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/Claim"
+          },
+          "title": "Claims",
+          "type": "array"
+        },
+        "type": {
+          "enum": [
+            "overall_state",
+            "since_last",
+            "working",
+            "not_working",
+            "actions"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Section",
+      "type": "object"
+    },
+    "TimeInterval": {
+      "additionalProperties": false,
+      "description": "Half-open ``[start, end)`` interval.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "TimeInterval",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Reference data the gate reconciles one briefing against.",
+  "properties": {
+    "busy_intervals": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/TimeInterval"
+      },
+      "title": "Busy Intervals",
+      "type": "array"
+    },
+    "check_slot": {
+      "default": true,
+      "title": "Check Slot",
+      "type": "boolean"
+    },
+    "facts": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Fact"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Facts",
+      "type": "object"
+    },
+    "forbidden_raw_literals": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Forbidden Raw Literals",
+      "type": "array"
+    },
+    "free_intervals": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/TimeInterval"
+      },
+      "title": "Free Intervals",
+      "type": "array"
+    },
+    "limits": {
+      "$ref": "#/$defs/ProfileLimits"
+    },
+    "metrics": {
+      "$ref": "#/$defs/MetricSnapshot"
+    },
+    "parent_briefing": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Briefing"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "parent_metrics": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MetricSnapshot"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "private_terms": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Private Terms",
+      "type": "array"
+    },
+    "private_terms_available": {
+      "default": false,
+      "title": "Private Terms Available",
+      "type": "boolean"
+    },
+    "raw_metric_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Raw Metric Ids",
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "limits"
+  ],
+  "title": "GateContext",
+  "type": "object"
+}
