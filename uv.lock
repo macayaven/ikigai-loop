@@ -441,17 +441,19 @@ wheels = [
 [[package]]
 name = "ikigai-loop"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
+    { name = "pydantic" },
+]
+
+[package.dev-dependencies]
+app = [
     { name = "icalendar" },
     { name = "inspect-ai" },
     { name = "jinja2" },
     { name = "pillow" },
-    { name = "pydantic" },
     { name = "recurring-ical-events" },
 ]
-
-[package.dev-dependencies]
 dev = [
     { name = "pre-commit" },
     { name = "pyright" },
@@ -460,16 +462,16 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [
+requires-dist = [{ name = "pydantic" }]
+
+[package.metadata.requires-dev]
+app = [
     { name = "icalendar", specifier = ">=7.3.0" },
     { name = "inspect-ai" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pillow", specifier = ">=13.0.0" },
-    { name = "pydantic" },
     { name = "recurring-ical-events", specifier = ">=3.8.2" },
 ]
-
-[package.metadata.requires-dev]
 dev = [
     { name = "pre-commit" },
     { name = "pyright" },

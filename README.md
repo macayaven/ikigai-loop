@@ -2,6 +2,26 @@
 
 I write down what I promised myself. The agent picks which promise gets my next free hour, and a deterministic gate checks the numbers and sources it cites against my own data before I see them.
 
+## Check your own agent
+
+The number, source, label and direction checks in my gate also run on your agent's output, against records you supply. You need `uv` for the command below; the browser page needs nothing. Grab the worked input and run the checker:
+
+```sh
+curl -sLO https://raw.githubusercontent.com/macayaven/ikigai-loop/main/examples/verify/input.json
+uvx --from git+https://github.com/macayaven/ikigai-loop verify-claims input.json; echo exit=$?
+```
+
+You should see exit 1 with `L1B_METRIC_VALUE_MISMATCH`: the sample says
+November deploys reached 12 while the records say 7. Or run it in your
+browser at [https://macayaven.github.io/ikigai-loop/verify/](https://macayaven.github.io/ikigai-loop/verify/), where the same Python runs
+on your machine and nothing is sent anywhere.
+
+This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.
+
+Start from [examples/verify/README.md](examples/verify/README.md) for the
+full worked case, and [docs/ADAPTER.md](docs/ADAPTER.md) to map your own
+agent's output shape to this input.
+
 ## How it works
 
 This is the design. Status below says which parts exist today.

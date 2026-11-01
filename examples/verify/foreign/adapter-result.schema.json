@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "adapter_file": {
+      "type": "string"
+    },
+    "assumptions": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "test_command": {
+      "type": "string"
+    },
+    "test_file": {
+      "type": "string"
+    },
+    "tests_passed": {
+      "type": "boolean"
+    },
+    "unconfirmed_mappings": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "adapter_file",
+    "test_file",
+    "test_command",
+    "tests_passed",
+    "unconfirmed_mappings",
+    "assumptions"
+  ],
+  "title": "AdapterResult",
+  "type": "object"
+}

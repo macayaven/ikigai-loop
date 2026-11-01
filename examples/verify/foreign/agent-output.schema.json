@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "report": {
+      "properties": {
+        "statements": {
+          "items": {
+            "properties": {
+              "figures": {
+                "items": {
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "figure": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "figure"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "note_refs": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sentence": {
+                "type": "string"
+              },
+              "sid": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "sid",
+              "sentence",
+              "figures",
+              "note_refs"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "statements"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "report"
+  ],
+  "title": "DeployAgentOutput",
+  "type": "object"
+}

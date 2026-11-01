@@ -1,4 +1,4 @@
-.PHONY: check test eval demo
+.PHONY: check test eval demo verify-page
 
 check:
 	uv run ruff check .
@@ -21,3 +21,6 @@ eval:
 
 demo:
 	@uv run python evals/demo_rejection.py
+
+verify-page:
+	uv run python -m framework.verify.page_bundle

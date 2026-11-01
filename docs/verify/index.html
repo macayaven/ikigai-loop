@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Verify claims in your agent's output</title>
+<style>
+:root { color-scheme: light dark; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  margin: 0 auto; max-width: 72rem; padding: 1rem; line-height: 1.45;
+}
+@media (prefers-color-scheme: dark) {
+  body { background: #111; color: #eee; }
+  textarea, pre { background: #1c1c1c; color: #eee; border-color: #444; }
+  button { background: #2a2a2a; color: #eee; border-color: #555; }
+}
+.panes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 44rem) { .panes { grid-template-columns: 1fr; } }
+textarea, pre {
+  width: 100%; box-sizing: border-box; min-height: 16rem;
+  border: 1px solid #bbb; border-radius: 0.4rem; padding: 0.6rem;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.85rem;
+  white-space: pre-wrap; word-break: break-word;
+}
+pre { margin: 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.8rem 0; }
+button { padding: 0.5rem 1rem; border: 1px solid #bbb; border-radius: 0.4rem; font-size: 1rem; }
+button:disabled { opacity: 0.45; }
+.note { font-size: 0.9rem; opacity: 0.9; }
+</style>
+</head>
+<body>
+<h1>Verify claims in your agent's output</h1>
+<p>Paste your agent's output. See which numbers and sources don't reconcile.</p>
+<p class="note">This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.</p>
+<p class="note">Everything runs on your machine. I load the checker once, then nothing is sent anywhere.</p>
+<p class="note">The input holds your agent's claims plus your own records: facts and metrics come from your system of record, never from the agent's output. <a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">Every field</a> is in the worked example, and <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/ADAPTER.md">the adapter recipe</a> maps another shape to it.</p>
+<p id="progress" class="note" aria-live="polite">Loading the checker…</p>
+<div class="controls">
+<button id="run" disabled>Run</button>
+<button id="ex1" disabled>Clean pass</button>
+<button id="ex2" disabled>False number</button>
+<button id="ex3" disabled>Leaked private term</button>
+</div>
+<div class="panes">
+<div>
+<label for="input"><strong>Input JSON</strong></label>
+<textarea id="input" spellcheck="false" placeholder='{"claims": [...], "facts": {...}, "metrics": {...}}'></textarea>
+</div>
+<div>
+<strong>Report</strong>
+<pre id="report" aria-live="polite">The report lands here.</pre>
+</div>
+</div>
+<p class="note">Source: <a href="https://github.com/macayaven/ikigai-loop">macayaven/ikigai-loop</a>. Bad input shows a short message and sends nothing.</p>
+<script type="application/json" id="ex-pass">{"claims": [{"id": "c1", "metric_refs": [{"metric_id": "deploys.oct", "value": 5}, {"metric_id": "deploys.nov", "value": 9}], "text": "Deploys rose from 5 in October to 9 in November"}, {"fact_ids": ["t1"], "id": "c2", "text": "The support queue note is filed under the ticket log"}], "facts": {"t1": "Support queue note filed on Monday"}, "labels": {"deploys.nov": ["deploys", "november"], "deploys.oct": ["deploys", "october"]}, "metrics": {"deploys.nov": 9, "deploys.oct": 5}, "order": [["deploys.oct", "deploys.nov"]]}</script>
+<script type="application/json" id="ex-false-number">{"claims": [{"id": "c1", "metric_refs": [{"metric_id": "deploys.nov", "value": 9}], "text": "Deploys reached 9 in November"}], "facts": {}, "labels": {"deploys.nov": ["deploys", "november"]}, "metrics": {"deploys.nov": 5}}</script>
+<script type="application/json" id="ex-leaked-term">{"claims": [{"id": "c1", "metric_refs": [{"metric_id": "deploys.nov", "value": 5}], "text": "Deploys reached 5 in November and the Harborlight Ledger note is attached"}], "deny_terms": ["harborlight ledger"], "facts": {}, "labels": {"deploys.nov": ["deploys", "november"]}, "metrics": {"deploys.nov": 5}}</script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+<script>
+"use strict";
+const runBtn = document.getElementById("run");
+const progress = document.getElementById("progress");
+const input = document.getElementById("input");
+const report = document.getElementById("report");
+let render = null;
+function runCheck() {
+  try {
+    const raw = render(input.value);
+    const data = JSON.parse(raw);
+    report.textContent = String(data.text);
+  } catch (err) {
+    report.textContent = "The checker failed; nothing was sent.";
+  }
+}
+function fillPretty(id) {
+  input.value = JSON.stringify(JSON.parse(document.getElementById(id).textContent), null, 2);
+}
+async function boot() {
+  try {
+    progress.textContent = "Loading the checker…";
+    const pyodide = await loadPyodide();
+    progress.textContent = "Loading pydantic…";
+    await pyodide.loadPackage("pydantic");
+    progress.textContent = "Loading the checker bundle…";
+    const res = await fetch("bundle.json");
+    if (!res.ok) {
+      throw new Error("bundle fetch failed");
+    }
+    const bundle = await res.json();
+    const names = Object.keys(bundle).sort();
+    for (let i = 0; i < names.length; i++) {
+      const full = "/home/pyodide/" + names[i];
+      pyodide.FS.mkdirTree(full.slice(0, full.lastIndexOf("/")));
+      pyodide.FS.writeFile(full, bundle[names[i]]);
+    }
+    progress.textContent = "Starting the checker…";
+    await pyodide.runPythonAsync("from framework.verify.core import page_render");
+    render = pyodide.globals.get("page_render");
+    progress.textContent = "";
+    for (const el of [runBtn]) {
+      el.disabled = false;
+    }
+    for (const el of [document.getElementById("ex1"), document.getElementById("ex2"), document.getElementById("ex3")]) {
+      el.disabled = false;
+    }
+  } catch (err) {
+    progress.textContent = "Loading failed; nothing was sent.";
+  }
+}
+runBtn.addEventListener("click", runCheck);
+document.getElementById("ex1").addEventListener("click", () => { fillPretty("ex-pass"); runCheck(); });
+document.getElementById("ex2").addEventListener("click", () => { fillPretty("ex-false-number"); runCheck(); });
+document.getElementById("ex3").addEventListener("click", () => { fillPretty("ex-leaked-term"); runCheck(); });
+boot();
+</script>
+</body>
+</html>

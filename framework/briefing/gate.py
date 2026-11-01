@@ -965,3 +965,59 @@ def _finish(violations: list[Violation]) -> GateResult:
             seen.add(key)
             unique.append(violation)
     return GateResult(violations=tuple(unique))
+
+
+def collapse_text(text: str) -> str:
+    """Ticket 17a: public wrapper over ``_collapse``; nothing else changed."""
+    return _collapse(text)
+
+
+def contains_token(text: str, literal: str) -> bool:
+    """Ticket 17a: public wrapper over ``_contains_token``; nothing else changed."""
+    return _contains_token(text, literal)
+
+
+def ref_backs_token(value: float, places: int, token_abs: Decimal) -> bool:
+    """Ticket 17a: public wrapper over ``_ref_backs_token``.
+
+    Fail closed: an ``InvalidOperation`` from rounding means no backing,
+    never a traceback.
+    """
+    import decimal
+
+    try:
+        return _ref_backs_token(value, places, token_abs)
+    except decimal.InvalidOperation:
+        return False
+
+
+def word_list_hit(text: str, words: tuple[str, ...] | list[str]) -> bool:
+    """Ticket 17a: whole-token match over caller words, like the advice arm."""
+    normalized = _collapse(text).replace("\u2019", "'").replace("\u2018", "'")
+    return any(
+        bool(word)
+        and _contains_token(
+            normalized, _collapse(word).replace("\u2019", "'").replace("\u2018", "'")
+        )
+        for word in words
+    )
+
+
+def direction_sides(
+    text: str, *, exclude_words: tuple[str, ...] | list[str]
+) -> frozenset[str]:
+    """Ticket 17a: direction sides named in ``text``, minus label tokens."""
+    excluded: set[str] = set()
+    for word in exclude_words:
+        excluded.update(_DIRECTION_TOKEN_RE.findall(_collapse(word)))
+    tokens = set(_DIRECTION_TOKEN_RE.findall(_collapse(text))) - excluded
+    sides: set[str] = set()
+    if tokens & _UP_WORDS:
+        sides.add("up")
+    if tokens & _DOWN_WORDS:
+        sides.add("down")
+    return frozenset(sides)
+
+
+ADVICE_WORDS: tuple[str, ...] = tuple(sorted(_ADVICE_SINGLES)) + tuple(_ADVICE_PHRASES)
+"""Ticket 17a: the gate's pinned advice list, for callers replicating it."""
