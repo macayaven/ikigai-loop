@@ -1,14 +1,24 @@
-"""Ticket 8 (review fixes): number-token extraction.
+"""Ticket 10: number-token extraction.
 
-Mask-then-extract, strict by default: when in doubt the gate rejects, so a
-bare year, an uncited identifier, a dotted version, a colon time followed
-by a duration word, and a spelled-out quantity are all tokens. Only full
-dates, capitalized month-name dates, plain clock times, ordinals, cited
-references, and spelled-out non-quantities are free.
+Mask-then-extract, strict by default: when in doubt the gate rejects. The
+gate now checks that claim prose names the metric it cites (label, and
+period word for period metrics) and that direction words agree with the
+cited values.
 
-Two disclosed gaps (see the session note): the gate checks that a value
-matches a ref, not that the prose attaches it to the right metric; and
-backing compares absolute values, so direction words are not checked.
+What is still not caught, all of it: a claim can name the right metric,
+period and direction and still say something false in its other words,
+including comparison words outside the pinned lists (``climbed``,
+``declined``, ``below``, ``above``); in a multi ref claim the values are
+not bound to their order in the sentence; a claim with only ``fact_ids``
+has no metric binding, so its direction words are not checked; ``eight
+and a half hours`` backs as 8; ``twenty-one`` backs as 20 whatever
+follows, because a ``one`` joined to the word before it is not a token;
+two metrics that share a label can swap,
+since a feed source and the feed total both read as ``feed``; a digit or
+number word inside a category or tag name, such as ``3D``, reads as a
+number and is rejected unless a ref backs it. Backing still compares
+absolute values. Direction is checked separately by the binding rule, not
+by backing.
 """
 
 from __future__ import annotations
@@ -26,18 +36,27 @@ _MONTHS = (
 )
 _YEAR = r"(?:19\d{2}|20\d{2})"
 
-_ISO_DATE_RE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
-_DAY_FIRST_RE = re.compile(r"\b\d{1,2}/\d{1,2}/\d{2,4}\b")
-_MONTH_DATE_RE = re.compile(
-    rf"\b\d{{1,2}}\s+(?:{_MONTHS})\b(?:\s*,?\s*{_YEAR})?"
-    rf"|\b(?:{_MONTHS})\s+\d{{1,2}}\b(?:\s*,?\s*{_YEAR})?"
-    rf"|\b(?:{_MONTHS})\s+{_YEAR}\b"
+# A date or clock time directly followed by a measure word (singular or
+# plural) or a plural count word is a quantity, not a time: a quantity
+# above one takes the plural, so "the 14:00 call" stays a time while
+# "10:30 calls" is a number. Lookaheads are case-insensitive.
+_UNMASK_MEASURE = (
+    r"hour|hours|hr|hrs|h|minute|minutes|min|mins|"
+    r"step|steps|day|days|percent|times"
 )
-# A clock time followed by a duration word is a quantity, not a time.
-_DURATION_WORD_RE = r"(?:hours?|hrs?|h|minutes?|mins?|min)"
+_UNMASK_PLURAL_COUNT = r"pushes|commits|events|blocks|tasks|items|calls|cards|prs"
+_UNMASK = rf"(?:{_UNMASK_MEASURE}|{_UNMASK_PLURAL_COUNT})"
+
+_ISO_DATE_RE = re.compile(rf"\b\d{{4}}-\d{{2}}-\d{{2}}\b(?!\s*(?i:{_UNMASK})\b)")
+_DAY_FIRST_RE = re.compile(rf"\b\d{{1,2}}/\d{{1,2}}/\d{{2,4}}\b(?!\s*(?i:{_UNMASK})\b)")
+_MONTH_DATE_RE = re.compile(
+    rf"(?:\b\d{{1,2}}\s+(?:{_MONTHS})\b(?:\s*,?\s*{_YEAR})?"
+    rf"|\b(?:{_MONTHS})\s+\d{{1,2}}\b(?:\s*,?\s*{_YEAR})?"
+    rf"|\b(?:{_MONTHS})\s+{_YEAR}\b)(?!\s*(?i:{_UNMASK})\b)"
+)
+# A clock time followed by a measure or plural count word is a quantity.
 _TIME_RE = re.compile(
-    rf"\b\d{{1,2}}:\d{{2}}(?::\d{{2}})?\s*(?:am|pm)?"
-    rf"(?!\s*{_DURATION_WORD_RE}\b)",
+    rf"\b\d{{1,2}}:\d{{2}}(?::\d{{2}})?\s*(?:am|pm)?(?!\s*(?i:{_UNMASK})\b)",
     re.IGNORECASE,
 )
 _REF_RE = re.compile(r"[A-Za-z][A-Za-z0-9_-]*:[A-Za-z0-9_.-]+")
@@ -46,6 +65,7 @@ _ORDINAL_RE = re.compile(r"\b\d+(?:st|nd|rd|th)\b", re.IGNORECASE)
 _NUMBER_RE = re.compile(r"-?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?%?")
 
 _NUMBER_WORDS: dict[str, int] = {
+    "zero": 0,
     "one": 1,
     "two": 2,
     "three": 3,
@@ -73,12 +93,28 @@ _NUMBER_WORDS: dict[str, int] = {
     "seventy": 70,
     "eighty": 80,
     "ninety": 90,
+    "hundred": 100,
+    "thousand": 1000,
+    "million": 1000000,
+    "dozen": 12,
 }
-# A spelled-out number is a token only before one of these unit words, so
-# "nine hours" is a quantity while "one of the" is free prose.
-_UNIT_WORD_RE = r"(?:hours|hr|minutes|min|steps|days|percent)"
+# Every spelled-out number except "one" is a token whatever word follows.
+_UNCONDITIONAL_WORDS = tuple(word for word in _NUMBER_WORDS if word != "one")
+# "one" stays a token only before a unit or count word, or joined by a
+# hyphen to a word on that same list ("one-hour", "one-day"): "one-off"
+# and "one-on-one" are normal words and stay free.
+_ONE_LOOKAHEAD = (
+    r"hour|hours|hr|hrs|h|minute|minutes|min|mins|"
+    r"step|steps|day|days|percent|"
+    r"push|pushes|commit|commits|event|events|block|blocks|"
+    r"task|tasks|item|items|call|calls|card|cards|pr|prs|times"
+)
 _WORD_NUMBER_RE = re.compile(
-    r"\b(" + "|".join(sorted(_NUMBER_WORDS)) + rf")\b(?=\s+{_UNIT_WORD_RE}\b)",
+    r"\b(" + "|".join(sorted(_UNCONDITIONAL_WORDS, key=len, reverse=True)) + r")\b",
+    re.IGNORECASE,
+)
+_ONE_NUMBER_RE = re.compile(
+    r"(?<!-)\b(one)(?=\s+(?:" + _ONE_LOOKAHEAD + r")\b|-(?:" + _ONE_LOOKAHEAD + r")\b)",
     re.IGNORECASE,
 )
 
@@ -140,15 +176,16 @@ def extract_number_tokens(
         tokens.append(
             NumberToken(raw=raw, value=Decimal(core), start=start, places=places)
         )
-    for match in _WORD_NUMBER_RE.finditer(masked):
-        word = match.group(1)
-        tokens.append(
-            NumberToken(
-                raw=word,
-                value=Decimal(_NUMBER_WORDS[word.casefold()]),
-                start=match.start(1),
-                places=0,
+    for pattern in (_WORD_NUMBER_RE, _ONE_NUMBER_RE):
+        for match in pattern.finditer(masked):
+            word = match.group(1)
+            tokens.append(
+                NumberToken(
+                    raw=word,
+                    value=Decimal(_NUMBER_WORDS[word.casefold()]),
+                    start=match.start(1),
+                    places=0,
+                )
             )
-        )
     tokens.sort(key=lambda token: token.start)
     return tuple(tokens)

@@ -5,10 +5,14 @@ Inspect tasks (``evals/briefing_gate.py``) build from ``MUTANTS`` and
 ``KNOWN_GOOD`` here so the two harnesses can never drift apart.
 
 Every value is synthetic: ``subject-1`` is the repo's existing placeholder
-subject, facts are ``fact:synthetic-*``, metrics are ``agg.*`` aggregates
-(``raw.health.*`` only where a mutant needs a raw ID), and free text avoids
-real names, real measurements, and real contact details. Times are frozen on
-2026-10-31 (Europe/Madrid, CET, UTC+1) unless a case moves them.
+subject, facts are ``fact:synthetic-*``, metrics use the Ticket 9 families
+(``screen_hours.*``, ``tag_hours.*``, ``github.push.count``,
+``calendar.busy_hours``, ``feed.item.count``, ``period.*``; ``raw.health.*``
+only where a mutant needs a raw ID, ``agg.tasks_done`` only where a mutant
+needs an unknown family), and free text avoids real names, real measurements,
+and real contact details. Times are frozen on 2026-10-31 (Europe/Madrid, CET,
+UTC+1) unless a case moves them. Actions come only from
+``profiles/commitments.example.json``, the only registry, loaded once below.
 """
 
 from __future__ import annotations
@@ -17,18 +21,29 @@ import copy
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, time
+from pathlib import Path
 from typing import Any
 
+from framework.briefing.commitments import load_commitments
 from framework.briefing.context import (
     GateContext,
     MetricSnapshot,
     ProfileLimits,
     TimeInterval,
 )
-from framework.briefing.schemas import Briefing
+from framework.briefing.schemas import Briefing, Commitment
 
 SUBJECT_ID = "subject-1"
 TIMEZONE = "Europe/Madrid"
+_COMMITMENTS_PATH = (
+    Path(__file__).resolve().parents[1] / "profiles" / "commitments.example.json"
+)
+_LOADED_COMMITMENTS = load_commitments(
+    {"IKIGAI_COMMITMENTS_FILE": str(_COMMITMENTS_PATH)}
+)
+assert _LOADED_COMMITMENTS.available, _LOADED_COMMITMENTS.reason
+COMMITMENTS: tuple[Commitment, ...] = _LOADED_COMMITMENTS.commitments
+_COMMITMENT_BY_ID: dict[str, Commitment] = {c.id: c for c in COMMITMENTS}
 # Synthetic private term used only by M6; invented for this fixture.
 SYNTHETIC_TERM = "quetzal-garden"
 # Synthetic forbidden raw literal; no known-good text contains it.
@@ -85,9 +100,9 @@ def _facts() -> dict[str, Any]:
 
 def _base_metrics() -> dict[str, float]:
     return {
-        "agg.focus_minutes": 90.0,
-        "agg.walk_minutes": 30.0,
-        "agg.tasks_done": 3.0,
+        "screen_hours.Work/Programming": 90.0,
+        "tag_hours.iki-walk": 30.0,
+        "github.push.count": 3.0,
     }
 
 
@@ -102,17 +117,17 @@ def _limits() -> ProfileLimits:
 
 def _action(
     aid: str,
-    kind: str,
-    text: str,
-    dimension: str,
+    commitment_id: str,
     start: str,
     end: str,
 ) -> dict[str, Any]:
+    commitment = _COMMITMENT_BY_ID[commitment_id]
     return {
         "id": aid,
-        "kind": kind,
-        "text": text,
-        "dimension": dimension,
+        "commitment_id": commitment_id,
+        "kind": commitment.kind,
+        "text": commitment.title,
+        "dimension": commitment.dimension,
         "proposed_start": start,
         "proposed_end": end,
     }
@@ -137,21 +152,17 @@ def _ref(metric_id: str, value: float) -> dict[str, Any]:
 
 
 def _base_actions(profile: str) -> list[dict[str, Any]]:
-    if profile == "recovery":
+    if profile == "disconnect":
         return [
             _action(
                 "act-walk-1",
-                "walk",
-                "Walk the synthetic garden loop",
-                "love",
+                "cm-disconnect-walk",
                 _iso(31, 14, 0),
                 _iso(31, 14, 45),
             ),
             _action(
                 "act-rest-1",
-                "rest",
-                "Rest with quiet music",
-                "limit",
+                "cm-disconnect-rest",
                 _iso(31, 18, 0),
                 _iso(31, 19, 0),
             ),
@@ -159,17 +170,13 @@ def _base_actions(profile: str) -> list[dict[str, Any]]:
     return [
         _action(
             "act-build-1",
-            "build",
-            "Build the synthetic parser sketch",
-            "good_at",
+            "cm-builder-parser",
             _iso(31, 14, 0),
             _iso(31, 14, 45),
         ),
         _action(
             "act-write-1",
-            "write",
-            "Write notes on the synthetic trial",
-            "love",
+            "cm-builder-notes",
             _iso(31, 18, 0),
             _iso(31, 19, 0),
         ),
@@ -243,6 +250,8 @@ def _base_context(
         private_terms_available=True,
         raw_metric_ids=frozenset({"raw.health.resting_hr"}),
         forbidden_raw_literals=(RAW_LITERAL,),
+        commitments=COMMITMENTS,
+        commitments_available=True,
     )
 
 
@@ -257,6 +266,9 @@ def base_case(profile: str) -> Case:
 
 
 def _parent_briefing(profile: str) -> dict[str, Any]:
+    week_commitment = (
+        "cm-disconnect-week" if profile == "disconnect" else "cm-builder-week"
+    )
     return {
         "id": f"brf-{profile}-parent",
         "profile_id": profile,
@@ -293,9 +305,7 @@ def _parent_briefing(profile: str) -> dict[str, Any]:
                 "actions": [
                     _action(
                         "act-parent-1",
-                        "plan",
-                        "Plan the synthetic week",
-                        "love",
+                        week_commitment,
                         _iso(30, 14, 0),
                         _iso(30, 15, 0),
                     )
@@ -311,18 +321,18 @@ def _since_last_section() -> dict[str, Any]:
         "claims": [
             _claim(
                 "claim-s1",
-                "Focus total moved by 10 since the parent briefing",
-                refs=[_ref("agg.focus_minutes", -10.0)],
+                "Programming is down 10 since the parent briefing",
+                refs=[_ref("screen_hours.Work/Programming", -10.0)],
             ),
             _claim(
                 "claim-s2",
                 "Walk total is unchanged since the parent briefing",
-                refs=[_ref("agg.walk_minutes", 0.0)],
+                refs=[_ref("tag_hours.iki-walk", 0.0)],
             ),
             _claim(
                 "claim-s3",
-                "Tasks completed rose by 1 since the parent briefing",
-                refs=[_ref("agg.tasks_done", 1.0)],
+                "Pushes rose by 1 since the parent briefing",
+                refs=[_ref("github.push.count", 1.0)],
             ),
         ],
         "actions": [],
@@ -332,9 +342,9 @@ def _since_last_section() -> dict[str, Any]:
 def base_case_with_parent(profile: str) -> Case:
     """Passing briefing with a parent pair and delta-correct ``since_last``.
 
-    Current metrics are ``{focus 90, walk 30, tasks 3}``; parent metrics are
-    ``{focus 100, walk 30, tasks 2}``, so the deltas are ``-10``, ``0``,
-    ``+1`` (negative and zero deltas included).
+    Current metrics are ``{Programming 90, walk 30, pushes 3}``; parent
+    metrics are ``{Programming 100, walk 30, pushes 2}``, so the deltas are
+    ``-10``, ``0``, ``+1`` (negative and zero deltas included).
     """
     briefing = _base_briefing(profile, f"brf-{profile}-child")
     parent_id = f"brf-{profile}-parent"
@@ -343,9 +353,9 @@ def base_case_with_parent(profile: str) -> Case:
     sections.insert(1, _since_last_section())
     parent_metrics = MetricSnapshot(
         values={
-            "agg.focus_minutes": 100.0,
-            "agg.walk_minutes": 30.0,
-            "agg.tasks_done": 2.0,
+            "screen_hours.Work/Programming": 100.0,
+            "tag_hours.iki-walk": 30.0,
+            "github.push.count": 2.0,
         }
     )
     base_context = _base_context()
@@ -413,17 +423,13 @@ def _build_mutants() -> tuple[Case, ...]:
             [
                 _action(
                     "act-extra-1",
-                    "plan",
-                    "Plan the synthetic follow-up",
-                    "love",
+                    "cm-builder-followup",
                     _iso(31, 16, 30),
                     _iso(31, 17, 0),
                 ),
                 _action(
                     "act-extra-2",
-                    "read",
-                    "Read the synthetic appendix",
-                    "world_needs",
+                    "cm-builder-appendix",
                     _iso(31, 19, 30),
                     _iso(31, 20, 30),
                 ),
@@ -476,14 +482,14 @@ def _build_mutants() -> tuple[Case, ...]:
 
     def m12(briefing: dict[str, Any], context: GateContext) -> GateContext:
         claim = _get_claim(_section(briefing, "working"), "claim-w1")
-        claim["text"] = "Completed 99 synthetic tasks"
-        claim["metric_refs"] = [_ref("agg.tasks_done", 99.0)]
+        claim["text"] = "Pushed 99 tasks in the synthetic trial"
+        claim["metric_refs"] = [_ref("github.push.count", 99.0)]
         return context
 
     def m13(briefing: dict[str, Any], context: GateContext) -> GateContext:
         claim = _get_claim(_section(briefing, "since_last"), "claim-s1")
-        claim["text"] = "Focus total moved by 11 since the parent briefing"
-        claim["metric_refs"] = [_ref("agg.focus_minutes", -11.0)]
+        claim["text"] = "Programming total moved by 11 since the parent briefing"
+        claim["metric_refs"] = [_ref("screen_hours.Work/Programming", -11.0)]
         return context
 
     def m14(briefing: dict[str, Any], context: GateContext) -> GateContext:
@@ -509,8 +515,130 @@ def _build_mutants() -> tuple[Case, ...]:
 
     def m18(briefing: dict[str, Any], context: GateContext) -> GateContext:
         assert context.parent_briefing is not None
-        parent = context.parent_briefing.model_copy(update={"profile_id": "recovery"})
+        parent = context.parent_briefing.model_copy(update={"profile_id": "disconnect"})
         return context.model_copy(update={"parent_briefing": parent})
+
+    def m21(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Feed count reached 3"
+        claim["metric_refs"] = [_ref("github.push.count", 3.0)]
+        return context
+
+    def m22(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Pushes reached 3 in earlier"
+        claim["metric_refs"] = [_ref("period.last.pushes", 3.0)]
+        values = dict(context.metrics.values)
+        values["period.last.pushes"] = 3.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    def m23(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Pushes fell from 1 in earlier to 3 in last"
+        claim["metric_refs"] = [
+            _ref("period.earlier.pushes", 1.0),
+            _ref("period.last.pushes", 3.0),
+        ]
+        values = dict(context.metrics.values)
+        values["period.earlier.pushes"] = 1.0
+        values["period.last.pushes"] = 3.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    def m24(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "since_last"), "claim-s1")
+        claim["text"] = "Programming rose by 10 since the parent briefing"
+        claim["metric_refs"] = [_ref("screen_hours.Work/Programming", -10.0)]
+        return context
+
+    def m25(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        action = _action_in(_section(briefing, "actions"), "act-build-1")
+        action["commitment_id"] = "cm-builder-absent"
+        return context
+
+    def m26(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        action = _action_in(_section(briefing, "actions"), "act-build-1")
+        action["commitment_id"] = "cm-disconnect-walk"
+        return context
+
+    def m27(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        action = _action_in(_section(briefing, "actions"), "act-build-1")
+        action["text"] = "Build the synthetic parser sketch with extra words"
+        return context
+
+    def m28(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] += " You should log the synthetic result"
+        return context
+
+    def m29(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] += " You must log the synthetic result"
+        return context
+
+    def m30(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] += " Notes mention medication timing here"
+        return context
+
+    def m31(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "You did ten pushes in the synthetic trial"
+        return context
+
+    def m32(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Logged May 2000 steps in the synthetic trial"
+        return context
+
+    def m33(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Pushes reached 3 while the feed held 5"
+        claim["metric_refs"] = [
+            _ref("github.push.count", 3.0),
+            _ref("feed.item.count", 5.0),
+        ]
+        values = dict(context.metrics.values)
+        values["feed.item.count"] = 5.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    def m34(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Completed 3 synthetic tasks"
+        claim["metric_refs"] = [_ref("agg.tasks_done", 3.0)]
+        values = dict(context.metrics.values)
+        values["agg.tasks_done"] = 3.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    def m35(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        return context.model_copy(update={"commitments_available": False})
+
+    def m36(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Pushes rose to 3 in last"
+        claim["metric_refs"] = [_ref("period.last.pushes", 3.0)]
+        values = dict(context.metrics.values)
+        values["period.last.pushes"] = 3.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    def m37(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Pushes fell from 3 in earlier to 1 in prior and to 2 in last"
+        claim["metric_refs"] = [
+            _ref("period.earlier.pushes", 3.0),
+            _ref("period.prior.pushes", 1.0),
+            _ref("period.last.pushes", 2.0),
+        ]
+        values = dict(context.metrics.values)
+        values["period.earlier.pushes"] = 3.0
+        values["period.prior.pushes"] = 1.0
+        values["period.last.pushes"] = 2.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    def m38(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "working"), "claim-w1")
+        claim["text"] = "Pushes reached 3 in last"
+        claim["metric_refs"] = [_ref("github.push.count", 3.0)]
+        return context
 
     def m19(briefing: dict[str, Any], context: GateContext) -> GateContext:
         assert context.parent_briefing is not None
@@ -592,6 +720,41 @@ def _build_mutants() -> tuple[Case, ...]:
             m19,
         ),
         _mutate(parented, "M20-parent-slot-not-before", ("L1B_PARENT_MISMATCH",), m20),
+        _mutate(base, "M21-swapped-metric-label", ("L1B_METRIC_LABEL_MISSING",), m21),
+        _mutate(base, "M22-wrong-period-word", ("L1B_PERIOD_WORD_MISSING",), m22),
+        _mutate(base, "M23-reversed-direction", ("L1B_DIRECTION_MISMATCH",), m23),
+        _mutate(
+            parented, "M24-reversed-delta-direction", ("L1B_DIRECTION_MISMATCH",), m24
+        ),
+        _mutate(base, "M25-action-not-committed", ("L1_ACTION_NOT_COMMITTED",), m25),
+        _mutate(base, "M26-action-cross-profile", ("L1_ACTION_NOT_COMMITTED",), m26),
+        _mutate(base, "M27-action-text-mismatch", ("L1_ACTION_TEXT_MISMATCH",), m27),
+        _mutate(base, "M28-advice-should", ("L1_ADVICE",), m28),
+        _mutate(base, "M29-advice-must", ("L1_ADVICE",), m29),
+        _mutate(base, "M30-advice-medication", ("L1_ADVICE",), m30),
+        _mutate(
+            base,
+            "M31-spelled-number-without-ref",
+            ("L1B_NUMBER_WITHOUT_METRIC_REF",),
+            m31,
+        ),
+        _mutate(
+            base,
+            "M32-date-number-without-ref",
+            ("L1B_NUMBER_WITHOUT_METRIC_REF",),
+            m32,
+        ),
+        _mutate(base, "M33-too-many-metrics", ("L1B_TOO_MANY_METRICS",), m33),
+        _mutate(base, "M34-unknown-metric-family", ("L1B_METRIC_LABEL_UNKNOWN",), m34),
+        _mutate(
+            base,
+            "M35-commitments-unavailable",
+            ("L1_COMMITMENTS_UNAVAILABLE",),
+            m35,
+        ),
+        _mutate(base, "M36-direction-single-ref", ("L1B_DIRECTION_MISMATCH",), m36),
+        _mutate(base, "M37-direction-mixed-changes", ("L1B_DIRECTION_MISMATCH",), m37),
+        _mutate(base, "M38-uncited-period-word", ("L1B_PERIOD_WORD_MISSING",), m38),
     )
 
 
@@ -615,11 +778,11 @@ def _build_known_good() -> tuple[Case, ...]:
         expected=(),
     )
 
-    recovery = base_case("recovery")
+    disconnect = base_case("disconnect")
     g3 = Case(
-        name="G3-recovery-first",
-        briefing=recovery.briefing,
-        context=recovery.context,
+        name="G3-disconnect-first",
+        briefing=disconnect.briefing,
+        context=disconnect.context,
         expected=(),
     )
 
@@ -628,25 +791,25 @@ def _build_known_good() -> tuple[Case, ...]:
         working["claims"].append(
             _claim(
                 "claim-wpct",
-                "Half the synthetic list is done at 50% completion",
+                "Busy list is half done at 50% in the synthetic window",
                 facts=["fact:synthetic-1"],
-                refs=[_ref("agg.completion_pct", 50.0)],
+                refs=[_ref("calendar.busy_hours", 50.0)],
             )
         )
         working["claims"].append(
             _claim(
                 "claim-wdec",
-                "Morning pages averaged 7.5 lines",
+                "Reading pages averaged 7.5 lines",
                 facts=["fact:synthetic-2"],
-                refs=[_ref("agg.pages_lines", 7.5)],
+                refs=[_ref("screen_hours.Reading", 7.5)],
             )
         )
         values = dict(context.metrics.values)
-        values["agg.completion_pct"] = 50.0
-        values["agg.pages_lines"] = 7.5
+        values["calendar.busy_hours"] = 50.0
+        values["screen_hours.Reading"] = 7.5
         parent_values = dict(context.parent_metrics.values)  # type: ignore[union-attr]
-        parent_values["agg.completion_pct"] = 40.0
-        parent_values["agg.pages_lines"] = 7.0
+        parent_values["calendar.busy_hours"] = 40.0
+        parent_values["screen_hours.Reading"] = 7.0
         return context.model_copy(
             update={
                 "metrics": MetricSnapshot(values=values),
@@ -654,8 +817,8 @@ def _build_known_good() -> tuple[Case, ...]:
             }
         )
 
-    parented_recovery = base_case_with_parent("recovery")
-    g4 = _mutate(parented_recovery, "G4-recovery-parent-pct-dec", (), g4_fn)
+    parented_disconnect = base_case_with_parent("disconnect")
+    g4 = _mutate(parented_disconnect, "G4-disconnect-parent-pct-dec", (), g4_fn)
 
     g5_base = base_case("builder")
     g5 = Case(
@@ -667,17 +830,12 @@ def _build_known_good() -> tuple[Case, ...]:
 
     def g6_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
         briefing["slot"] = _iso(31, 21, 0)
-        actions = _section(briefing, "actions")["actions"]
-        actions[0]["id"] = "act-eve-1"
-        actions[0]["kind"] = "plan"
-        actions[0]["text"] = "Plan the synthetic evening review"
-        actions[0]["proposed_start"] = _iso(31, 21, 0)
-        actions[0]["proposed_end"] = _iso(31, 22, 0)
-        actions[1]["id"] = "act-eve-2"
-        actions[1]["kind"] = "checkin"
-        actions[1]["text"] = "Log the synthetic evening checkin"
-        actions[1]["proposed_start"] = _iso(31, 23, 0)
-        actions[1]["proposed_end"] = _iso(31, 23, 30)
+        _section(briefing, "actions")["actions"] = [
+            _action("act-eve-1", "cm-builder-review", _iso(31, 21, 0), _iso(31, 22, 0)),
+            _action(
+                "act-eve-2", "cm-builder-checkin", _iso(31, 23, 0), _iso(31, 23, 30)
+            ),
+        ]
         return context.model_copy(
             update={
                 "busy_intervals": (
@@ -698,9 +856,7 @@ def _build_known_good() -> tuple[Case, ...]:
         _section(briefing, "actions")["actions"].append(
             _action(
                 "act-third-1",
-                "read",
-                "Read the synthetic reference notes",
-                "world_needs",
+                "cm-builder-reference",
                 _iso(31, 19, 30),
                 _iso(31, 20, 30),
             )
@@ -751,14 +907,17 @@ def _build_known_good() -> tuple[Case, ...]:
         working = _section(briefing, "working")
         working["claims"] = [
             _claim(
-                "claim-m2",
-                "Focus total reached 90 with 3 tasks done",
-                facts=["fact:synthetic-1", "fact:synthetic-2"],
-                refs=[
-                    _ref("agg.focus_minutes", 90.0),
-                    _ref("agg.tasks_done", 3.0),
-                ],
-            )
+                "claim-m2a",
+                "Programming output reached 90 in the synthetic window",
+                facts=["fact:synthetic-1"],
+                refs=[_ref("screen_hours.Work/Programming", 90.0)],
+            ),
+            _claim(
+                "claim-m2b",
+                "Pushes reached 3 in the synthetic window",
+                facts=["fact:synthetic-2"],
+                refs=[_ref("github.push.count", 3.0)],
+            ),
         ]
         actions = _section(briefing, "actions")["actions"]
         actions[0]["proposed_start"] = _iso(31, 14, 0)
@@ -815,33 +974,204 @@ def _build_known_good() -> tuple[Case, ...]:
         working["claims"] = [
             _claim(
                 "claim-r1",
-                "Output quality sits at 21.2 this week",
+                "Programming quality sits at 21.2 this week",
                 facts=["fact:synthetic-1"],
-                refs=[_ref("agg.quality", 21.1544)],
-            ),
-            _claim(
-                "claim-r2",
-                "Energy is down 5 from last time",
-                facts=["fact:synthetic-2"],
-                refs=[_ref("agg.energy", -5.0)],
+                refs=[_ref("screen_hours.Work/Programming", 21.1544)],
             ),
             _claim(
                 "claim-r3",
-                "Range check 3-5 passed twice",
+                "Pushes ranged 3-5 across prior and last",
                 facts=["fact:synthetic-1"],
-                refs=[_ref("agg.low", 3.0), _ref("agg.high", 5.0)],
+                refs=[
+                    _ref("period.prior.pushes", 3.0),
+                    _ref("period.last.pushes", 5.0),
+                ],
             ),
         ]
         values = dict(context.metrics.values)
-        values["agg.quality"] = 21.1544
-        values["agg.energy"] = -5.0
-        values["agg.low"] = 3.0
-        values["agg.high"] = 5.0
+        values["screen_hours.Work/Programming"] = 21.1544
+        values["period.prior.pushes"] = 3.0
+        values["period.last.pushes"] = 5.0
         return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
 
     g12 = _mutate(base_case("builder"), "G12-rounded-absolute-backing", (), g12_fn)
 
-    return (g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12)
+    def g13_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        working = _section(briefing, "working")
+        working["claims"] = [
+            _claim(
+                "claim-g13",
+                "Pushes in last reached 3",
+                facts=["fact:synthetic-1"],
+                refs=[_ref("period.last.pushes", 3.0)],
+            )
+        ]
+        values = dict(context.metrics.values)
+        values["period.last.pushes"] = 3.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    g13 = _mutate(base_case("builder"), "G13-one-period-ref", (), g13_fn)
+
+    def g14_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        working = _section(briefing, "working")
+        working["claims"] = [
+            _claim(
+                "claim-g14",
+                "Pushes fell from 3 in earlier to 1 in last",
+                facts=["fact:synthetic-1"],
+                refs=[
+                    _ref("period.earlier.pushes", 3.0),
+                    _ref("period.last.pushes", 1.0),
+                ],
+            )
+        ]
+        values = dict(context.metrics.values)
+        values["period.earlier.pushes"] = 3.0
+        values["period.last.pushes"] = 1.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    g14 = _mutate(base_case("builder"), "G14-two-period-refs", (), g14_fn)
+
+    def g15_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        working = _section(briefing, "working")
+        working["claims"] = [
+            _claim(
+                "claim-g15",
+                "Pushes fell from 3 in earlier to 1 in prior and to 0 in last.",
+                facts=["fact:synthetic-1"],
+                refs=[
+                    _ref("period.earlier.pushes", 3.0),
+                    _ref("period.prior.pushes", 1.0),
+                    _ref("period.last.pushes", 0.0),
+                ],
+            )
+        ]
+        values = dict(context.metrics.values)
+        values["period.earlier.pushes"] = 3.0
+        values["period.prior.pushes"] = 1.0
+        values["period.last.pushes"] = 0.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    g15 = _mutate(base_case("builder"), "G15-three-period-refs", (), g15_fn)
+
+    def g16_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        working = _section(briefing, "working")
+        working["claims"] = [
+            _claim(
+                "claim-g16",
+                "Programming in last reached 3",
+                facts=["fact:synthetic-1"],
+                refs=[_ref("period.last.screen_hours.Work/Programming", 3.0)],
+            )
+        ]
+        values = dict(context.metrics.values)
+        values["period.last.screen_hours.Work/Programming"] = 3.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    g16 = _mutate(base_case("builder"), "G16-labelled-no-direction", (), g16_fn)
+
+    def g17_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        working = _section(briefing, "working")
+        working["claims"] = [
+            _claim(
+                "claim-g17",
+                "Work/Programming screen hours decreased from 4.75 in prior"
+                " to 1.75 in last.",
+                facts=["fact:synthetic-1"],
+                refs=[
+                    _ref("period.prior.screen_hours.Work/Programming", 4.75),
+                    _ref("period.last.screen_hours.Work/Programming", 1.75),
+                ],
+            )
+        ]
+        values = dict(context.metrics.values)
+        values["period.prior.screen_hours.Work/Programming"] = 4.75
+        values["period.last.screen_hours.Work/Programming"] = 1.75
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    g17 = _mutate(base_case("builder"), "G17-model-wording-screen", (), g17_fn)
+
+    def g18_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        working = _section(briefing, "working")
+        working["claims"] = [
+            _claim(
+                "claim-g18",
+                "Github pushes decreased from 3 in earlier to 1 in prior"
+                " and to 0 in last.",
+                facts=["fact:synthetic-1"],
+                refs=[
+                    _ref("period.earlier.pushes", 3.0),
+                    _ref("period.prior.pushes", 1.0),
+                    _ref("period.last.pushes", 0.0),
+                ],
+            )
+        ]
+        values = dict(context.metrics.values)
+        values["period.earlier.pushes"] = 3.0
+        values["period.prior.pushes"] = 1.0
+        values["period.last.pushes"] = 0.0
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    g18 = _mutate(base_case("builder"), "G18-model-wording-pushes", (), g18_fn)
+
+    def g19_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        working = _section(briefing, "working")
+        working["claims"] = [
+            _claim(
+                "claim-g19",
+                "Programming fell from 4.75 in the prior period"
+                " to 1.75 in the last period.",
+                facts=["fact:synthetic-1"],
+                refs=[
+                    _ref("period.prior.screen_hours.Work/Programming", 4.75),
+                    _ref("period.last.screen_hours.Work/Programming", 1.75),
+                ],
+            )
+        ]
+        values = dict(context.metrics.values)
+        values["period.prior.screen_hours.Work/Programming"] = 4.75
+        values["period.last.screen_hours.Work/Programming"] = 1.75
+        return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    g19 = _mutate(base_case("builder"), "G19-model-wording-segment", (), g19_fn)
+
+    def g20_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        since_last = _section(briefing, "since_last")
+        since_last["claims"] = [
+            _claim(
+                "claim-s1",
+                "Programming is down 10 since the parent briefing",
+                refs=[_ref("screen_hours.Work/Programming", -10.0)],
+            )
+        ]
+        return context
+
+    g20 = _mutate(
+        base_case_with_parent("builder"), "G20-negative-delta-absolute", (), g20_fn
+    )
+
+    return (
+        g1,
+        g2,
+        g3,
+        g4,
+        g5,
+        g6,
+        g7,
+        g8,
+        g9,
+        g10,
+        g11,
+        g12,
+        g13,
+        g14,
+        g15,
+        g16,
+        g17,
+        g18,
+        g19,
+        g20,
+    )
 
 
 KNOWN_GOOD: tuple[Case, ...] = _build_known_good()

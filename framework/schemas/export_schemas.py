@@ -11,7 +11,14 @@ from framework.briefing.context import (
     ProfileLimits,
     TimeInterval,
 )
-from framework.briefing.schemas import Action, Briefing, Claim, MetricRef, Section
+from framework.briefing.schemas import (
+    Action,
+    Briefing,
+    Claim,
+    Commitment,
+    MetricRef,
+    Section,
+)
 from framework.schemas.core import Criterion, Fact, FactWindow, IkigaiWeights, Profile
 from framework.schemas.events import (
     AppApproveData,
@@ -84,6 +91,7 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     Section,
     Claim,
     Action,
+    Commitment,
     MetricRef,
     MetricSnapshot,
     TimeInterval,

@@ -35,7 +35,10 @@ def _synthetic_context() -> RenderContext:
             ],
             "facts": [
                 {"id": "fact_builder_1", "text": "Synthetic builder fact one line"},
-                {"id": "fact_recovery_1", "text": "Synthetic recovery fact one line"},
+                {
+                    "id": "fact_disconnect_1",
+                    "text": "Synthetic disconnect fact one line",
+                },
             ],
             "links": [],
         }
@@ -50,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
     context = _synthetic_context()
     out_dir = root / "out"
     out_dir.mkdir(parents=True, exist_ok=True)
-    for name in ("sample-builder", "sample-recovery"):
+    for name in ("sample-builder", "sample-disconnect"):
         manifest = Manifest.model_validate_json(
             (root / "tests" / "fixtures" / f"{name}.json").read_text()
         )

@@ -20,12 +20,12 @@ Built and merged:
 
 - Event store (`framework/store/`): append-only SQLite log with conflict detection; a trigger blocks updates and `purge_before` is the only delete path; 20 tests in `tests/test_store.py` and `tests/test_collector.py`, passing.
 - Collectors (`framework/collectors/`): calendar (`calendar_ics.py`), GitHub activity (`github_events.py`), public build feed (`build_feed.py`), screen time (`activitywatch.py`); 56 tests passing, 41 across those four collector suites and 15 in the CLI suite they share with the off-path code.
-- Deterministic gate (`framework/briefing/gate.py`, cases in `evals/briefing_cases.py`): no model, no network; it catches all 20 mutant briefings and passes all 12 known-good ones (`tests/test_briefing_mutants.py`, passing).
+- Deterministic gate (`framework/briefing/gate.py`, cases in `evals/briefing_cases.py`): no model, no network; it catches all 38 mutant briefings and passes all 20 known-good ones (`tests/test_briefing_mutants.py`, passing).
+- Commitments and the gate additions they need (`framework/briefing/commitments.py`, `framework/briefing/labels.py`, made-up examples in `profiles/commitments.example.json`): an action passes only if it is a commitment I wrote, in my words; a claim that cites a metric passes only if it names that metric and its period and any direction word agrees with the values; advice wording fails. 18 of those 38 mutants and 8 of those 20 known-good briefings test these additions. What the gate still misses is listed at the top of `framework/briefing/numbers.py`.
 
 Not built yet:
 
 - The Glimmer fact layer.
-- Commitments and the gate additions they need.
 - The Wonder proposal step.
 - The Telegram card.
 - The orchestrator.
@@ -37,7 +37,7 @@ No model has generated a fact or a card in this project yet, no card has been de
 
 ## No medical advice
 
-It gives no medical advice by design: it only schedules commitments I wrote, and Apple Health is out of the design. The gate rule that enforces this is not built yet.
+It gives no medical advice by design: it only schedules commitments I wrote, and Apple Health is out of the design. The gate enforces this with two rules: `L1_ACTION_NOT_COMMITTED` rejects any action that isn't one of those commitments, and `L1_ADVICE` rejects advice wording in claims and actions. `L1_ADVICE` is a fixed word list, so it catches wording, not meaning.
 
 ## Built during the hackathon
 

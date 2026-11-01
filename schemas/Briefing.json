@@ -4,6 +4,11 @@
       "additionalProperties": false,
       "description": "One proposed item in the ``actions`` section.",
       "properties": {
+        "commitment_id": {
+          "minLength": 1,
+          "title": "Commitment Id",
+          "type": "string"
+        },
         "dimension": {
           "enum": [
             "love",
@@ -29,7 +34,6 @@
             "apply",
             "outreach",
             "walk",
-            "exercise",
             "rest",
             "music",
             "social",
@@ -57,6 +61,7 @@
       },
       "required": [
         "id",
+        "commitment_id",
         "kind",
         "text",
         "dimension",

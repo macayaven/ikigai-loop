@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import AwareDatetime, Field, field_validator, model_validator
 
-from framework.briefing.schemas import Briefing
+from framework.briefing.schemas import Briefing, Commitment
 from framework.schemas.base import SchemaModel
 from framework.schemas.core import Fact
 from framework.schemas.events import NonEmptyStr
@@ -89,6 +89,8 @@ class GateContext(SchemaModel):
     private_terms_available: bool = False
     raw_metric_ids: frozenset[NonEmptyStr] = frozenset()
     forbidden_raw_literals: tuple[NonEmptyStr, ...] = ()
+    commitments: tuple[Commitment, ...] = ()
+    commitments_available: bool = False
 
     @field_validator("facts")
     @classmethod
@@ -104,6 +106,15 @@ class GateContext(SchemaModel):
             raise ValueError(
                 "parent_briefing and parent_metrics must both be present or both absent"
             )
+        return self
+
+    @model_validator(mode="after")
+    def _unique_commitment_ids(self) -> GateContext:
+        seen: set[str] = set()
+        for commitment in self.commitments:
+            if commitment.id in seen:
+                raise ValueError("commitment ids must be unique")
+            seen.add(commitment.id)
         return self
 
 

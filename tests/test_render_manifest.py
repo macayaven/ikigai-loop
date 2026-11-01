@@ -93,7 +93,7 @@ def test_escaping_renders_inert() -> None:
 def test_sample_manifests_render_in_layout_order() -> None:
     for name, version, marker in [
         ("sample-builder.json", "sample-builder", "Ship one artifact today"),
-        ("sample-recovery.json", "sample-recovery", "A good day"),
+        ("sample-disconnect.json", "sample-disconnect", "A good day"),
     ]:
         manifest = _load_fixture(name)
         assert manifest.version == version
@@ -112,7 +112,7 @@ def test_sample_manifests_render_in_layout_order() -> None:
                 ],
                 "facts": [
                     {"id": "fact_builder_1", "text": "Synthetic builder fact"},
-                    {"id": "fact_recovery_1", "text": "Synthetic recovery fact"},
+                    {"id": "fact_disconnect_1", "text": "Synthetic disconnect fact"},
                 ],
                 "links": [],
             }
@@ -249,16 +249,16 @@ def test_script_writes_both_files(
     repo_root = tmp_path / "repo"
     fixtures = repo_root / "tests" / "fixtures"
     fixtures.mkdir(parents=True)
-    for name in ("sample-builder.json", "sample-recovery.json"):
+    for name in ("sample-builder.json", "sample-disconnect.json"):
         (fixtures / name).write_text((FIXTURES / name).read_text())
     monkeypatch.setattr(blocks_main, "_repo_root", lambda: repo_root)
     code = main([])
     assert code == 0
     out, _ = capsys.readouterr()
-    assert out == "wrote out/sample-builder.html\nwrote out/sample-recovery.html\n"
+    assert out == "wrote out/sample-builder.html\nwrote out/sample-disconnect.html\n"
     for name, version in [
         ("sample-builder.html", "sample-builder"),
-        ("sample-recovery.html", "sample-recovery"),
+        ("sample-disconnect.html", "sample-disconnect"),
     ]:
         path = repo_root / "out" / name
         assert path.exists()

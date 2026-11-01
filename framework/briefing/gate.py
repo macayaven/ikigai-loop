@@ -9,6 +9,7 @@ de-duplicated once at the end; the result is sorted by
 
 from __future__ import annotations
 
+import itertools
 import re
 from collections import Counter
 from collections.abc import Mapping
@@ -21,6 +22,7 @@ from zoneinfo import ZoneInfo
 from pydantic import ValidationError
 
 from framework.briefing.context import GateContext, TimeInterval
+from framework.briefing.labels import MetricBinding, metric_label_binding
 from framework.briefing.numbers import extract_number_tokens
 from framework.briefing.schemas import Action, Briefing, Claim
 
@@ -50,6 +52,155 @@ _SECRET_PATTERNS = tuple(
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _PHONE_RE = re.compile(r"\+\d[\d ()-]{7,}\d")
 _REPO_TERMS = ("ikigai-loop", "ikigai_loop", "ikigai loop")
+_ADVICE_SINGLES = frozenset(
+    [
+        "should",
+        "must",
+        "diet",
+        "diets",
+        "calorie",
+        "calories",
+        "medication",
+        "medications",
+        "medicine",
+        "medicines",
+        "dose",
+        "doses",
+        "dosage",
+        "dosages",
+        "symptom",
+        "symptoms",
+        "diagnosis",
+        "diagnoses",
+        "treatment",
+        "treatments",
+        "therapy",
+        "therapies",
+        "intensity",
+        "shouldn't",
+        "mustn't",
+    ]
+)
+_ADVICE_PHRASES = ("push harder", "rest more")
+_PERIOD_WORDS = ("earlier", "prior", "last")
+_UP_WORDS = frozenset(
+    [
+        "up",
+        "rose",
+        "rise",
+        "rises",
+        "rising",
+        "risen",
+        "increase",
+        "increased",
+        "increases",
+        "increasing",
+        "more",
+        "higher",
+        "grew",
+        "grow",
+        "grows",
+        "growing",
+        "grown",
+    ]
+)
+_DOWN_WORDS = frozenset(
+    [
+        "down",
+        "fell",
+        "fall",
+        "falls",
+        "falling",
+        "fallen",
+        "decrease",
+        "decreased",
+        "decreases",
+        "decreasing",
+        "less",
+        "fewer",
+        "lower",
+        "dropped",
+        "drop",
+        "drops",
+        "dropping",
+    ]
+)
+_PERIOD_ORDER = {"earlier": 0, "prior": 1, "last": 2}
+_DIRECTION_TOKEN_RE = re.compile(r"\w+(?:-\w+)*")
+_PERIOD_MESSAGE = "period words do not match the cited metrics"
+
+
+def text_check_codes(
+    text: str,
+    *,
+    private_terms: tuple[str, ...] = (),
+    forbidden_raw_literals: tuple[str, ...] = (),
+) -> tuple[str, ...]:
+    """L1 text verdicts for one text; never ``L1_ACTION_TARGETS_REPO``."""
+    codes: list[str] = []
+    if any(pattern.search(text) for pattern in _SECRET_PATTERNS):
+        codes.append("L1_SECRET")
+    if _EMAIL_RE.search(text) or _PHONE_RE.search(text):
+        codes.append("L1_PII")
+    normalized = _collapse(text).replace("\u2019", "'").replace("\u2018", "'")
+    if any(_contains_token(normalized, word) for word in _ADVICE_SINGLES) or any(
+        _contains_token(normalized, phrase) for phrase in _ADVICE_PHRASES
+    ):
+        codes.append("L1_ADVICE")
+    collapsed_terms = [_collapse(term) for term in private_terms]
+    collapsed = _collapse(text)
+    for term in collapsed_terms:
+        if not term:
+            continue
+        if len(term) <= 3:
+            hit = _contains_token(collapsed, term)
+        else:
+            hit = term in collapsed
+        if hit:
+            codes.append("L1_PRIVATE_TERM")
+            break
+    if any(
+        _contains_token(collapsed, _collapse(literal))
+        for literal in forbidden_raw_literals
+        if _collapse(literal)
+    ):
+        codes.append("L1_RAW_VALUE")
+    return tuple(codes)
+
+
+def action_targets_repo(text: str) -> bool:
+    """Whether action text names this repo."""
+    lowered = text.casefold()
+    return any(term in lowered for term in _REPO_TERMS)
+
+
+_ACTION_WINDOW_MESSAGES = {
+    "L1_ACTION_BEFORE_SLOT": "action starts before the briefing slot",
+    "L1_ACTION_IN_BUSY_INTERVAL": "action overlaps a busy interval",
+    "L1_ACTION_NOT_FREE": "action is not fully inside free time",
+}
+
+
+def action_window_codes(
+    start: datetime,
+    end: datetime,
+    *,
+    slot: datetime,
+    busy_intervals: tuple[TimeInterval, ...],
+    free_intervals: tuple[TimeInterval, ...],
+) -> tuple[str, ...]:
+    """Window verdicts for one proposed range; no env, clock or network."""
+    codes: list[str] = []
+    if start < slot:
+        codes.append("L1_ACTION_BEFORE_SLOT")
+    if any(start < busy.end and busy.start < end for busy in busy_intervals):
+        codes.append("L1_ACTION_IN_BUSY_INTERVAL")
+    elif not any(
+        free_start <= start and end <= free_end
+        for free_start, free_end in _merge_intervals(free_intervals)
+    ):
+        codes.append("L1_ACTION_NOT_FREE")
+    return tuple(codes)
 
 
 @dataclass(frozen=True)
@@ -253,6 +404,15 @@ def _l0_counts(briefing: Briefing, context: GateContext) -> list[Violation]:
     return violations
 
 
+_TEXT_MESSAGES = {
+    "L1_SECRET": "secret-like token",
+    "L1_PII": "contact detail",
+    "L1_ADVICE": "advice-like wording",
+    "L1_PRIVATE_TERM": "private term",
+    "L1_RAW_VALUE": "raw source value",
+}
+
+
 def _l1_text_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
     violations: list[Violation] = []
     if not context.private_terms_available:
@@ -267,35 +427,54 @@ def _l1_text_checks(briefing: Briefing, context: GateContext) -> list[Violation]
         check_terms = False
     else:
         check_terms = True
-    collapsed_terms = [_collapse(term) for term in context.private_terms]
     for _kind, _owner, text, location in _iter_texts(briefing):
-        if any(pattern.search(text) for pattern in _SECRET_PATTERNS):
-            violations.append(
-                Violation("L1_SECRET", "L1", location, "secret-like token")
+        for code in text_check_codes(
+            text,
+            private_terms=context.private_terms if check_terms else (),
+            forbidden_raw_literals=context.forbidden_raw_literals,
+        ):
+            violations.append(Violation(code, "L1", location, _TEXT_MESSAGES[code]))
+    return violations
+
+
+def _l1_commitment_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
+    violations: list[Violation] = []
+    if not context.commitments_available:
+        violations.append(
+            Violation(
+                "L1_COMMITMENTS_UNAVAILABLE",
+                "L1",
+                "briefing",
+                "commitments unavailable",
             )
-        if _EMAIL_RE.search(text) or _PHONE_RE.search(text):
-            violations.append(Violation("L1_PII", "L1", location, "contact detail"))
-        if check_terms:
-            collapsed = _collapse(text)
-            for term in collapsed_terms:
-                if not term:
-                    continue
-                if len(term) <= 3:
-                    hit = _contains_token(collapsed, term)
-                else:
-                    hit = term in collapsed
-                if hit:
-                    violations.append(
-                        Violation("L1_PRIVATE_TERM", "L1", location, "private term")
-                    )
-                    break
-        if any(
-            _contains_token(_collapse(text), _collapse(literal))
-            for literal in context.forbidden_raw_literals
-            if _collapse(literal)
+        )
+        return violations
+    by_id = {commitment.id: commitment for commitment in context.commitments}
+    for action in _iter_actions(briefing):
+        location = _action_location(action.id)
+        commitment = by_id.get(action.commitment_id)
+        if commitment is None or commitment.profile_id != briefing.profile_id:
+            violations.append(
+                Violation(
+                    "L1_ACTION_NOT_COMMITTED",
+                    "L1",
+                    location,
+                    "action is not a user commitment",
+                )
+            )
+            continue
+        if (
+            _collapse(action.text) != _collapse(commitment.title)
+            or action.kind != commitment.kind
+            or action.dimension != commitment.dimension
         ):
             violations.append(
-                Violation("L1_RAW_VALUE", "L1", location, "raw source value")
+                Violation(
+                    "L1_ACTION_TEXT_MISMATCH",
+                    "L1",
+                    location,
+                    "action differs from its commitment",
+                )
             )
     return violations
 
@@ -331,44 +510,19 @@ def _l1_slot_and_interval_checks(
                     "slot outside allowed hours",
                 )
             )
-    merged_free = _merge_intervals(context.free_intervals)
     for action in _iter_actions(briefing):
         location = _action_location(action.id)
-        if action.proposed_start < briefing.slot:
-            violations.append(
-                Violation(
-                    "L1_ACTION_BEFORE_SLOT",
-                    "L1",
-                    location,
-                    "action starts before the briefing slot",
-                )
-            )
-        start, end = action.proposed_start, action.proposed_end
-        if any(
-            start < busy.end and busy.start < end for busy in context.busy_intervals
+        for code in action_window_codes(
+            action.proposed_start,
+            action.proposed_end,
+            slot=briefing.slot,
+            busy_intervals=context.busy_intervals,
+            free_intervals=context.free_intervals,
         ):
             violations.append(
-                Violation(
-                    "L1_ACTION_IN_BUSY_INTERVAL",
-                    "L1",
-                    location,
-                    "action overlaps a busy interval",
-                )
+                Violation(code, "L1", location, _ACTION_WINDOW_MESSAGES[code])
             )
-        elif not any(
-            free_start <= start and end <= free_end
-            for free_start, free_end in merged_free
-        ):
-            violations.append(
-                Violation(
-                    "L1_ACTION_NOT_FREE",
-                    "L1",
-                    location,
-                    "action is not fully inside free time",
-                )
-            )
-        lowered = action.text.casefold()
-        if any(term in lowered for term in _REPO_TERMS):
+        if action_targets_repo(action.text):
             violations.append(
                 Violation(
                     "L1_ACTION_TARGETS_REPO",
@@ -384,6 +538,190 @@ def _ref_backs_token(value: float, places: int, token_abs: Decimal) -> bool:
     quantum = Decimal(1).scaleb(-places)
     rounded = Decimal(str(value)).quantize(quantum, rounding=ROUND_HALF_UP)
     return abs(rounded) == token_abs
+
+
+def _is_raw_ref(metric_id: str, context: GateContext) -> bool:
+    return metric_id in context.raw_metric_ids or metric_id.startswith("raw.")
+
+
+def _label_in_text(binding: MetricBinding, collapsed: str) -> bool:
+    return any(_contains_token(collapsed, _collapse(label)) for label in binding.labels)
+
+
+def _binding_violations(
+    section_type: str, claim: Claim, context: GateContext, location: str
+) -> list[Violation]:
+    violations: list[Violation] = []
+    remaining = [
+        ref for ref in claim.metric_refs if not _is_raw_ref(ref.metric_id, context)
+    ]
+    if not remaining:
+        return violations
+    bindings: list[MetricBinding | None] = [
+        metric_label_binding(ref.metric_id) for ref in remaining
+    ]
+    if any(binding is None for binding in bindings):
+        violations.append(
+            Violation(
+                "L1B_METRIC_LABEL_UNKNOWN",
+                "L1b",
+                location,
+                "metric family is unknown",
+            )
+        )
+        return violations
+    known = [binding for binding in bindings if binding is not None]
+    collapsed = _collapse(claim.text)
+    if len(remaining) == 1:
+        binding = known[0]
+        if not _label_in_text(binding, collapsed):
+            violations.append(
+                Violation(
+                    "L1B_METRIC_LABEL_MISSING",
+                    "L1b",
+                    location,
+                    "claim does not name the cited metric",
+                )
+            )
+        if binding.period is not None and not _contains_token(
+            collapsed, binding.period
+        ):
+            violations.append(
+                Violation(
+                    "L1B_PERIOD_WORD_MISSING",
+                    "L1b",
+                    location,
+                    _PERIOD_MESSAGE,
+                )
+            )
+        if binding.requires_cancel and "cancel" not in collapsed:
+            violations.append(
+                Violation(
+                    "L1B_METRIC_LABEL_MISSING",
+                    "L1b",
+                    location,
+                    "claim does not name the cited metric",
+                )
+            )
+    else:
+        periods = [binding.period for binding in known]
+        families = {binding.family for binding in known}
+        eligible = (
+            2 <= len(remaining) <= 3
+            and all(period is not None for period in periods)
+            and len(families) == 1
+            and len(set(periods)) == len(periods)
+        )
+        if not eligible:
+            violations.append(
+                Violation(
+                    "L1B_TOO_MANY_METRICS",
+                    "L1b",
+                    location,
+                    "claim cites metrics outside one comparison",
+                )
+            )
+            return violations
+        if not _label_in_text(known[0], collapsed):
+            violations.append(
+                Violation(
+                    "L1B_METRIC_LABEL_MISSING",
+                    "L1b",
+                    location,
+                    "claim does not name the cited metric",
+                )
+            )
+        for period in periods:
+            assert period is not None
+            if not _contains_token(collapsed, period):
+                violations.append(
+                    Violation(
+                        "L1B_PERIOD_WORD_MISSING",
+                        "L1b",
+                        location,
+                        _PERIOD_MESSAGE,
+                    )
+                )
+                break
+    if section_type != "since_last":
+        cited = {binding.period for binding in known if binding.period is not None}
+        named = {word for word in _PERIOD_WORDS if _contains_token(collapsed, word)}
+        if named != cited:
+            violations.append(
+                Violation(
+                    "L1B_PERIOD_WORD_MISSING",
+                    "L1b",
+                    location,
+                    _PERIOD_MESSAGE,
+                )
+            )
+    label_tokens: set[str] = set()
+    for binding in known:
+        for label in binding.labels:
+            label_tokens.update(_DIRECTION_TOKEN_RE.findall(_collapse(label)))
+    tokens = set(_DIRECTION_TOKEN_RE.findall(collapsed)) - label_tokens
+    up_hit = bool(tokens & _UP_WORDS)
+    down_hit = bool(tokens & _DOWN_WORDS)
+    if up_hit and down_hit:
+        violations.append(
+            Violation(
+                "L1B_DIRECTION_MISMATCH",
+                "L1b",
+                location,
+                "direction words disagree with the cited values",
+            )
+        )
+    elif up_hit or down_hit:
+        side = "up" if up_hit else "down"
+        if section_type == "since_last":
+            signs = {
+                (Decimal(str(ref.value)) > 0, Decimal(str(ref.value)) < 0)
+                for ref in remaining
+            }
+            if signs != ({(True, False)} if side == "up" else {(False, True)}):
+                violations.append(
+                    Violation(
+                        "L1B_DIRECTION_MISMATCH",
+                        "L1b",
+                        location,
+                        "direction words disagree with the cited values",
+                    )
+                )
+        elif len(remaining) == 1:
+            violations.append(
+                Violation(
+                    "L1B_DIRECTION_MISMATCH",
+                    "L1b",
+                    location,
+                    "direction words disagree with the cited values",
+                )
+            )
+        else:
+            pairs = [
+                (binding.period, ref.value)
+                for binding, ref in zip(known, remaining)
+                if binding.period is not None
+            ]
+            ordered = sorted(pairs, key=lambda pair: _PERIOD_ORDER[pair[0]])
+            diffs = [
+                Decimal(str(later)) - Decimal(str(earlier))
+                for (_, earlier), (_, later) in itertools.pairwise(ordered)
+            ]
+            agree = (
+                all(diff > 0 for diff in diffs)
+                if side == "up"
+                else all(diff < 0 for diff in diffs)
+            )
+            if not agree:
+                violations.append(
+                    Violation(
+                        "L1B_DIRECTION_MISMATCH",
+                        "L1b",
+                        location,
+                        "direction words disagree with the cited values",
+                    )
+                )
+    return violations
 
 
 def _l1b_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
@@ -424,6 +762,7 @@ def _l1b_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
                         "number token has no backing metric ref",
                     )
                 )
+        violations.extend(_binding_violations(section_type, claim, context, location))
         if section_type == "since_last":
             continue
         for ref in claim.metric_refs:
@@ -611,6 +950,7 @@ def evaluate_briefing(
     violations.extend(_l0_counts(briefing, context))
     violations.extend(_l1_text_checks(briefing, context))
     violations.extend(_l1_metric_ref_raw_check(briefing, context))
+    violations.extend(_l1_commitment_checks(briefing, context))
     violations.extend(_l1_slot_and_interval_checks(briefing, context))
     violations.extend(_l1b_checks(briefing, context))
     return _finish(violations)

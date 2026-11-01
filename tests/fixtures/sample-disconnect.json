@@ -7,7 +7,7 @@
         "rule": "afternoons, unhurried"
       },
       "dimension": "love",
-      "rationale": "Synthetic recovery family slots.",
+      "rationale": "Synthetic disconnect family slots.",
       "type": "calendar_slots"
     },
     "checkin#wellbeing": {
@@ -17,7 +17,7 @@
         "prompt": "How are you, honestly?"
       },
       "dimension": "limit",
-      "rationale": "Synthetic recovery wind-down check.",
+      "rationale": "Synthetic disconnect wind-down check.",
       "type": "checkin"
     },
     "checklist#day": {
@@ -42,7 +42,7 @@
         "label": "A good day"
       },
       "dimension": "love",
-      "rationale": "Synthetic recovery day checklist.",
+      "rationale": "Synthetic disconnect day checklist.",
       "type": "checklist"
     },
     "focus_session#rest": {
@@ -52,18 +52,18 @@
         "minutes": 15
       },
       "dimension": "love",
-      "rationale": "Synthetic recovery rest window.",
+      "rationale": "Synthetic disconnect rest window.",
       "type": "focus_session"
     },
     "insight_card#today": {
       "config": {
         "fact_ids": [
-          "fact_recovery_1"
+          "fact_disconnect_1"
         ],
         "label": "Today in one line"
       },
       "dimension": "love",
-      "rationale": "Synthetic recovery insight.",
+      "rationale": "Synthetic disconnect insight.",
       "type": "insight_card"
     },
     "link_list#listen": {
@@ -83,7 +83,7 @@
         ]
       },
       "dimension": "love",
-      "rationale": "Synthetic recovery listening list.",
+      "rationale": "Synthetic disconnect listening list.",
       "type": "link_list"
     }
   },
@@ -97,5 +97,5 @@
     "link_list#listen"
   ],
   "parent": null,
-  "version": "sample-recovery"
+  "version": "sample-disconnect"
 }

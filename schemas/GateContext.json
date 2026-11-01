@@ -4,6 +4,11 @@
       "additionalProperties": false,
       "description": "One proposed item in the ``actions`` section.",
       "properties": {
+        "commitment_id": {
+          "minLength": 1,
+          "title": "Commitment Id",
+          "type": "string"
+        },
         "dimension": {
           "enum": [
             "love",
@@ -29,7 +34,6 @@
             "apply",
             "outreach",
             "walk",
-            "exercise",
             "rest",
             "music",
             "social",
@@ -57,6 +61,7 @@
       },
       "required": [
         "id",
+        "commitment_id",
         "kind",
         "text",
         "dimension",
@@ -155,6 +160,89 @@
         "text"
       ],
       "title": "Claim",
+      "type": "object"
+    },
+    "Commitment": {
+      "additionalProperties": false,
+      "description": "One user-written commitment an action may be scheduled from.",
+      "properties": {
+        "dimension": {
+          "enum": [
+            "love",
+            "good_at",
+            "world_needs",
+            "paid_for",
+            "limit",
+            "contrast"
+          ],
+          "title": "Dimension",
+          "type": "string"
+        },
+        "evidence": {
+          "enum": [
+            "tap",
+            "calendar_tag",
+            "github_push",
+            "no_screen"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "build",
+            "write",
+            "read",
+            "apply",
+            "outreach",
+            "walk",
+            "rest",
+            "music",
+            "social",
+            "plan",
+            "checkin"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "profile_id": {
+          "minLength": 1,
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "tag": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tag"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "profile_id",
+        "title",
+        "kind",
+        "dimension",
+        "evidence"
+      ],
+      "title": "Commitment",
       "type": "object"
     },
     "Fact": {
@@ -376,6 +464,19 @@
     "check_slot": {
       "default": true,
       "title": "Check Slot",
+      "type": "boolean"
+    },
+    "commitments": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Commitment"
+      },
+      "title": "Commitments",
+      "type": "array"
+    },
+    "commitments_available": {
+      "default": false,
+      "title": "Commitments Available",
       "type": "boolean"
     },
     "facts": {
