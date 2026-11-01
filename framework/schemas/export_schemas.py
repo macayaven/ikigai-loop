@@ -19,6 +19,12 @@ from framework.briefing.schemas import (
     MetricRef,
     Section,
 )
+from framework.glimmer.schemas import (
+    FactDraft,
+    FactDraftBatch,
+    FeedTopicBatch,
+    FeedTopicDraft,
+)
 from framework.schemas.core import Criterion, Fact, FactWindow, IkigaiWeights, Profile
 from framework.schemas.events import (
     AppApproveData,
@@ -97,6 +103,10 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     TimeInterval,
     ProfileLimits,
     GateContext,
+    FactDraft,
+    FactDraftBatch,
+    FeedTopicDraft,
+    FeedTopicBatch,
 )
 
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"

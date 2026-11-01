@@ -132,6 +132,24 @@ Built on branch `t10-commitments` per [docs/plans/010-commitments-gate.md](docs/
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+## Ticket 9 — Glimmer fact layer (2026-11-01)
+
+Built on branch `t9-glimmer-facts` per [docs/plans/009-glimmer-facts.md](docs/plans/009-glimmer-facts.md):
+the two-pass fact layer later tickets call from `run_cycle`. A pure core
+`extract_facts` (allowlist-first filtering, logical-key winners, deterministic
+`MetricSnapshot` plus three-period rollup with no model, isolated personal and
+feed model passes, deterministic checks, content-hash IDs with core-minted
+tiers), the stdlib OpenAI-compatible edge client (content only, sanitised
+model ID), append-only `cycles`/`facts`/`cycle_responses` in the existing DB
+file with byte-identical replay as a no-op, the `run_cycle` seam, the
+counts-only `python -m framework.cycle facts` CLI, and the Inspect replay task
+with the 6-known-good / 24-mutant meta-eval. Offline tests on synthetic
+fixtures, plus one seeded live run against Muse Glimmer on synthetic rows; the
+real-data run is still pending. Evidence in
+[docs/sessions/009-glimmer-facts.md](docs/sessions/009-glimmer-facts.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high), in an interactive session I ran, which also wrote a first draft of four files before I stopped it. Implementation and fixes: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

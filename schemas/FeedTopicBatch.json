@@ -1,0 +1,44 @@
+{
+  "$defs": {
+    "FeedTopicDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "topic": {
+          "minLength": 1,
+          "title": "Topic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence",
+        "topic"
+      ],
+      "title": "FeedTopicDraft",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "topics": {
+      "items": {
+        "$ref": "#/$defs/FeedTopicDraft"
+      },
+      "title": "Topics",
+      "type": "array"
+    }
+  },
+  "required": [
+    "topics"
+  ],
+  "title": "FeedTopicBatch",
+  "type": "object"
+}
