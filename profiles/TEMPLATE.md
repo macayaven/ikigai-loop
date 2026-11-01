@@ -3,7 +3,7 @@
 > This is a made-up example, here only to show tone and format. It is not about a real person.
 > Write yours the same way: first person, concrete, the kind of thing a stranger could check.
 > About 20–30 minutes. Plain text is fine; I'll convert it.
-> For the experiment, fill the template **twice**: profile A (Builder) and profile B (Recovery). Same person, same limits and signals; they must disagree on something concrete, such as what an evening is for.
+> For the experiment, fill the template **twice**: profile A (Builder) and profile B (Disconnect). Same person, same limits and signals; they must disagree on something concrete, such as what an evening is for.
 
 **Who:** Lucía, 38, ICU nurse on rotating shifts, two kids (6 and 9), lives in Valencia.
 **Version:** 1 · 2026-10-27

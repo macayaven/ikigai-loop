@@ -1,5 +1,7 @@
 # Ikigai Loop: Build Spec v0.4 (one person, two objectives)
 
+> **Superseded on 2026-11-01.** This describes an earlier design. README.md describes the current entry. Kept as the record of how the project got here.
+
 Meta AI Developer Hackathon · indie track · theme "Build for Your World"
 Status: draft v0.4, 2026-10-29 · Author: Carlos · Submission due 2026-11-04 21:00 ET
 Previous versions: v0.1 (naive design) and v0.2 (two people), not included in this repo.

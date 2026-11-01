@@ -1,5 +1,7 @@
 # Ikigai Loop Museum: contract v0.1 (for a parallel proof of concept)
 
+> **Superseded on 2026-11-01.** This describes an earlier design. README.md describes the current entry. Kept as the record of how the project got here.
+
 Self-contained. A builder needs only this file and `fixtures/tour.sample.json`, written to the schema below.
 
 ## 1. What it is

@@ -1,5 +1,7 @@
 # Ikigai Loop: How we build it (v0.1)
 
+> **Note, 2026-11-01:** the build process here still applies. Product descriptions in this file come from an earlier design; README.md describes the current entry. Who runs each step changed on Nov 1: "AI assistance outside the Muse family" in CONTRIBUTIONS.md has the record.
+
 Carlos does all the hands-on work with the Muse family. Claude advises and reviews only: it reads plans and diffs and gives findings, and never edits the repo or makes commits.
 
 Everything here is grounded in what Muse Code 1.4.10 exposes (`muse --help`, checked 2026-10-27). Items marked **verify** are flags or paths I saw in help text but haven't exercised yet.

@@ -1,4 +1,4 @@
-"""Blocks v0 and renderer (ticket 6)."""
+"""Blocks v0 and renderer (ticket 6). Earlier design; the current card path doesn't use it."""
 
 from framework.blocks.calendar_slots import CalendarSlotsConfig
 from framework.blocks.checkin import CheckinConfig

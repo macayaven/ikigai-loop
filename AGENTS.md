@@ -4,9 +4,8 @@ Muse Code reads this file as project rules when it runs in this directory.
 
 ## Mission
 
-Ikigai Loop: one person, same signals, two objective profiles, two apps that diverge.
-The evaluator is built first and earns autonomy only by measured agreement with human judgment.
-Spec: [docs/SPEC.md](docs/SPEC.md). Workflow: [docs/WORKFLOW.md](docs/WORKFLOW.md).
+Ikigai Loop: two goals, Builder and Disconnect, compete for Carlos's next free hour; the agent proposes one commitment per goal and can't tell him anything it can't prove from his own data.
+[README.md](README.md) describes the current entry and what is and isn't built.
 
 ## Commands
 
