@@ -25,17 +25,17 @@ Built and merged:
 - Glimmer fact layer (`framework/glimmer/`, `framework/store/fact_store.py`, `framework/cycle/`): filters events to an allowlist, computes metrics and three 24-hour periods with no model, asks Muse Glimmer in two isolated passes, and drops any fact that fails its deterministic checks; 196 tests in `tests/test_glimmer_*.py`, `tests/test_fact_store.py` and `tests/test_cycle_cli.py`, passing.
 - Learner core (`framework/learner/`): Beta posteriors per time bucket over which of my two goals I take, commitment ranking, scoring each prediction before the ruling it predicts, byte-identical replay, and a known-preference test on simulated rulings; 146 tests in `tests/test_learner_*.py`, passing. Nothing calls it yet, and no real ruling has gone through it.
 - Pre-registration ([docs/PREREG.md](docs/PREREG.md)): the Nov 2-4 live run's predictions and rules, committed before the first card, with the R3 steering pairs as data (`evals/r3_pairs.json`).
+- Telegram card (`framework/telegram/`): one photo message with a chart and buttons, taps stored as `app.tap`, long polling with no public endpoint; 160 tests in `tests/test_telegram_*.py`, passing. Nothing schedules it yet, and no real card or ruling has gone through it.
 
 Not built yet:
 
 - The Wonder proposal step.
-- The Telegram card.
 - The orchestrator.
 - Voice correction.
 - The proof harness.
 - The replay viewer.
 
-Muse Glimmer has generated facts through this code in a seeded run on synthetic data. No model has generated a card yet, no card has been delivered, and I claim no results.
+Muse Glimmer has generated facts through this code in a seeded run on synthetic data. No model has generated a card yet. The only card delivered so far is a sample with made-up values, sent to my phone to test the transport, and I claim no results.
 
 ## No medical advice
 
