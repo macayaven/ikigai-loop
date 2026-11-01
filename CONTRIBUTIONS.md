@@ -215,6 +215,21 @@ sample card labelled synthetic. Evidence in
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+## Ticket 9d — pull request counted once (2026-11-01)
+
+Built on branch `t9d-pr-count`: one `github.pr` row exists per action, so an
+opened-plus-merged pull request counted 2. New `is_opened_pr` helper in
+`framework/glimmer/metrics.py` (a row counts only on `opened` above 0) now
+gates all three sites — the period rollup, the `github.pr.count` window
+value, and the `prs` code-fact pool, whose evidence cites only opened rows.
+The `pr_event` fixture default changed from `{"prs": 1}` to `{"opened": 1}`;
+no schema, collector, stored-row, or push change. 9 new tests (4 metrics, 5
+code facts including both briefing-gate citation forms); README counts moved
+to 279 and 57. Evidence in
+[docs/sessions/009d-pr-count.md](docs/sessions/009d-pr-count.md).
+
+Prompt and review by Claude Code. Implementation by muse-spark-1.3, in Muse Code, in a headless session Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
