@@ -183,6 +183,18 @@ with a CLI test pinning it, so no log-label change was needed.
 
 Prompts and review by Claude Code. Implementation by muse-spark-1.3, in Muse Code, in a headless session Claude Code started.
 
+## Ticket 12 — Telegram card (2026-11-01)
+
+Built on branch `t12-telegram-card` per [docs/plans/012-telegram-card.md](docs/plans/012-telegram-card.md):
+`framework/telegram/`, one photo card with a chart and buttons, taps stored as
+`app.tap`, long polling with no public endpoint, and a seam for voice notes;
+`docs/PRIVACY.md`; and `pillow` as one new dependency for the chart. Claude Code
+ran the live test against the real Bot API outside the Muse sessions, with a
+sample card labelled synthetic. Evidence in
+[docs/sessions/012-telegram-card.md](docs/sessions/012-telegram-card.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
