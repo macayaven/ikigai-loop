@@ -61,6 +61,18 @@ CATEGORY_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
         ),
     ),
     (
+        "ai",
+        (
+            "chatgpt",
+            "com.openai",
+            "claude",
+            "com.anthropic",
+            "perplexity",
+            "gemini",
+            "copilot",
+        ),
+    ),
+    (
         "comms",
         (
             "slack",
@@ -74,7 +86,7 @@ CATEGORY_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
             "facetime",
             "incallservice",
             "whatsapp",
-            "telegram",
+            "telegra",
         ),
     ),
     (
@@ -88,6 +100,20 @@ CATEGORY_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
         "media",
         ("spotify", "music", "youtube", "vlc", "quicktime", "podcast", "netflix"),
+    ),
+    (
+        "system",
+        (
+            "com.apple.",
+            "finder",
+            "system settings",
+            "usernotificationcenter",
+            "shortcuts",
+            "screen sharing",
+            "authenticator",
+            "1password",
+            "superwhisper",
+        ),
     ),
 )
 
@@ -163,7 +189,7 @@ class ActivityWatchCollector:
         self._http_post = http_post
         self._now_fn = now_fn
         self.name = "activitywatch"
-        self.version = "activitywatch@0.1.0"
+        self.version = "activitywatch@0.2.0"
 
     def collect(self, now: datetime | None = None) -> list[Event]:
         """Build screen.hour events for the stateless 48 h window ending now."""
