@@ -241,7 +241,7 @@ and `test_adapter.py` are the output of one live Muse Code run with only
 `ruff format` after it; a `Check your own agent` section in the README; and
 packaging with pydantic as the only runtime dependency. Claude Code ran the
 browser passes and the live recipe outside the implementation sessions, on
-synthetic data.
+synthetic data. A follow-up said what the page takes on its first line, listed the checker as built in the README, and recorded the Nov 1 live check, prompted and reviewed by Claude Code and implemented in Muse Code in a headless session Claude Code started.
 
 Evidence in [docs/sessions/017a-verify-claims.md](docs/sessions/017a-verify-claims.md).
 

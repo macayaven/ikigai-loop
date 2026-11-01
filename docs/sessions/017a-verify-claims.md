@@ -41,7 +41,7 @@ Claude Code reviewed the plan and the diff before the commit. Every number below
 - Differential fuzz, gate against `verify_claims`, skipping only the one shape the plan excludes (M38). Final tree, two seeds: 39,246 and 39,252 claims compared, with 0 false passes, 0 over-rejections and 0 differing codes. Six more seeds on earlier fixed trees gave the same zeros.
 - Attack scripts, outside the repo: 244 hostile-input rows through the CLI, 0 bad (each exits 2 or gives a clean report, never a traceback); 26 timing shapes built to run long, 0 timeouts, slowest 1.42 s. False passes that remain pass the gate too, and are listed under Known gaps.
 - Drift proof, in a throwaway copy with the framework imported from the copy. 8 changes made the parity test fail: four gate rules switched off or narrowed (single-ref direction, value comparison, eligibility limited to 2 refs, claim without evidence), three arms changed on the verify side, and a new unclassified mutant in `evals/briefing_cases.py`. 2 changes to code both sides share did not, by design, because they move both sides together: removing `rose` from the up words, which the gate's own suites and the verify API tests catch, and a percent parsing change that leaves the value read unchanged, so nothing catches it and nothing changes.
-- Browser, reviewer step AT10, headless Chrome on a loopback sub-path `/ikigai-loop/verify/` with the CSP on: 31 checks, 0 failures. Run stays disabled until load; the three example buttons' reports equal the Python API; requests went only to the page, the bundle and the pinned CDN address, and none after load; an XSS-shaped id rendered as text; 119 hostile rows through the page gave 0 differences from the Python API, slowest 4.70 s; 26 timing shapes through the page, slowest 3.27 s; no horizontal scroll at 390 px. Playwright's Firefox 157 and WebKit 27.2 builds on this Mac also loaded it and matched on all three examples.
+- Browser, reviewer step AT10, headless Chrome on a loopback sub-path `/ikigai-loop/verify/` with the CSP on: 31 checks, 0 failures. Run stays disabled until load; the three example buttons' reports equal the Python API; requests went only to the page, the bundle and the pinned CDN address, and none after load; an XSS-shaped id rendered as text; 119 hostile rows through the page gave 0 differences from the Python API, slowest 4.87 to 7.55 s across reruns under load; 26 timing shapes through the page, slowest 3.27 s; no horizontal scroll at 390 px. Playwright's Firefox 157 and WebKit 27.2 builds on this Mac also loaded it and matched on all three examples.
 - Load time, 5 fresh browser contexts, real CDN over this machine's connection, page and bundle from loopback: cold median 2.70 s (2.31 to 2.84), 7.6 MB by content-length; warm median 1.03 s. One earlier cold load took 15.55 s while the machine was busy.
 - Stranger's path, in an empty folder with a fresh `uv` cache and the local clone standing in for the public URLs: `uvx --from` cold 2.26 s, 6 packages, exit 1 naming `L1B_METRIC_VALUE_MISMATCH`.
 - Live recipe, reviewer step AT11, run once against `examples/verify/foreign/` with the command in `docs/ADAPTER.md` plus a session id: 49 s, exit 0, its tests passed first time (8 tests under `python3 -m unittest`). The session log shows 7 main model requests, 252,453 input tokens (197,030 cached) and 7,446 output tokens (4,824 reasoning). The result named the adapter file, test file, test command, 2 unconfirmed mappings and 7 assumptions. Piping its output through `verify-claims -` gave exit 1 with `L1B_METRIC_VALUE_MISMATCH` on `s1`.
@@ -58,7 +58,7 @@ Run by Claude Code outside Muse's sandbox on the reviewed tree:
 | AT4 | 64 passed; `input.json` exit 1; `input-fixed.json` exit 0; `import inspect_ai` exit 0; `make eval` exit 0, 6 tasks success |
 | AT5 | 9 passed; one `def repair_loop`, in `framework/verify/repair.py`; no briefing or Meta import in it |
 | AT6 | 18 passed |
-| AT7 | wheel built, 128 KB; isolated run from outside the repo exit 0; framework from site-packages; `sqlite3`, `jinja2`, `inspect_ai`, `icalendar`, `PIL`, `framework.store`, `framework.collectors`, `framework.blocks` and `framework.telegram` not loaded |
+| AT7 | wheel built, 132 KB; isolated run from outside the repo exit 0; framework from site-packages; `sqlite3`, `jinja2`, `inspect_ai`, `icalendar`, `PIL`, `framework.store`, `framework.collectors`, `framework.blocks` and `framework.telegram` not loaded |
 | AT8 | Jekyll markers 0; `.nojekyll` present; `docs/verify` holds `bundle.json`, `examples`, `index.html`; dangerous DOM 0; only pinned jsDelivr and repo links as absolute URLs |
 | AT9 | imports reviewed against D3 |
 | AT10 | browser pass above |
@@ -70,9 +70,14 @@ Run by Claude Code outside Muse's sandbox on the reviewed tree:
 
 All test data and the recipe's data are synthetic, the new tests use no network, and the path in `HIDDEN_CRITERIA_DIR` was never opened.
 
+## Live check, Nov 1
+
+After merge, with Pages on, Claude Code checked the page live at https://carloscrespomacaya.com/ikigai-loop/verify/ and at https://macayaven.github.io/ikigai-loop/verify/, which redirects there. In Chrome, Firefox and emulated iPhone WebKit: 11 GET requests while loading, to the page host and cdn.jsdelivr.net, then 0 after load; a canary in the pasted input appeared in no request; no cookies, storage or service workers. The README command ran for real from an empty folder with a fresh uv cache: exit 1 with `L1B_METRIC_VALUE_MISMATCH`, in 6 seconds.
+
+Still unmeasured: a real phone, and how long a person takes.
+
 ## Known gaps
 
 - `LIMITS_NOTE` and the header of `framework/briefing/numbers.py` state what the check doesn't do.
 - These false forms pass both the gate and `verify_claims`, so they are gate limits and not drift: `7k`, `7M`, `$7`, `7%` next to a metric of 7 that isn't a percent, Arabic and circled digits, `8th`, `VIII`, `dozens`, `doubled`, `half`, `twice`, dates and clock times, `-7` read as 7, rounding such as 5 for 4.75, direction words not in the lists such as `climbed`, a reversed sentence with true refs and a direction word that agrees, and zero-width characters inside a deny term.
-- Not verified: the real Pages URL, the `uvx` git URL and the raw GitHub URL, because none exists until this merges and Pages is on; real phones and iOS Safari, because only desktop browser builds ran; how long a person takes, because no person was timed.
-- The README's opening pitch and `Status` list still describe the gate as checking my briefings against my own data. That edit waits until the browser link resolves, as the plan's D16 says.
+- Now verified live (see Live check, Nov 1 above): the real Pages URL, the `uvx` git URL and the raw GitHub URL. Not verified: real phones and iOS Safari, because only desktop browser builds and one emulated iPhone WebKit run loaded it; how long a person takes, because no person was timed.
