@@ -316,18 +316,27 @@ class FactStore:
     def fetch_latest_cycle(
         self, subject_id: str, *, not_after: datetime | None = None
     ) -> dict[str, Any] | None:
-        """Latest cycle for a subject: greatest as_of, then run, then id."""
+        """Latest cycle for a subject: greatest as_of, then recording order.
+
+        The winner is the candidate with the greatest ``as_of`` compared as
+        an instant, breaking ties by the ``cycles`` rowid, which ascends in
+        recording order because rows are never updated or deleted. ``run``
+        and the cycle id never decide. A byte-identical replay inserts no
+        row, so it does not move the pick; a recording that differs in any
+        identity field appends the next run, which carries the greatest
+        rowid at its instant and wins, even over a cycle from a richer pass.
+        """
         rows = self._conn.execute(
-            "SELECT cycle_id, run, as_of FROM cycles WHERE subject_id = ?",
+            "SELECT rowid, cycle_id, run, as_of FROM cycles WHERE subject_id = ?",
             (subject_id,),
         ).fetchall()
         winner: tuple[str, int] | None = None
-        winner_key: tuple[Any, int, str] | None = None
-        for cycle_id, run, as_of_text in rows:
+        winner_key: tuple[Any, int] | None = None
+        for rowid, cycle_id, run, as_of_text in rows:
             as_of = datetime.fromisoformat(as_of_text)
             if not_after is not None and as_of > not_after:
                 continue
-            key = (as_of, int(run), str(cycle_id))
+            key = (as_of, int(rowid))
             if winner_key is None or key > winner_key:
                 winner_key = key
                 winner = (str(cycle_id), int(run))

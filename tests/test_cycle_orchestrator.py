@@ -4464,7 +4464,33 @@ class _FlakyRunner:
             }
         )
         usage = _json.dumps({"payload": {"kind": "run_usage", "models": []}})
-        return RunResult(0, (terminal + "\n" + usage + "\n").encode(), False)
+        provider = _json.dumps(
+            {
+                "payload": {
+                    "kind": "task_lifecycle",
+                    "event": {
+                        "kind": "status",
+                        "details": {
+                            "phase": "stream_succeeded",
+                            "facets": [
+                                {"kind": "external_attempt"},
+                                {
+                                    "kind": "producer",
+                                    "detail": {
+                                        "kind": "provider",
+                                        "model": "muse-wonder-1.0",
+                                        "provider": "meta",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                }
+            }
+        )
+        return RunResult(
+            0, (terminal + "\n" + usage + "\n" + provider + "\n").encode(), False
+        )
 
 
 def _live_factory(run: Any, runner: Any, terms: Any, deadline: datetime) -> Any:
@@ -4838,7 +4864,27 @@ def _draft_stdout_for(schema: dict[str, Any]) -> bytes:
         "text": _json.dumps(payload),
         "reason": None,
     }
-    return (_line(terminal) + "\n").encode()
+    provider = {
+        "kind": "task_lifecycle",
+        "event": {
+            "kind": "status",
+            "details": {
+                "phase": "stream_succeeded",
+                "facets": [
+                    {"kind": "external_attempt"},
+                    {
+                        "kind": "producer",
+                        "detail": {
+                            "kind": "provider",
+                            "model": "muse-wonder-1.0",
+                            "provider": "meta",
+                        },
+                    },
+                ],
+            },
+        },
+    }
+    return (_line(provider) + "\n" + _line(terminal) + "\n").encode()
 
 
 class _BurstRunner:
@@ -5352,7 +5398,33 @@ class _ScriptRunner:
                 }
             )
             usage = _json.dumps({"payload": {"kind": "run_usage", "models": []}})
-            return RunResult(0, (terminal + "\n" + usage + "\n").encode(), False)
+            provider = _json.dumps(
+                {
+                    "payload": {
+                        "kind": "task_lifecycle",
+                        "event": {
+                            "kind": "status",
+                            "details": {
+                                "phase": "stream_succeeded",
+                                "facets": [
+                                    {"kind": "external_attempt"},
+                                    {
+                                        "kind": "producer",
+                                        "detail": {
+                                            "kind": "provider",
+                                            "model": "muse-wonder-1.0",
+                                            "provider": "meta",
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                }
+            )
+            return RunResult(
+                0, (terminal + "\n" + usage + "\n" + provider + "\n").encode(), False
+            )
         if behavior == "good":
             return RunResult(0, _draft_stdout_for(schema), False)
         raise AssertionError(f"unknown behavior {behavior}")

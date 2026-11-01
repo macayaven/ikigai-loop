@@ -575,3 +575,245 @@ def test_new_cycles_store_origin_code_first(tmp_path: Path) -> None:
         assert origins == ["code"] * 4 + ["model"] * 3
     finally:
         store.close()
+
+
+def _cycle_at(cycle_id: str, *, prompt_hash: str, as_of=None):  # type: ignore[no-untyped-def]
+    return replace(
+        _result(), cycle_id=cycle_id, prompt_hash=prompt_hash, as_of=as_of or AS_OF
+    )
+
+
+def test_latest_cycle_tie_resolves_by_recording_order(tmp_path: Path) -> None:
+    store = FactStore(db_path=tmp_path / "tie.db")
+    try:
+        store.record_cycle(_cycle_at("cycle-z-old", prompt_hash="a" * 64))
+        store.record_cycle(_cycle_at("cycle-a-new", prompt_hash="b" * 64))
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert latest["cycle_id"] == "cycle-a-new"
+        assert latest["run"] == 1
+    finally:
+        store.close()
+    store = FactStore(db_path=tmp_path / "tie-rev.db")
+    try:
+        store.record_cycle(_cycle_at("cycle-a-new", prompt_hash="b" * 64))
+        store.record_cycle(_cycle_at("cycle-z-old", prompt_hash="a" * 64))
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert latest["cycle_id"] == "cycle-z-old"
+        assert latest["run"] == 1
+    finally:
+        store.close()
+
+
+def _rerun(old):  # type: ignore[no-untyped-def]
+    from framework.glimmer.facts import AttemptRecord
+
+    (first, *rest) = old.responses
+    return replace(
+        old,
+        responses=(
+            AttemptRecord(
+                pass_name=first.pass_name,
+                attempt=first.attempt,
+                content=first.content + " ",
+            ),
+            *rest,
+        ),
+    )
+
+
+def test_latest_cycle_run_never_decides(tmp_path: Path) -> None:
+    store = FactStore(db_path=tmp_path / "rerun.db")
+    try:
+        old = _cycle_at("cycle-z-old", prompt_hash="a" * 64)
+        assert store.record_cycle(old) == 1
+        new = _cycle_at("cycle-a-new", prompt_hash="b" * 64)
+        assert store.record_cycle(new) == 1
+        assert store.record_cycle(_rerun(old)) == 2
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert (latest["cycle_id"], latest["run"]) == ("cycle-z-old", 2)
+    finally:
+        store.close()
+    store = FactStore(db_path=tmp_path / "two-runs.db")
+    try:
+        old = _cycle_at("cycle-z-old", prompt_hash="a" * 64)
+        assert store.record_cycle(old) == 1
+        assert store.record_cycle(_rerun(old)) == 2
+        new = _cycle_at("cycle-a-new", prompt_hash="b" * 64)
+        assert store.record_cycle(new) == 1
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert (latest["cycle_id"], latest["run"]) == ("cycle-a-new", 1)
+    finally:
+        store.close()
+
+
+def test_latest_cycle_same_instant_two_offsets_follows_recording_order(
+    tmp_path: Path,
+) -> None:
+    from datetime import UTC
+
+    store = FactStore(db_path=tmp_path / "offsets.db")
+    try:
+        same_instant_utc = AS_OF.astimezone(UTC)
+        assert same_instant_utc.isoformat() != AS_OF.isoformat()
+        store.record_cycle(_cycle_at("cycle-z-old", prompt_hash="a" * 64, as_of=AS_OF))
+        store.record_cycle(
+            _cycle_at("cycle-a-new", prompt_hash="b" * 64, as_of=same_instant_utc)
+        )
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert latest["cycle_id"] == "cycle-a-new"
+    finally:
+        store.close()
+    store = FactStore(db_path=tmp_path / "offsets-rev.db")
+    try:
+        same_instant_utc = AS_OF.astimezone(UTC)
+        store.record_cycle(
+            _cycle_at("cycle-a-new", prompt_hash="b" * 64, as_of=same_instant_utc)
+        )
+        store.record_cycle(_cycle_at("cycle-z-old", prompt_hash="a" * 64, as_of=AS_OF))
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert latest["cycle_id"] == "cycle-z-old"
+    finally:
+        store.close()
+
+
+def test_latest_cycle_replay_does_not_move_pick(tmp_path: Path) -> None:
+    store = FactStore(db_path=tmp_path / "replay.db")
+    try:
+        old = _cycle_at("cycle-z-old", prompt_hash="a" * 64)
+        new = _cycle_at("cycle-a-new", prompt_hash="b" * 64)
+        assert store.record_cycle(old) == 1
+        assert store.record_cycle(new) == 1
+        replayed = replace(_result(), cycle_id="cycle-z-old", prompt_hash="a" * 64)
+        assert store.record_cycle(replayed) == 1
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert latest["cycle_id"] == "cycle-a-new"
+    finally:
+        store.close()
+
+
+def test_latest_cycle_greatest_as_of_then_not_after(
+    tmp_path: Path,
+) -> None:
+    from datetime import timedelta
+
+    store = FactStore(db_path=tmp_path / "asof.db")
+    try:
+        later = _cycle_at(
+            "cycle-later", prompt_hash="c" * 64, as_of=AS_OF + timedelta(hours=1)
+        )
+        earlier = _cycle_at("cycle-earlier", prompt_hash="d" * 64, as_of=AS_OF)
+        store.record_cycle(later)
+        store.record_cycle(earlier)
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert latest["cycle_id"] == "cycle-later"
+        store.record_cycle(_cycle_at("cycle-z-old", prompt_hash="a" * 64, as_of=AS_OF))
+        store.record_cycle(_cycle_at("cycle-a-new", prompt_hash="b" * 64, as_of=AS_OF))
+        latest = store.fetch_latest_cycle(SUBJECT_ID, not_after=AS_OF)
+        assert latest is not None
+        assert latest["cycle_id"] == "cycle-a-new"
+        assert (
+            store.fetch_latest_cycle(SUBJECT_ID, not_after=AS_OF - timedelta(seconds=1))
+            is None
+        )
+    finally:
+        store.close()
+
+
+def _write_two_previous_schema_cycles(path, first, second) -> None:  # type: ignore[no-untyped-def]
+    """Insert two runs through main's exact column lists (no origin column)."""
+    import sqlite3
+    from dataclasses import asdict
+
+    from framework.store.store import canonical_json
+
+    conn = sqlite3.connect(path)
+    conn.execute("PRAGMA journal_mode=WAL")
+    try:
+        conn.executescript(_FROZEN_MAIN_DDL)
+        for result in (first, second):
+            personal, feed = result.passes
+            ran = [p for p in (personal, feed) if p.attempts > 0]
+            raw_valid = bool(ran) and all(p.raw_valid for p in ran)
+            conn.execute(
+                "INSERT INTO cycles (cycle_id, run, subject_id, as_of, model_id,"
+                " prompt_hash, latency_ms, raw_valid, is_noop, noop_reason,"
+                " snapshot, passes, dropped_codes, kept_count, dropped_count)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    result.cycle_id,
+                    1,
+                    result.subject_id,
+                    result.as_of.isoformat(),
+                    personal.model_id,
+                    result.prompt_hash,
+                    personal.latency_ms + feed.latency_ms,
+                    int(raw_valid),
+                    int(result.is_noop),
+                    result.noop_reason,
+                    canonical_json(dict(result.snapshot.values)),
+                    canonical_json([asdict(personal), asdict(feed)]),
+                    canonical_json([d.code for d in result.dropped]),
+                    len(result.facts),
+                    len(result.dropped),
+                ),
+            )
+            for fact in result.facts:
+                conn.execute(
+                    "INSERT INTO facts (cycle_id, run, fact_id, subject_id,"
+                    " window_start, window_end, statement, evidence, tier)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        result.cycle_id,
+                        1,
+                        fact.id,
+                        fact.subject_id,
+                        fact.window.start.isoformat(),
+                        fact.window.end.isoformat(),
+                        fact.statement,
+                        canonical_json(list(fact.evidence)),
+                        fact.tier,
+                    ),
+                )
+            for attempt in result.responses:
+                conn.execute(
+                    "INSERT INTO cycle_responses (cycle_id, run, pass, attempt,"
+                    " content) VALUES (?, ?, ?, ?, ?)",
+                    (
+                        result.cycle_id,
+                        1,
+                        attempt.pass_name,
+                        attempt.attempt,
+                        attempt.content,
+                    ),
+                )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_previous_schema_two_cycles_at_one_instant_resolve_by_recording_order(
+    tmp_path: Path,
+) -> None:
+    db = tmp_path / "previous-tie.db"
+    _write_two_previous_schema_cycles(
+        db,
+        _cycle_at("cycle-z-old", prompt_hash="a" * 64),
+        _cycle_at("cycle-a-new", prompt_hash="b" * 64),
+    )
+    store = FactStore(db_path=db)
+    try:
+        latest = store.fetch_latest_cycle(SUBJECT_ID)
+        assert latest is not None
+        assert latest["cycle_id"] == "cycle-a-new"
+        facts = store.fetch_facts("cycle-a-new", 1)
+        assert [f["origin"] for f in facts] == ["model"] * len(facts)
+    finally:
+        store.close()

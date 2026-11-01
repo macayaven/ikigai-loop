@@ -85,6 +85,18 @@ TWO_ROWS = [
 ]
 SUCCESS_TEXT = '{"word": "blue"}'
 
+# The 4 MiB cap, spelled out here so this file still collects on the base:
+# the guard test below pins it to the shared constant on the branch.
+_CAP = 4 * 1024 * 1024
+
+
+def test_cap_matches_shared_constant() -> None:
+    from framework.proposal.client import MAX_RESPONSE_BYTES
+    from framework.proposal.muse_client import MAX_RESPONSE_BYTES as _MUSE_CAP
+
+    assert MAX_RESPONSE_BYTES == _CAP
+    assert _MUSE_CAP == _CAP
+
 
 @pytest.fixture(autouse=True)
 def _clean_version_cache():
@@ -198,9 +210,38 @@ def _stdout(*payloads: dict[str, Any], prefix: tuple[str, ...] = ()) -> bytes:
     return ("\n".join(lines) + "\n").encode()
 
 
+def _provider_payload(model: Any = "muse-wonder-1.0") -> dict[str, Any]:
+    return {
+        "kind": "task_lifecycle",
+        "event": {
+            "kind": "status",
+            "details": {
+                "phase": "stream_succeeded",
+                "facets": [
+                    {"kind": "external_attempt"},
+                    {
+                        "kind": "producer",
+                        "detail": {
+                            "kind": "provider",
+                            "model": model,
+                            "provider": "meta",
+                        },
+                    },
+                ],
+            },
+        },
+    }
+
+
 def _ok_result(text: str, models: list[dict[str, Any]] | None = None) -> RunResult:
     return RunResult(
-        0, _stdout(_usage_payload(models or ONE_ROW), _terminal_payload(text)), False
+        0,
+        _stdout(
+            _usage_payload(models or ONE_ROW),
+            _provider_payload(),
+            _terminal_payload(text),
+        ),
+        False,
     )
 
 
@@ -544,15 +585,35 @@ def test_success_sums_two_model_rows() -> None:
     assert isinstance(response.latency_ms, int)
 
 
-def test_missing_usage_gives_none_tokens() -> None:
-    fake = FakeRunner([RunResult(0, _stdout(_terminal_payload(SUCCESS_TEXT)), False)])
+def test_provider_without_usage_gives_provider_model_and_none_tokens() -> None:
+    fake = FakeRunner(
+        [
+            RunResult(
+                0,
+                _stdout(
+                    _provider_payload("muse-wonder-1.0"),
+                    _terminal_payload(SUCCESS_TEXT),
+                ),
+                False,
+            )
+        ]
+    )
     response = _exec_client(fake).complete(_request())
     assert response.text == SUCCESS_TEXT
-    assert response.model_reported == "unreported"
+    assert response.model_reported == "muse-wonder-1.0"
     assert response.prompt_tokens is None
     assert response.cached_tokens is None
     assert response.completion_tokens is None
     assert response.reasoning_tokens is None
+    usage_first = _stdout(
+        _usage_payload(ONE_ROW),
+        _provider_payload("muse-spark-1.3"),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    response = _exec_client(FakeRunner([RunResult(0, usage_first, False)])).complete(
+        _request()
+    )
+    assert response.model_reported == "muse-wonder-1.0"
 
 
 def test_usage_row_missing_one_field() -> None:
@@ -667,7 +728,9 @@ def _propose_with(client: MuseExecClient, case: Case, policy: str = "") -> Any:
 
 
 def _draft_stdout(text: str) -> bytes:
-    return _stdout(_usage_payload(ONE_ROW), _terminal_payload(text))
+    return _stdout(
+        _usage_payload(ONE_ROW), _provider_payload(), _terminal_payload(text)
+    )
 
 
 def _spy_temp_dirs(monkeypatch: pytest.MonkeyPatch) -> list[str]:
@@ -893,13 +956,208 @@ def test_default_runner_kills_group_on_timeout(tmp_path: Path) -> None:
         time.sleep(0.05)
 
 
+def _pids_dead(pids: list[str]) -> bool:
+    return not any(_pid_alive(int(pid)) for pid in pids)
+
+
+def _assert_group_dead(tmp_path: Path, timeout: float = 5.0) -> None:
+    pids = (tmp_path / "pids").read_text(encoding="utf-8").split()
+    assert pids
+    deadline = time.monotonic() + timeout
+    while not _pids_dead(pids):
+        assert time.monotonic() < deadline, f"pids still alive: {pids}"
+        time.sleep(0.05)
+
+
+def test_default_runner_kills_group_past_cap(tmp_path: Path) -> None:
+    from framework.proposal.muse_client import _default_runner
+
+    over = _CAP + 100
+    script = tmp_path / "big.sh"
+    script.write_text(
+        f'#!/bin/sh\nsleep 60 &\necho "$$ $!" > pids\nhead -c {over} /dev/zero\nwait\n',
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)}
+    start = time.monotonic()
+    result = _default_runner([str(script)], env=env, timeout_s=10, cwd=str(tmp_path))
+    elapsed = time.monotonic() - start
+    assert elapsed < 10
+    assert result.oversized is True
+    assert result.stdout == b""
+    assert result.returncode is None
+    assert result.timed_out is False
+    _assert_group_dead(tmp_path)
+
+
+def test_default_runner_exact_cap_comes_back_whole(tmp_path: Path) -> None:
+    from framework.proposal.muse_client import _default_runner
+
+    script = tmp_path / "exact.sh"
+    script.write_text(
+        f"#!/bin/sh\nhead -c {_CAP} /dev/zero\n",
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)}
+    result = _default_runner([str(script)], env=env, timeout_s=30, cwd=str(tmp_path))
+    assert result.returncode == 0
+    assert result.stdout == b"\x00" * _CAP
+
+
+def test_default_runner_closed_stdout_still_times_out(tmp_path: Path) -> None:
+    from framework.proposal.muse_client import _default_runner
+
+    script = tmp_path / "closed.sh"
+    script.write_text(
+        '#!/bin/sh\necho "$$" > pids\nexec >&-\nsleep 60\n',
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)}
+    start = time.monotonic()
+    result = _default_runner([str(script)], env=env, timeout_s=3, cwd=str(tmp_path))
+    elapsed = time.monotonic() - start
+    assert elapsed < 15
+    assert result.timed_out is True
+    assert result.oversized is False
+    _assert_group_dead(tmp_path)
+
+
+def test_default_runner_exited_child_with_held_pipe_times_out(tmp_path: Path) -> None:
+    from framework.proposal.muse_client import _default_runner
+
+    script = tmp_path / "holder.sh"
+    script.write_text(
+        '#!/bin/sh\nsleep 60 &\necho "$$ $!" > pids\nexit 0\n',
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)}
+    start = time.monotonic()
+    result = _default_runner([str(script)], env=env, timeout_s=3, cwd=str(tmp_path))
+    elapsed = time.monotonic() - start
+    assert elapsed < 15
+    assert result.timed_out is True
+    assert result.oversized is False
+    _assert_group_dead(tmp_path)
+
+
+def test_one_byte_past_cap_through_complete_is_output_too_large() -> None:
+    from framework.proposal.core import MetaUnavailableError
+
+    body = b"x" * (_CAP + 1)
+    fake = FakeRunner([RunResult(0, body, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    exc = exc_info.value
+    assert str(exc) == "output too large"
+    assert isinstance(exc.latency_ms, int)
+    assert exc.__cause__ is None
+    assert exc.__context__ is None
+
+
+def test_complete_real_child_past_cap_is_output_too_large(tmp_path: Path) -> None:
+    """A real child writing past the cap through the real runner and `complete`.
+
+    The runner returns no output with `oversized` set, so only the
+    `oversized` branch in `complete` can produce this reason: without it the
+    same outcome reports an exit code instead.
+    """
+    script = tmp_path / "over.sh"
+    script.write_text(
+        f"#!/bin/sh\nhead -c {_CAP + 65536} /dev/zero\n", encoding="utf-8"
+    )
+    script.chmod(0o755)
+    client = MuseExecClient(
+        private_terms_available=True, muse_bin=str(script), timeout_s=60
+    )
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        client.complete(_request(schema={"type": "object"}))
+    assert str(exc_info.value) == "output too large"
+
+
+def test_complete_real_child_past_cap_is_plain_unavailable(
+    tmp_path: Path,
+) -> None:
+    """Past the cap, `complete` raises the plain class, never a local start.
+
+    The runner returns no exit code with `oversized` set, so without the
+    cap check ahead of the exit branch the `None` return code reads as a
+    fast `exit None` and comes back as a `LocalStartFailure`, which the
+    retry wrappers would then retry.
+    """
+    from framework.proposal.muse_client import LocalStartFailure
+
+    script = tmp_path / "over_plain.sh"
+    script.write_text(
+        f"#!/bin/sh\nhead -c {_CAP + 65536} /dev/zero\n", encoding="utf-8"
+    )
+    script.chmod(0o755)
+    client = MuseExecClient(
+        private_terms_available=True, muse_bin=str(script), timeout_s=60
+    )
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        client.complete(_request(schema={"type": "object"}))
+    exc = exc_info.value
+    assert type(exc) is MetaUnavailableError
+    assert not isinstance(exc, LocalStartFailure)
+    assert str(exc) == "output too large"
+
+
+def test_default_runner_stops_reading_past_cap(tmp_path: Path) -> None:
+    """A child writing three times the cap then touching a marker is stopped.
+
+    The call comes back flagged, and the marker never appears within a
+    generous wait: the runner kills the group at the cap instead of reading
+    the stream to the end and then checking its length.
+    """
+    from framework.proposal.muse_client import _default_runner
+
+    marker = tmp_path / "marker"
+    script = tmp_path / "flood.sh"
+    script.write_text(
+        f'#!/bin/sh\nhead -c {3 * _CAP} /dev/zero\ntouch "{marker}"\n',
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)}
+    result = _default_runner([str(script)], env=env, timeout_s=60, cwd=str(tmp_path))
+    assert result.oversized is True
+    assert result.stdout == b""
+    assert result.returncode is None
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        assert not marker.exists(), (
+            "marker appeared: the runner read to end of stream "
+            "instead of stopping at the cap"
+        )
+        time.sleep(0.1)
+
+
+@pytest.mark.parametrize("stdout", [b"", b"muse 9.9.9\n"])
+def test_oversized_version_probe_gives_none(stdout: bytes) -> None:
+    """An oversized version-probe result reports no version and never raises.
+
+    The non-empty arm pins the guard: without the return-code check the
+    probe would report the carried line as the version.
+    """
+    fake = FakeRunner(
+        [], version_script=[RunResult(None, stdout, False, oversized=True)]
+    )
+    client = _exec_client(fake, muse_bin="bin-oversized-version")
+    assert client.transport_version is None
+
+
 def test_default_runner_ignores_stderr(tmp_path: Path) -> None:
     usage = _line(_usage_payload(ONE_ROW))
+    provider = _line(_provider_payload())
     terminal = _line(_terminal_payload(SUCCESS_TEXT))
     script = tmp_path / "ok.sh"
     script.write_text(
         "#!/bin/sh\necho 'CANARY_STDERR_4d2a' >&2\n"
-        f"printf '%s\\n' '{usage}' '{terminal}'\n",
+        f"printf '%s\\n' '{usage}' '{provider}' '{terminal}'\n",
         encoding="utf-8",
     )
     script.chmod(0o755)
@@ -1201,6 +1459,7 @@ def test_clean_configured_model_still_returns_response() -> None:
     stdout = _stdout(
         _configured_payload("muse-wonder-1.0"),
         _usage_payload(ONE_ROW),
+        _provider_payload(),
         _terminal_payload(SUCCESS_TEXT),
     )
     fake = FakeRunner([RunResult(0, stdout, False)])
@@ -1285,3 +1544,200 @@ def test_private_tmp_ignores_poisoned_system_tmp(
     record = _exec_calls(fake)[0]
     assert not str(record["root"]).startswith(str(poisoned) + os.sep)
     assert Path(record["root"]).is_relative_to(_private_tmp_expected())
+
+
+def test_provider_detail_contributor_closed_clean_accepted() -> None:
+    stdout = _stdout(
+        _usage_payload(ONE_ROW),
+        _provider_payload("muse-wonder-1.0-contributor"),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    exc = exc_info.value
+    assert str(exc) == "contributor model"
+    assert exc.__cause__ is None
+    assert exc.__context__ is None
+    clean = _stdout(
+        _usage_payload(ONE_ROW),
+        _provider_payload("muse-wonder-1.0"),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    response = _exec_client(FakeRunner([RunResult(0, clean, False)])).complete(
+        _request()
+    )
+    assert response.text == SUCCESS_TEXT
+    assert response.model_reported == "muse-wonder-1.0"
+
+
+def test_contributor_in_earlier_usage_row_still_closed() -> None:
+    stdout = _stdout(
+        _usage_payload([_contributor_row("muse-wonder-1.0-contributor")]),
+        _usage_payload(ONE_ROW),
+        _provider_payload("muse-wonder-1.0"),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    assert str(exc_info.value) == "contributor model"
+
+
+def test_contributor_in_earlier_configured_event_still_closed() -> None:
+    stdout = _stdout(
+        _configured_payload("muse-spark-1.3-contributor"),
+        _configured_payload("muse-wonder-1.0"),
+        _usage_payload(ONE_ROW),
+        _provider_payload("muse-wonder-1.0"),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    assert str(exc_info.value) == "contributor model"
+
+
+def test_uppercase_contributor_marker_is_closed() -> None:
+    stdout = _stdout(
+        _provider_payload("MUSE-WONDER-1.0-CONTRIBUTOR"),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    assert str(exc_info.value) == "contributor model"
+
+
+def test_no_model_event_at_all_is_no_evidence() -> None:
+    stdout = _stdout(
+        _usage_payload(ONE_ROW),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    assert str(exc_info.value) == "no model evidence"
+
+
+def test_configured_and_usage_without_provider_is_no_evidence() -> None:
+    stdout = _stdout(
+        _configured_payload("muse-wonder-1.0"),
+        _usage_payload(ONE_ROW),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    assert str(exc_info.value) == "no model evidence"
+
+
+def test_sanitised_unreported_provider_model_is_not_evidence() -> None:
+    for model in ("unreported", "///"):
+        stdout = _stdout(
+            _usage_payload(ONE_ROW),
+            _provider_payload(model),
+            _terminal_payload(SUCCESS_TEXT),
+        )
+        fake = FakeRunner([RunResult(0, stdout, False)])
+        with pytest.raises(MetaUnavailableError) as exc_info:
+            _exec_client(fake).complete(_request())
+        assert str(exc_info.value) == "no model evidence", model
+
+
+def test_failed_terminal_followed_by_completed_is_muse_terminal() -> None:
+    stdout = _stdout(
+        _usage_payload(ONE_ROW),
+        _provider_payload(),
+        _terminal_payload("", "failed"),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    assert str(exc_info.value) == "muse terminal"
+
+
+def test_two_completed_terminals_is_muse_terminal() -> None:
+    stdout = _stdout(
+        _usage_payload(ONE_ROW),
+        _provider_payload(),
+        _terminal_payload(SUCCESS_TEXT),
+        _terminal_payload(SUCCESS_TEXT),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        _exec_client(fake).complete(_request())
+    assert str(exc_info.value) == "muse terminal"
+
+
+def test_deeply_nested_garbage_line_is_skipped() -> None:
+    deep = ("[" * 100000 + "]" * 100000).encode()
+    stdout = _stdout(
+        _usage_payload(ONE_ROW),
+        _provider_payload(),
+        _terminal_payload(SUCCESS_TEXT),
+        prefix=(deep.decode("ascii"),),
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    response = _exec_client(fake).complete(_request())
+    assert response.text == SUCCESS_TEXT
+    assert response.model_reported == "muse-wonder-1.0"
+
+
+def test_has_terminal_event_skips_deeply_nested_line() -> None:
+    """`_has_terminal_event` skips a `RecursionError` line like `_parse_stdout`.
+
+    Without the `RecursionError` catch the deeply nested line escapes and
+    this errors instead of finding the terminal event after it.
+    """
+    from framework.proposal.muse_client import _has_terminal_event
+
+    deep = ("[" * 100000 + "]" * 100000).encode()
+    terminal = _line(_terminal_payload(SUCCESS_TEXT)).encode()
+    assert _has_terminal_event(deep + b"\n" + terminal) is True
+
+
+def test_free_text_mentioning_contributors_is_accepted() -> None:
+    stdout = _stdout(
+        {"kind": "turn_input_user", "text": "please use contributor mode"},
+        {"kind": "run_output_delta", "delta": {"text": "a contributor note"}},
+        _usage_payload(ONE_ROW),
+        _provider_payload("muse-wonder-1.0"),
+        _terminal_payload('{"word": "contributor note"}'),
+        {"kind": "status", "message": "contributor mode off"},
+    )
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    response = _exec_client(fake).complete(_request())
+    assert response.text == '{"word": "contributor note"}'
+    assert response.model_reported == "muse-wonder-1.0"
+
+
+def test_negative_usage_field_leaves_total_unchanged() -> None:
+    models = [
+        {
+            "model": "muse-wonder-1.0",
+            "input_tokens": -5,
+            "cached_tokens": 0,
+            "output_tokens": 7,
+            "reasoning_tokens": 0,
+        }
+    ]
+    fake = FakeRunner(
+        [
+            RunResult(
+                0,
+                _stdout(
+                    _usage_payload(models),
+                    _provider_payload(),
+                    _terminal_payload(SUCCESS_TEXT),
+                ),
+                False,
+            )
+        ]
+    )
+    response = _exec_client(fake).complete(_request())
+    assert response.prompt_tokens is None
+    assert response.cached_tokens == 0
+    assert response.completion_tokens == 7
+    assert response.reasoning_tokens == 0

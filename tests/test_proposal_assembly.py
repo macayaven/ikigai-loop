@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from evals.proposal_cases import BASE_ELIGIBLE, BASE_FACTS
 from framework.briefing.context import GateContext, MetricSnapshot, TimeInterval
 from framework.briefing.gate import evaluate_briefing
+from framework.briefing.schemas import Briefing
 from framework.proposal.assembly import assemble_briefing
 from framework.proposal.hour import allowed_windows
 from framework.proposal.prompt import compute_deltas
@@ -160,6 +162,84 @@ def test_full_precision_refs_pass_gate_with_rounded_sentence() -> None:
         commitments_available=True,
     )
     assert evaluate_briefing(briefing, context).passed
+
+
+def _assemble(payload: dict, **overrides: Any) -> Briefing:
+    params: dict[str, Any] = {
+        "profile_id": "builder",
+        "subject_id": "subject-1",
+        "slot": SLOT,
+        "parent": None,
+        "commitments_by_id": {c.id: c for c in BASE_ELIGIBLE},
+        "snapshot": dict(SNAPSHOT),
+        "parent_snapshot": None,
+        "deltas": {},
+        "hour": HOUR,
+    }
+    params.update(overrides)
+    return assemble_briefing(_draft(payload), **params)
+
+
+def test_same_slot_different_drafts_give_different_ids() -> None:
+    first = _assemble(_good_payload())
+    payload = _good_payload()
+    payload["overall_state"].append(
+        {
+            "text": "Notes were 2 in last",
+            "fact_ids": [],
+            "metric_refs": ["period.prior.pushes"],
+        }
+    )
+    second = _assemble(payload)
+    assert first.id != second.id
+
+
+def test_different_subject_gives_different_id() -> None:
+    first = _assemble(_good_payload())
+    second = _assemble(_good_payload(), subject_id="subject-2")
+    assert first.id != second.id
+
+
+def test_different_parent_gives_different_id() -> None:
+    parent = Briefing(
+        id="brf-builder-parent",
+        profile_id="builder",
+        subject_id="subject-1",
+        slot=SLOT - timedelta(hours=24),
+        sections=[],
+    )
+    parent_snapshot = {"period.last.pushes": 2.0}
+    deltas = {
+        delta.metric_id: delta.value
+        for delta in compute_deltas(dict(SNAPSHOT), parent_snapshot)
+    }
+    payload = _good_payload()
+    payload["since_last"] = [
+        {
+            "text": "Pushes rose 1 in last",
+            "fact_ids": [],
+            "metric_refs": ["period.last.pushes"],
+        }
+    ]
+    with_parent = _assemble(
+        payload, parent=parent, parent_snapshot=parent_snapshot, deltas=deltas
+    )
+    without_parent = _assemble(_good_payload())
+    assert with_parent.id != without_parent.id
+
+
+def test_different_metric_value_behind_identical_text_gives_different_id() -> None:
+    first = _assemble(_good_payload())
+    snapshot = dict(SNAPSHOT)
+    snapshot["period.last.pushes"] = 4.0
+    second = _assemble(_good_payload(), snapshot=snapshot)
+    assert first.id != second.id
+
+
+def test_identical_inputs_give_identical_ids() -> None:
+    first = _assemble(_good_payload())
+    second = _assemble(_good_payload())
+    assert first.id == second.id
 
 
 def test_unknown_ids_become_gate_violations() -> None:

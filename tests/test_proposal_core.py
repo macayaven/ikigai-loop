@@ -1093,3 +1093,211 @@ def test_response_schema_enums_appear_in_prompt() -> None:
         assert enums, case_name
         for value in enums:
             assert value in request.prompt, (case_name, value)
+
+
+def _profile_filter_fixtures():  # type: ignore[no-untyped-def]
+    from evals.proposal_cases import BASE_ELIGIBLE
+    from framework.briefing.schemas import Commitment
+
+    walk = Commitment(
+        id="cm-disconnect-walk",
+        profile_id="disconnect",
+        title="Take the synthetic evening walk",
+        kind="walk",
+        dimension="love",
+        evidence="no_screen",
+    )
+    parser = BASE_ELIGIBLE[0]
+    assert parser.profile_id == "builder"
+    mixed = (parser, walk)
+    offered = (
+        ("cm-disconnect-walk", "2026-10-29T15:07:00+01:00"),
+        ("cm-builder-parser", "2026-10-30T15:07:00+01:00"),
+    )
+    foreign_offered = (("cm-disconnect-walk", "2026-10-29T15:07:00+01:00"),)
+    return walk, mixed, offered, foreign_offered
+
+
+def test_fallback_mixed_eligible_wraps_same_profile_on_unavailable() -> None:
+    from dataclasses import replace
+
+    from evals.proposal_cases import CASES_BY_NAME, run_case
+
+    _, mixed, offered, _ = _profile_filter_fixtures()
+    case = replace(
+        CASES_BY_NAME["P5"], name="P5-mixed-profile", eligible=mixed, offered=offered
+    )
+    result = run_case(case)
+    assert result.kind == "fallback"
+    assert result.fallback is not None
+    assert result.fallback.commitment.id == "cm-builder-parser"
+    assert result.fallback.commitment.profile_id == "builder"
+
+
+def test_fallback_mixed_eligible_wraps_same_profile_without_evidence() -> None:
+    from dataclasses import replace
+
+    from evals.proposal_cases import CASES_BY_NAME, run_case
+
+    _, mixed, offered, _ = _profile_filter_fixtures()
+    case = replace(
+        CASES_BY_NAME["P5"],
+        name="P5-mixed-profile-no-evidence",
+        eligible=mixed,
+        offered=offered,
+        script=(),
+        facts=(),
+        snapshot=(),
+    )
+    result = run_case(case)
+    assert result.kind == "fallback"
+    assert result.fallback is not None
+    assert result.fallback.commitment.id == "cm-builder-parser"
+    assert result.fallback.commitment.profile_id == "builder"
+
+
+def test_fallback_mixed_eligible_wraps_same_profile_after_gate_failure() -> None:
+    from dataclasses import replace
+
+    from evals.proposal_cases import CASES_BY_NAME, run_case
+
+    _, mixed, offered, _ = _profile_filter_fixtures()
+    case = replace(
+        CASES_BY_NAME["P3"], name="P3-mixed-profile", eligible=mixed, offered=offered
+    )
+    result = run_case(case)
+    assert result.kind == "fallback"
+    assert len(result.attempts) == 2
+    assert result.fallback is not None
+    assert result.fallback.commitment.id == "cm-builder-parser"
+    assert result.fallback.commitment.profile_id == "builder"
+
+
+def test_fallback_foreign_only_is_explained_noop_on_unavailable() -> None:
+    from dataclasses import replace
+
+    from evals.proposal_cases import CASES_BY_NAME, run_case
+
+    walk, _, _, foreign_offered = _profile_filter_fixtures()
+    case = replace(
+        CASES_BY_NAME["P5"],
+        name="P5-foreign-only",
+        eligible=(walk,),
+        offered=foreign_offered,
+    )
+    result = run_case(case)
+    assert result.kind == "noop"
+    assert result.reason_codes == ("NOOP_NO_ELIGIBLE_COMMITMENT",)
+    assert result.briefing is None
+    assert result.fallback is None
+    assert result.hour is not None
+    assert len(result.attempts) == 1
+
+
+def test_fallback_foreign_only_is_explained_noop_without_evidence() -> None:
+    from dataclasses import replace
+
+    from evals.proposal_cases import CASES_BY_NAME, run_case
+
+    walk, _, _, foreign_offered = _profile_filter_fixtures()
+    case = replace(
+        CASES_BY_NAME["P5"],
+        name="P5-foreign-only-no-evidence",
+        eligible=(walk,),
+        offered=foreign_offered,
+        script=(),
+        facts=(),
+        snapshot=(),
+    )
+    result = run_case(case)
+    assert result.kind == "noop"
+    assert result.reason_codes == ("NOOP_NO_ELIGIBLE_COMMITMENT",)
+    assert result.briefing is None
+    assert result.fallback is None
+    assert result.hour is not None
+    assert result.attempts == ()
+
+
+def test_fallback_foreign_only_is_explained_noop_after_gate_failure() -> None:
+    from dataclasses import replace
+
+    from evals.proposal_cases import CASES_BY_NAME, run_case
+
+    walk, _, _, foreign_offered = _profile_filter_fixtures()
+    case = replace(
+        CASES_BY_NAME["P3"],
+        name="P3-foreign-only",
+        eligible=(walk,),
+        offered=foreign_offered,
+    )
+    result = run_case(case)
+    assert result.kind == "noop"
+    assert result.reason_codes == ("NOOP_NO_ELIGIBLE_COMMITMENT",)
+    assert result.briefing is None
+    assert result.fallback is None
+    assert result.hour is not None
+    assert len(result.attempts) == 2
+
+
+def test_over_cap_draft_through_propose_is_unparseable_fallback() -> None:
+    import json
+
+    from evals.proposal_cases import (
+        AS_OF,
+        CYCLE_ID,
+        LIMITS,
+        MODELS,
+        PROFILE_ID,
+        STALE_AFTER_S,
+        SUBJECT_ID,
+        ScriptedWonderClient,
+        build_context,
+        text_entry,
+    )
+    from framework.proposal.core import propose
+    from framework.proposal.hour import pick_hour
+
+    claims = [
+        {
+            "text": f"Pushes were 3 in last report {index}",
+            "fact_ids": [],
+            "metric_refs": ["period.last.pushes"],
+        }
+        for index in range(4)
+    ]
+    draft = json.dumps(
+        {
+            "commitment_id": "cm-builder-parser",
+            "overall_state": claims,
+            "working": [],
+            "not_working": [],
+        }
+    )
+    case = CASES_BY_NAME["P1"]
+    slot = datetime.fromisoformat(case.slot_iso)
+    context = build_context(case)
+    hour = pick_hour(slot, context.busy_intervals, LIMITS)
+    client = ScriptedWonderClient((text_entry(draft), text_entry(draft)))
+    result = propose(
+        profile_id=PROFILE_ID,
+        subject_id=SUBJECT_ID,
+        slot=slot,
+        as_of=AS_OF,
+        cycle_id=CYCLE_ID,
+        run=1,
+        hour=hour,
+        eligible=case.eligible,
+        context=context,
+        client=client,
+        models=MODELS,
+        policy="",
+        stale_after_s=STALE_AFTER_S,
+        cycle_as_of=AS_OF,
+        offered={},
+    )
+    assert result.kind == "fallback"
+    assert len(result.attempts) == 2
+    for attempt in result.attempts:
+        assert attempt.codes == (("DRAFT_UNPARSEABLE", "draft"),)
+    assert result.fallback is not None
+    assert result.fallback.reason_codes == ("FALLBACK_UNPARSEABLE",)
