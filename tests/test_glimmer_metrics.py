@@ -440,3 +440,75 @@ def test_metric_ids_bind_to_gate_families() -> None:
     for case in KNOWN_GOOD:
         for key in case.expected_snapshot:
             assert metric_label_binding(key) is not None, (case.name, key)
+
+
+def test_zero_keys_for_one_period_member_only() -> None:
+    from evals.glimmer_cases import _dt as dt
+
+    row = screen_event(eid="evt_zero_one", time=dt(30, 14), minutes={"Solo/Cat": 60.0})
+    snapshot = _winners_snapshot([row])
+    assert snapshot.values["period.last.screen_hours.Solo/Cat"] == 1.0
+    assert snapshot.values["period.prior.screen_hours.Solo/Cat"] == 0.0
+    assert snapshot.values["period.earlier.screen_hours.Solo/Cat"] == 0.0
+
+
+def test_zero_keys_absent_for_all_zero_member() -> None:
+    from evals.glimmer_cases import _dt as dt
+
+    row = screen_event(eid="evt_zero_none", time=dt(30, 14), minutes={"Solo/Cat": 0.0})
+    snapshot = _winners_snapshot([row])
+    assert "period.last.screen_hours.Solo/Cat" not in snapshot.values
+    assert "period.prior.screen_hours.Solo/Cat" not in snapshot.values
+
+
+def test_zero_keys_written_in_sorted_order() -> None:
+    from evals.glimmer_cases import _dt as dt
+
+    # Ten categories inserted out of alphabetical order (Cat/j down to
+    # Cat/a); five tags the same way. Every member is non-zero only in
+    # last, so in prior each holds just its zero key.
+    screens = [
+        screen_event(
+            eid=f"evt_sort_s_{letter}",
+            time=dt(30, 14, i),
+            minutes={f"Cat/{letter}": 10.0},
+        )
+        for i, letter in enumerate("jihgfedcba")
+    ]
+    blocks = [
+        cal_event(
+            eid=f"evt_sort_b_{letter}",
+            key=f"sort-b-{letter}@20261030T140000",
+            lm="seq1",
+            time=dt(30, 14),
+            end=dt(30, 15),
+            tags=(f"iki-{letter}",),
+        )
+        for letter in "edcba"
+    ]
+    cancelled = [
+        cal_event(
+            eid=f"evt_sort_x_{letter}",
+            key=f"sort-x-{letter}@20261030T160000",
+            lm="seq1",
+            time=dt(30, 16),
+            end=dt(30, 17),
+            tags=(f"iki-{letter}",),
+            cancelled=True,
+        )
+        for letter in "edcba"
+    ]
+    snapshot = _winners_snapshot([*screens, *blocks, *cancelled])
+    for prefix in (
+        "period.prior.screen_hours.",
+        "period.prior.tag_hours.",
+        "period.prior.cancelled.",
+    ):
+        keys = [k for k in snapshot.values if k.startswith(prefix)]
+        assert keys == sorted(keys), prefix
+    screen_keys = [
+        k for k in snapshot.values if k.startswith("period.prior.screen_hours.")
+    ]
+    # Hand-derived: ten zero keys, Cat/a first and Cat/j last in sort order.
+    assert screen_keys[0] == "period.prior.screen_hours.Cat/a"
+    assert screen_keys[-1] == "period.prior.screen_hours.Cat/j"

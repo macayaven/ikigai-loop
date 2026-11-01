@@ -418,6 +418,8 @@ def base_snapshot() -> dict[str, float]:
         "github.push.count": 2.0,
         "period.earlier.prs": 0.0,
         "period.earlier.pushes": 0.0,
+        "period.earlier.screen_hours.Programming": 0.0,
+        "period.earlier.screen_hours.Social": 0.0,
         "period.earlier.tag_hours.iki-focus": 1.5,
         "period.last.prs": 1.0,
         "period.last.pushes": 2.0,
@@ -427,10 +429,28 @@ def base_snapshot() -> dict[str, float]:
         "period.prior.prs": 0.0,
         "period.prior.pushes": 0.0,
         "period.prior.screen_hours.Programming": 6.75,
+        "period.prior.screen_hours.Social": 0.0,
+        "period.prior.tag_hours.iki-focus": 0.0,
         "screen_hours.Programming": 8.75,
         "screen_hours.Social": 0.5,
         "tag_hours.iki-focus": 3.5,
     }
+
+
+def base_code_statements() -> tuple[str, ...]:
+    """The base window's code facts in family order, derived by hand.
+
+    Screen Programming holds 0 / 6.75 / 2.0 hours, so the largest change
+    is earlier to prior at 6.75; pushes hold 0 / 0 / 2; prs hold 0 / 0 / 1;
+    iki-focus holds 1.5 / 0 / 2.0 tag hours, so the largest change is prior
+    to last at 2.0; nothing was cancelled.
+    """
+    return (
+        "Programming screen hours rose from 0 in earlier to 6.75 in prior.",
+        "Pushes rose from 0 in prior to 2 in last.",
+        "Pull requests rose from 0 in prior to 1 in last.",
+        "iki-focus calendar hours rose from 0 in prior to 2 in last.",
+    )
 
 
 def base_case() -> Case:
@@ -463,11 +483,11 @@ def base_case() -> Case:
         feed_texts=(
             feed_batch({"evidence": [f1, f2], "topic": "model compression methods"}),
         ),
-        expected_kept=3,
+        expected_kept=7,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot=base_snapshot(),
-        expected_statements=(stmt1, stmt2, stmt3),
+        expected_statements=(*base_code_statements(), stmt1, stmt2, stmt3),
         expected_personal=(2, 1, None),
         expected_feed=(1, 1, None),
     )
@@ -487,7 +507,7 @@ def _g2_case() -> Case:
         events=events,
         personal_texts=(personal_batch({"statement": stmt, "evidence": [e1, e2]}),),
         feed_texts=(),
-        expected_kept=1,
+        expected_kept=2,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -501,7 +521,7 @@ def _g2_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(stmt,),
+        expected_statements=("Pushes rose from 0 in prior to 2 in last.", stmt),
         expected_personal=(1, 1, None),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -514,11 +534,11 @@ def _g3_case() -> Case:
         events=base.events,
         personal_texts=(personal_batch(),),
         feed_texts=(feed_batch(),),
-        expected_kept=0,
-        expected_noop="NOOP_NO_FACTS",
+        expected_kept=4,
+        expected_noop=None,
         expected_dropped=(),
         expected_snapshot=base_snapshot(),
-        expected_statements=(),
+        expected_statements=base_code_statements(),
         expected_personal=(0, 1, "NOOP_MODEL_RETURNED_NO_FACTS"),
         expected_feed=(0, 1, "NOOP_MODEL_RETURNED_NO_FACTS"),
     )
@@ -573,7 +593,7 @@ def _g5_case() -> Case:
             ),
         ),
         feed_texts=(),
-        expected_kept=1,
+        expected_kept=3,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -582,14 +602,20 @@ def _g5_case() -> Case:
             "github.push.count": 1.0,
             "period.earlier.prs": 0.0,
             "period.earlier.pushes": 0.0,
+            "period.earlier.tag_hours.iki-focus": 0.0,
             "period.last.prs": 0.0,
             "period.last.pushes": 1.0,
             "period.last.tag_hours.iki-focus": 2.0,
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
+            "period.prior.tag_hours.iki-focus": 0.0,
             "tag_hours.iki-focus": 2.0,
         },
-        expected_statements=(stmt,),
+        expected_statements=(
+            "Pushes rose from 0 in prior to 1 in last.",
+            "iki-focus calendar hours rose from 0 in prior to 2 in last.",
+            stmt,
+        ),
         expected_personal=(1, 1, None),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -620,7 +646,7 @@ def _g6_case() -> Case:
             ),
         ),
         feed_texts=(),
-        expected_kept=1,
+        expected_kept=2,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -628,6 +654,7 @@ def _g6_case() -> Case:
             "feed.item.count": 0.0,
             "period.earlier.prs": 0.0,
             "period.earlier.pushes": 0.0,
+            "period.earlier.screen_hours.Programming": 0.0,
             "period.last.prs": 0.0,
             "period.last.pushes": 0.0,
             "period.last.screen_hours.Programming": 2.0,
@@ -636,7 +663,10 @@ def _g6_case() -> Case:
             "period.prior.screen_hours.Programming": 6.75,
             "screen_hours.Programming": 8.75,
         },
-        expected_statements=(stmt,),
+        expected_statements=(
+            "Programming screen hours rose from 0 in earlier to 6.75 in prior.",
+            stmt,
+        ),
         expected_personal=(1, 1, None),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -672,8 +702,8 @@ def _f1_case() -> Case:
         events=(push,),
         personal_texts=(personal_batch({"statement": stmt, "evidence": ["e99"]}),),
         feed_texts=(),
-        expected_kept=0,
-        expected_noop="NOOP_NO_FACTS",
+        expected_kept=1,
+        expected_noop=None,
         expected_dropped=("FACT_EVIDENCE_UNKNOWN",),
         expected_snapshot={
             "calendar.busy_hours": 0.0,
@@ -686,7 +716,7 @@ def _f1_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(),
+        expected_statements=("Pushes rose from 0 in prior to 1 in last.",),
         expected_personal=(0, 1, "NOOP_ALL_FACTS_DROPPED"),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -734,8 +764,8 @@ def _f3_case() -> Case:
             ),
         ),
         feed_texts=(),
-        expected_kept=0,
-        expected_noop="NOOP_NO_FACTS",
+        expected_kept=1,
+        expected_noop=None,
         expected_dropped=("FACT_NUMBER_UNBACKED",),
         expected_snapshot={
             "calendar.busy_hours": 0.0,
@@ -748,7 +778,7 @@ def _f3_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(),
+        expected_statements=("Pushes rose from 0 in prior to 1 in last.",),
         expected_personal=(0, 1, "NOOP_ALL_FACTS_DROPPED"),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -775,8 +805,8 @@ def _f4_case() -> Case:
             ),
         ),
         feed_texts=(),
-        expected_kept=0,
-        expected_noop="NOOP_NO_FACTS",
+        expected_kept=1,
+        expected_noop=None,
         expected_dropped=("FACT_PRIVATE_TEXT_LEAK",),
         expected_snapshot={
             "calendar.busy_hours": 0.0,
@@ -789,7 +819,7 @@ def _f4_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(),
+        expected_statements=("Pushes rose from 0 in prior to 1 in last.",),
         expected_personal=(0, 1, "NOOP_ALL_FACTS_DROPPED"),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -857,8 +887,8 @@ def _f6_case() -> Case:
             ),
         ),
         feed_texts=(),
-        expected_kept=0,
-        expected_noop="NOOP_NO_FACTS",
+        expected_kept=2,
+        expected_noop=None,
         expected_dropped=("FACT_NUMBER_UNBACKED",),
         expected_snapshot={
             "calendar.busy_hours": 0.0,
@@ -866,14 +896,19 @@ def _f6_case() -> Case:
             "github.push.count": 2.0,
             "period.earlier.prs": 0.0,
             "period.earlier.pushes": 0.0,
+            "period.earlier.screen_hours.Programming": 0.0,
             "period.last.prs": 0.0,
             "period.last.pushes": 2.0,
             "period.last.screen_hours.Programming": 4.5,
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
+            "period.prior.screen_hours.Programming": 0.0,
             "screen_hours.Programming": 4.5,
         },
-        expected_statements=(),
+        expected_statements=(
+            "Programming screen hours rose from 0 in prior to 4.5 in last.",
+            "Pushes rose from 0 in prior to 2 in last.",
+        ),
         expected_personal=(0, 1, "NOOP_ALL_FACTS_DROPPED"),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -903,7 +938,7 @@ def _f7_case() -> Case:
                 {"evidence": [feeds[item.id]], "topic": "model compression methods"}
             ),
         ),
-        expected_kept=1,
+        expected_kept=2,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -918,7 +953,7 @@ def _f7_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(stmt,),
+        expected_statements=("Pushes rose from 0 in prior to 1 in last.", stmt),
         expected_personal=(0, 2, "NOOP_INVALID_LLM_OUTPUT"),
         expected_feed=(1, 1, None),
     )
@@ -937,7 +972,7 @@ def _f8_case() -> Case:
             personal_batch({"statement": stmt, "evidence": [aliases[push.id]]}),
         ),
         feed_texts=(),
-        expected_kept=1,
+        expected_kept=2,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -951,7 +986,7 @@ def _f8_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(stmt,),
+        expected_statements=("Pushes rose from 0 in prior to 1 in last.", stmt),
         expected_personal=(1, 2, None),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -1030,7 +1065,7 @@ def _f10a_case() -> Case:
                 {"evidence": [feeds[item.id]], "topic": "model compression methods"}
             ),
         ),
-        expected_kept=2,
+        expected_kept=3,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -1045,7 +1080,11 @@ def _f10a_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(stmt_p, stmt_f),
+        expected_statements=(
+            "Pushes rose from 0 in prior to 1 in last.",
+            stmt_p,
+            stmt_f,
+        ),
         expected_personal=(1, 1, None),
         expected_feed=(1, 1, None),
     )
@@ -1108,7 +1147,7 @@ def _f10c_case() -> Case:
             personal_batch({"statement": stmt, "evidence": [aliases[push.id]]}),
         ),
         feed_texts=(ScriptEntry(text=smuggled), ScriptEntry(text=smuggled)),
-        expected_kept=1,
+        expected_kept=2,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -1123,7 +1162,7 @@ def _f10c_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(stmt,),
+        expected_statements=("Pushes rose from 0 in prior to 1 in last.", stmt),
         expected_personal=(1, 1, None),
         expected_feed=(0, 2, "NOOP_INVALID_LLM_OUTPUT"),
     )
@@ -1302,21 +1341,25 @@ def _f11_case() -> Case:
             ),
         ),
         feed_texts=(),
-        expected_kept=0,
-        expected_noop="NOOP_NO_FACTS",
+        expected_kept=1,
+        expected_noop=None,
         expected_dropped=("FACT_EVIDENCE_UNKNOWN",),
         expected_snapshot={
             "calendar.busy_hours": 0.0,
             "feed.item.count": 0.0,
+            "period.earlier.cancelled.iki-trip": 0.0,
             "period.earlier.prs": 0.0,
             "period.earlier.pushes": 0.0,
+            "period.last.cancelled.iki-trip": 0.0,
             "period.last.prs": 0.0,
             "period.last.pushes": 0.0,
             "period.prior.cancelled.iki-trip": 1.0,
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(),
+        expected_statements=(
+            "Cancelled iki-trip blocks fell from 1 in prior to 0 in last.",
+        ),
         expected_personal=(0, 1, "NOOP_ALL_FACTS_DROPPED"),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
         via_store=True,
@@ -1348,7 +1391,7 @@ def _f12_case() -> Case:
             personal_batch({"statement": stmt, "evidence": [aliases[new.id]]}),
         ),
         feed_texts=(),
-        expected_kept=1,
+        expected_kept=2,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -1356,14 +1399,19 @@ def _f12_case() -> Case:
             "feed.item.count": 0.0,
             "period.earlier.prs": 0.0,
             "period.earlier.pushes": 0.0,
+            "period.earlier.screen_hours.Programming": 0.0,
             "period.last.prs": 0.0,
             "period.last.pushes": 0.0,
             "period.last.screen_hours.Programming": 2.0,
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
+            "period.prior.screen_hours.Programming": 0.0,
             "screen_hours.Programming": 2.0,
         },
-        expected_statements=(stmt,),
+        expected_statements=(
+            "Programming screen hours rose from 0 in prior to 2 in last.",
+            stmt,
+        ),
         expected_personal=(1, 1, None),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
         via_store=True,
@@ -1415,7 +1463,7 @@ def _f14_case() -> Case:
                 {"evidence": [feeds[item.id]], "topic": "model compression methods"}
             ),
         ),
-        expected_kept=1,
+        expected_kept=2,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -1430,7 +1478,7 @@ def _f14_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(stmt,),
+        expected_statements=("Pushes rose from 0 in prior to 1 in last.", stmt),
         expected_personal=(0, 1, "NOOP_LLM_TRUNCATED"),
         expected_feed=(1, 1, None),
     )
@@ -1471,7 +1519,7 @@ def _f16_case() -> Case:
             personal_batch({"statement": stmt, "evidence": [aliases[block.id]]}),
         ),
         feed_texts=(),
-        expected_kept=1,
+        expected_kept=2,
         expected_noop=None,
         expected_dropped=(),
         expected_snapshot={
@@ -1479,14 +1527,19 @@ def _f16_case() -> Case:
             "feed.item.count": 0.0,
             "period.earlier.prs": 0.0,
             "period.earlier.pushes": 0.0,
+            "period.earlier.tag_hours.iki-focus": 0.0,
             "period.last.prs": 0.0,
             "period.last.pushes": 0.0,
             "period.last.tag_hours.iki-focus": 2.0,
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
+            "period.prior.tag_hours.iki-focus": 0.0,
             "tag_hours.iki-focus": 2.0,
         },
-        expected_statements=(stmt,),
+        expected_statements=(
+            "iki-focus calendar hours rose from 0 in prior to 2 in last.",
+            stmt,
+        ),
         expected_personal=(1, 1, None),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -1560,8 +1613,8 @@ def _f18_case() -> Case:
             ),
         ),
         feed_texts=(),
-        expected_kept=0,
-        expected_noop="NOOP_NO_FACTS",
+        expected_kept=1,
+        expected_noop=None,
         expected_dropped=(
             "FACT_ALIAS_IN_STATEMENT",
             "FACT_ALIAS_IN_STATEMENT",
@@ -1577,7 +1630,7 @@ def _f18_case() -> Case:
             "period.prior.prs": 0.0,
             "period.prior.pushes": 0.0,
         },
-        expected_statements=(),
+        expected_statements=("Pushes rose from 0 in prior to 7 in last.",),
         expected_personal=(0, 1, "NOOP_ALL_FACTS_DROPPED"),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -1602,11 +1655,13 @@ def _f19_case() -> Case:
             ),
         ),
         feed_texts=(),
-        expected_kept=0,
-        expected_noop="NOOP_NO_FACTS",
+        expected_kept=1,
+        expected_noop=None,
         expected_dropped=("FACT_NUMBER_UNBACKED",),
         expected_snapshot=dict(g6.expected_snapshot),
-        expected_statements=(),
+        expected_statements=(
+            "Programming screen hours rose from 0 in earlier to 6.75 in prior.",
+        ),
         expected_personal=(0, 1, "NOOP_ALL_FACTS_DROPPED"),
         expected_feed=(0, 0, "NOOP_NO_FEED_ITEMS"),
     )
@@ -1638,3 +1693,440 @@ MUTANTS: tuple[Case, ...] = (
     _f18_case(),
     _f19_case(),
 )
+
+
+# Live-run fixture moved here from tests/test_glimmer_facts.py (Ticket 9b):
+# the same 44 rows, unchanged, under public names both test files import.
+LIVE_CONTENT = (
+    '{"facts": [\n'
+    '  {"statement": "Github pushes decreased from 3 in earlier to 1 in prior'
+    ' and to 0 in last.", "evidence": ["e6", "e14", "e17", "e22"]},\n'
+    '  {"statement": "Work/Programming screen hours decreased from 7.0 in earlier'
+    ' to 4.75 in prior.", "evidence": ["e11", "e13", "e15", "e16", "e19",'
+    ' "e20", "e21", "e23"]},\n'
+    '  {"statement": "Work/Programming screen hours decreased from 4.75 in prior'
+    ' to 1.75 in last.", "evidence": ["e19", "e20", "e21", "e23", "e42",'
+    ' "e43", "e44"]},\n'
+    '  {"statement": "Comms/Chat screen hours increased from 1.27 in prior'
+    ' to 3.45 in last.", "evidence": ["e28", "e29", "e30", "e42", "e43",'
+    ' "e44"]},\n'
+    '  {"statement": "In prior period, 1 calendar block with tag iki-deep was'
+    ' cancelled and 1 github push occurred.", "evidence": ["e27", "e22"]}\n'
+    "]}"
+)
+
+# (fixture alias, type, time, data) transcribed from the live-run fixture.
+LIVE_ROWS: tuple[tuple[str, str, str, dict[str, object]], ...] = (
+    (
+        "e1",
+        "screen.hour",
+        "2026-10-28T14:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
+        },
+    ),
+    (
+        "e2",
+        "screen.hour",
+        "2026-10-28T15:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
+        },
+    ),
+    (
+        "e3",
+        "screen.hour",
+        "2026-10-28T16:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
+        },
+    ),
+    (
+        "e4",
+        "screen.hour",
+        "2026-10-28T17:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
+        },
+    ),
+    (
+        "e5",
+        "screen.hour",
+        "2026-10-28T18:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
+        },
+    ),
+    (
+        "e6",
+        "github.push",
+        "2026-10-28T18:30:00+01:00",
+        {"repo": "example-user/demo-repo", "counts": {"commits": 2}},
+    ),
+    (
+        "e7",
+        "screen.hour",
+        "2026-10-28T19:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
+        },
+    ),
+    (
+        "e8",
+        "calendar.event.created",
+        "2026-10-28T20:00:00+01:00",
+        {
+            "busy": True,
+            "category": "personal",
+            "end": "2026-10-28T21:00:00+01:00",
+            "is_new": False,
+            "start": "2026-10-28T20:00:00+01:00",
+            "tags": ["iki-family"],
+        },
+    ),
+    (
+        "e9",
+        "screen.hour",
+        "2026-10-28T21:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 6, "Media/Video": 5}},
+    ),
+    (
+        "e10",
+        "screen.hour",
+        "2026-10-28T22:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 6, "Media/Video": 5}},
+    ),
+    (
+        "e11",
+        "screen.hour",
+        "2026-10-29T09:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e12",
+        "calendar.event.created",
+        "2026-10-29T10:00:00+01:00",
+        {
+            "busy": True,
+            "category": "work",
+            "end": "2026-10-29T13:00:00+01:00",
+            "is_new": False,
+            "start": "2026-10-29T10:00:00+01:00",
+            "tags": ["iki-deep"],
+        },
+    ),
+    (
+        "e13",
+        "screen.hour",
+        "2026-10-29T10:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e14",
+        "github.push",
+        "2026-10-29T11:00:00+01:00",
+        {"repo": "example-user/demo-repo", "counts": {"commits": 3}},
+    ),
+    (
+        "e15",
+        "screen.hour",
+        "2026-10-29T11:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e16",
+        "screen.hour",
+        "2026-10-29T12:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e17",
+        "github.push",
+        "2026-10-29T12:30:00+01:00",
+        {"repo": "example-user/demo-repo", "counts": {"commits": 1}},
+    ),
+    (
+        "e18",
+        "calendar.event.created",
+        "2026-10-29T15:00:00+01:00",
+        {
+            "busy": True,
+            "category": "work",
+            "end": "2026-10-29T18:00:00+01:00",
+            "is_new": False,
+            "start": "2026-10-29T15:00:00+01:00",
+            "tags": ["iki-deep"],
+        },
+    ),
+    (
+        "e19",
+        "screen.hour",
+        "2026-10-29T15:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e20",
+        "screen.hour",
+        "2026-10-29T16:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e21",
+        "screen.hour",
+        "2026-10-29T17:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e22",
+        "github.push",
+        "2026-10-29T17:40:00+01:00",
+        {"repo": "example-user/demo-repo", "counts": {"commits": 4}},
+    ),
+    (
+        "e23",
+        "screen.hour",
+        "2026-10-29T18:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e24",
+        "github.pr",
+        "2026-10-29T18:10:00+01:00",
+        {"repo": "example-user/demo-repo", "counts": {"opened": 1}},
+    ),
+    (
+        "e25",
+        "screen.hour",
+        "2026-10-29T19:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
+        },
+    ),
+    (
+        "e26",
+        "calendar.event.created",
+        "2026-10-30T09:00:00+01:00",
+        {
+            "busy": True,
+            "category": "work",
+            "end": "2026-10-30T09:30:00+01:00",
+            "is_new": False,
+            "start": "2026-10-30T09:00:00+01:00",
+            "tags": [],
+        },
+    ),
+    (
+        "e27",
+        "calendar.event.cancelled",
+        "2026-10-30T10:00:00+01:00",
+        {
+            "busy": True,
+            "category": "work",
+            "end": "2026-10-30T12:00:00+01:00",
+            "is_new": False,
+            "start": "2026-10-30T10:00:00+01:00",
+            "tags": ["iki-deep"],
+        },
+    ),
+    (
+        "e28",
+        "screen.hour",
+        "2026-10-30T10:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
+        },
+    ),
+    (
+        "e29",
+        "screen.hour",
+        "2026-10-30T11:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
+        },
+    ),
+    (
+        "e30",
+        "screen.hour",
+        "2026-10-30T12:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
+        },
+    ),
+    (
+        "e31",
+        "screen.hour",
+        "2026-10-30T13:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
+        },
+    ),
+    (
+        "e32",
+        "screen.hour",
+        "2026-10-30T14:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
+        },
+    ),
+    (
+        "e33",
+        "screen.hour",
+        "2026-10-30T15:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
+        },
+    ),
+    (
+        "e34",
+        "screen.hour",
+        "2026-10-30T16:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
+    ),
+    (
+        "e35",
+        "screen.hour",
+        "2026-10-30T17:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
+    ),
+    (
+        "e36",
+        "screen.hour",
+        "2026-10-30T18:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
+    ),
+    (
+        "e37",
+        "screen.hour",
+        "2026-10-30T19:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
+    ),
+    (
+        "e38",
+        "screen.hour",
+        "2026-10-30T20:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
+    ),
+    (
+        "e39",
+        "screen.hour",
+        "2026-10-30T21:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
+    ),
+    (
+        "e40",
+        "screen.hour",
+        "2026-10-30T22:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
+    ),
+    (
+        "e41",
+        "screen.hour",
+        "2026-10-30T23:00:00+01:00",
+        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
+    ),
+    (
+        "e42",
+        "screen.hour",
+        "2026-10-31T10:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 25, "Work/Programming": 15},
+        },
+    ),
+    (
+        "e43",
+        "screen.hour",
+        "2026-10-31T11:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 25, "Work/Programming": 15},
+        },
+    ),
+    (
+        "e44",
+        "screen.hour",
+        "2026-10-31T12:00:00+01:00",
+        {
+            "device": "mac",
+            "minutes_by_category": {"Comms/Chat": 25, "Work/Programming": 15},
+        },
+    ),
+)
+
+
+def live_table_events() -> list[Event]:
+    """Real ``Event`` objects for the live-run fixture rows above."""
+    from datetime import UTC, datetime
+
+    events: list[Event] = []
+    for index, (alias, etype, time_iso, data) in enumerate(LIVE_ROWS, start=1):
+        moment = datetime.fromisoformat(time_iso)
+        utc_iso = moment.astimezone(UTC).isoformat()
+        if etype.startswith("calendar.event."):
+            source, tier = "calendar-personal", "private"
+            source_id = f"uid-{index}@{utc_iso}@seq1"
+            if etype == "calendar.event.cancelled":
+                source_id += "#cancelled"
+        elif etype == "screen.hour":
+            source, tier = "activitywatch", "private"
+            source_id = f"mac:{utc_iso}:d{index}"
+        else:
+            source, tier = "github", "public"
+            source_id = str(7000 + index)
+        payload = dict(data)
+        payload["type"] = etype
+        events.append(
+            Event.model_validate(
+                {
+                    "id": f"evt_{index:04d}",
+                    "subject_id": SUBJECT_ID,
+                    "source": source,
+                    "type": etype,
+                    "time": time_iso,
+                    "source_id": source_id,
+                    "data": payload,
+                    "tier": tier,
+                    "collected_at": "2026-10-31T12:59:00+01:00",
+                    "collector_version": "synthetic-live@0.1.0",
+                }
+            )
+        )
+        assert alias == f"e{index}", alias
+    return events

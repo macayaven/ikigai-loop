@@ -82,7 +82,8 @@ def test_case_exact(case: Case, tmp_path: Path) -> None:
 def test_F10a_prompt_isolation_both_directions(tmp_path: Path) -> None:
     case = next(c for c in MUTANTS if c.name == "F10a-injection-isolation")
     result, llm = replay(case, tmp_path)
-    assert len(result.facts) == 2
+    assert len(result.facts) == 3
+    assert result.facts[0].statement == "Pushes rose from 0 in prior to 1 in last."
     (personal_prompt,) = llm.personal_prompts
     (feed_prompt,) = llm.feed_prompts
     feed_rows = [

@@ -260,27 +260,18 @@ def check_fact(
             return "FACT_EVIDENCE_OUT_OF_WINDOW"
     if _ALIAS_RE.search(statement):
         return "FACT_ALIAS_IN_STATEMENT"
-    type_counts: dict[str, int] = {}
     known_ids: set[str] = set(evidence_ids)
     for event in cited:
-        type_counts[event.type] = type_counts.get(event.type, 0) + 1
         if event.type.startswith("github."):
             data: Any = event.data
             repo: str = data.repo
             known_ids.add(repo)
             known_ids.update(repo.split("/"))
-    live_blocks = type_counts.get("calendar.event.created", 0) + type_counts.get(
-        "calendar.event.updated", 0
-    )
-    if live_blocks:
-        type_counts["calendar.event.created+updated"] = live_blocks
+    all_feed = bool(cited) and all(event.type == "feed.item" for event in cited)
     masked_statement = _mask_cited_repos(statement, cited)
     for token in extract_number_tokens(masked_statement, known_ids=known_ids):
         token_abs = abs(token.value)
-        if (
-            any(Decimal(c) == token_abs for c in type_counts.values())
-            or Decimal(len(cited)) == token_abs
-        ):
+        if all_feed and Decimal(len(cited)) == token_abs:
             continue
         if _snapshot_backs(token_abs, token.places, snapshot, cited, as_of):
             continue

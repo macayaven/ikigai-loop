@@ -40,12 +40,13 @@ Return ONLY a JSON object of the form {"facts": [{"statement": "...", "evidence"
 Rules:
 - Every statement must be objective and must not mention any profile, goal, or preference.
 - Code already reports every METRICS and PERIODS value. Do not restate a single value on its own.
+- Do not restate any statement listed under CODE FACTS; report only what it does not cover.
 - Report what changed from one period to the next, and what happened together in the same period. Name the period as earlier, prior or last, and name the category or tag.
 - Do not write a statement that would be true of almost any period, such as an event coinciding with screen time.
 - Cite the rows a statement rests on, at most 8, and no other rows.
 - Never write an alias inside a statement.
 - Every evidence entry must be an alias listed below. Do not invent aliases.
-- Every number in a statement must come from the METRICS or PERIODS values or be a count of the evidence events you cite.
+- Every number in a statement must come from the METRICS or PERIODS values. Do not count rows or events.
 - Return at most 6 facts. If the rows show nothing like this, return fewer, or {"facts": []}.
 
 WINDOW_START: {window_start_iso}
@@ -56,6 +57,9 @@ METRICS (JSON):
 
 PERIODS (JSON, three complete periods of equal length ending at AS_OF):
 {period_json}
+
+CODE FACTS (already reported by code; do not restate them):
+{code_fact_lines}
 
 EVENTS (one JSON object per line):
 <<<EVENT_DATA
@@ -112,6 +116,7 @@ def build_personal_prompt(
     snapshot: MetricSnapshot,
     rollup: dict[str, dict[str, Any]],
     aliased: Sequence[tuple[str, Event]],
+    code_fact_statements: Sequence[str] = (),
 ) -> str:
     period_json_obj: dict[str, Any] = {}
     for name, period in rollup.items():
@@ -128,11 +133,16 @@ def build_personal_prompt(
             ),
             "cancelled_blocks_by_tag": dict(period["cancelled_blocks_by_tag"]),
         }
+    if code_fact_statements:
+        code_fact_lines = "\n".join(f"- {line}" for line in code_fact_statements)
+    else:
+        code_fact_lines = "- none"
     return _fill(
         _PERSONAL_TEMPLATE,
         {
             "window_start_iso": window_start.astimezone(as_of.tzinfo).isoformat(),
             "as_of_iso": as_of.astimezone(as_of.tzinfo).isoformat(),
+            "code_fact_lines": code_fact_lines,
             "snapshot_json": canonical_json(
                 _rounded(
                     {

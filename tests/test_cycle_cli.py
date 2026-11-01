@@ -14,7 +14,7 @@ from framework.store.fact_store import FactStore
 AS_OF_ISO = "2026-10-31T13:00:00+01:00"
 
 LINE_RE = re.compile(
-    r"^cycle=\S+ run=1 kept=3 dropped=0 noop=- "
+    r"^cycle=\S+ run=1 kept=7 code=4 model=3 dropped=0 noop=- "
     r"personal=2:-:0\.0s:stop feed=1:-:0\.0s:stop codes=-$"
 )
 
@@ -134,7 +134,7 @@ def test_second_run_replays_same_run_number(
     assert capsys.readouterr().out == first
     store = FactStore(db_path=db)
     try:
-        assert len(store.fetch_facts(_cycle_id(first), 1)) == 3
+        assert len(store.fetch_facts(_cycle_id(first), 1)) == 7
     finally:
         store.close()
 
@@ -296,3 +296,99 @@ def test_missing_llm_env_creates_no_database_file(
             ["facts", "--as-of", AS_OF_ISO, "--subject-id", SUBJECT_ID, "--db", str(db)]
         )
     assert not db.exists()
+
+
+def _seeded_live_db(tmp_path: Path) -> Path:
+    from evals.glimmer_cases import live_table_events
+
+    db = tmp_path / "live-cli.db"
+    store = EventStore(db_path=db)
+    try:
+        events = live_table_events()
+        assert store.append_events(events) == len(events)
+    finally:
+        store.close()
+    return db
+
+
+def test_no_personal_pass_prints_code_counts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _seeded_live_db(tmp_path)
+    monkeypatch.setattr(cycle_main, "_build_llm", _stub_llm)
+    code = cycle_main.main(
+        [
+            "facts",
+            "--as-of",
+            AS_OF_ISO,
+            "--subject-id",
+            SUBJECT_ID,
+            "--db",
+            str(db),
+            "--no-personal-pass",
+        ]
+    )
+    assert code == 0
+    out = capsys.readouterr().out.strip()
+    assert "kept=5 code=5 model=0" in out, out
+    assert "personal=0:NOOP_PERSONAL_SKIPPED:0.0s:-" in out, out
+
+
+def test_both_flags_skip_llm_build(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _seeded_db(tmp_path)
+    for name in ("LOCAL_LLM_BASE_URL", "LOCAL_LLM_MODEL", "LOCAL_LLM_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+
+    def _raise() -> object:
+        raise AssertionError("_build_llm must not run with both passes off")
+
+    monkeypatch.setattr(cycle_main, "_build_llm", _raise)
+    code = cycle_main.main(
+        [
+            "facts",
+            "--as-of",
+            AS_OF_ISO,
+            "--subject-id",
+            SUBJECT_ID,
+            "--db",
+            str(db),
+            "--no-personal-pass",
+            "--no-feed-pass",
+        ]
+    )
+    assert code == 0
+    out = capsys.readouterr().out.strip()
+    assert "kept=4 code=4 model=0" in out, out
+    assert "personal=0:NOOP_PERSONAL_SKIPPED:0.0s:-" in out, out
+    assert "feed=0:NOOP_FEED_SKIPPED:0.0s:-" in out, out
+
+
+def test_no_personal_pass_alone_still_builds_client(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _seeded_db(tmp_path)
+    calls: list[str] = []
+
+    def _recording() -> RecordingLLM:
+        calls.append("built")
+        return _stub_llm()
+
+    monkeypatch.setattr(cycle_main, "_build_llm", _recording)
+    code = cycle_main.main(
+        [
+            "facts",
+            "--as-of",
+            AS_OF_ISO,
+            "--subject-id",
+            SUBJECT_ID,
+            "--db",
+            str(db),
+            "--no-personal-pass",
+        ]
+    )
+    assert code == 0
+    assert calls == ["built"]
+    out = capsys.readouterr().out.strip()
+    assert "personal=0:NOOP_PERSONAL_SKIPPED:0.0s:-" in out, out
