@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from framework.cycle import run_cycle
-from framework.glimmer.facts import FactResult, LLMClient
+from framework.glimmer.facts import FactResult, LLMClient, LLMResponse
 from framework.glimmer.llm import OpenAICompatibleClient, load_llm_config
 from framework.store.fact_store import FactStore
 from framework.store.store import EventStore
@@ -28,11 +28,20 @@ def _format_pass(
     return f"{kept}:{reason or '-'}:{latency_ms / 1000:.1f}s:{finish or '-'}"
 
 
+class _NeverCalledStub:
+    """LLM stand-in for code-only cycles; any call is a bug."""
+
+    def complete(self, prompt: str) -> LLMResponse:
+        raise AssertionError("model pass skipped: the stub must never be called")
+
+
 def _format_line(result: FactResult, run: int) -> str:
     personal, feed = result.passes
     codes = ",".join(d.code for d in result.dropped) or "-"
+    code = len(result.code_fact_ids)
     return (
         f"cycle={result.cycle_id} run={run} kept={len(result.facts)}"
+        f" code={code} model={len(result.facts) - code}"
         f" dropped={len(result.dropped)} noop={result.noop_reason or '-'}"
         f" personal={_format_pass(personal.kept, personal.noop_reason, personal.latency_ms, personal.finish_reason)}"
         f" feed={_format_pass(feed.kept, feed.noop_reason, feed.latency_ms, feed.finish_reason)}"
@@ -47,6 +56,8 @@ def main(argv: list[str] | None = None) -> int:
     facts.add_argument("--as-of", required=True)
     facts.add_argument("--subject-id", default=None)
     facts.add_argument("--db", default=None)
+    facts.add_argument("--no-personal-pass", action="store_true")
+    facts.add_argument("--no-feed-pass", action="store_true")
     args = parser.parse_args(argv)
     try:
         as_of = datetime.fromisoformat(args.as_of)
@@ -64,13 +75,26 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     db_path = Path(args.db) if args.db else None
-    llm = _build_llm()
+    skip_personal = bool(args.no_personal_pass)
+    skip_feed = bool(args.no_feed_pass)
+    if skip_personal and skip_feed:
+        llm: LLMClient = _NeverCalledStub()
+    else:
+        llm = _build_llm()
     try:
         store = EventStore(db_path=db_path)
         try:
             fact_store = FactStore(db_path=store.db_path)
             try:
-                result, run = run_cycle(as_of, subject_id, store, fact_store, llm)
+                result, run = run_cycle(
+                    as_of,
+                    subject_id,
+                    store,
+                    fact_store,
+                    llm,
+                    personal_pass=not skip_personal,
+                    feed_pass=not skip_feed,
+                )
             finally:
                 fact_store.close()
         finally:

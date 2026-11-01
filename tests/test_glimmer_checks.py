@@ -99,7 +99,7 @@ def test_evidence_out_of_window_defensive() -> None:
 def test_alias_in_statement_before_number_check() -> None:
     pushes = [push_event(eid=f"evt_c3_{i}", time=_dt(30, 14, i)) for i in range(7)]
     ids = [e.id for e in pushes]
-    # 7 is backed by the cited count, yet the alias fires first.
+    # 7 matches the cited count, yet the alias fires first.
     assert _run("Event e7 happened", ids, pushes) == "FACT_ALIAS_IN_STATEMENT"
     assert _run("Event f1 happened", ids, pushes) == "FACT_ALIAS_IN_STATEMENT"
 
@@ -402,7 +402,7 @@ def test_feed_headline_overlap_5_words_and_4_words_pass() -> None:
 def test_period_tag_hours_requires_overlap_not_start() -> None:
     # Block starts in the prior period but extends into last; a statement
     # about last-period tag hours citing it is backed by overlap. The 0.5
-    # token differs from every cited count, so only the period key backs it.
+    # token matches no cited count, so only the period key backs it.
     block = cal_event(
         eid="evt_c10_block",
         key="span-10@20261030T100000",
@@ -484,7 +484,7 @@ def test_cancelled_period_uses_row_start_time() -> None:
         cancelled=True,
     )
     events = [crossing, late]
-    # Digit 1 differs from every cited count (2 rows of one type), so only
+    # Digit 1 matches no cited count (2 rows of one type), so only
     # the period.cancelled key can back it, and only by start-time
     # assignment: the crossing row starts in prior but ends in last.
     assert (
@@ -528,7 +528,7 @@ def test_feed_topic_shape_too_many_words() -> None:
     assert result.facts == ()
 
 
-def test_created_and_updated_share_one_count_family() -> None:
+def test_calendar_block_count_needs_snapshot_backing() -> None:
     first = cal_event(
         eid="evt_fam_1",
         key="fam-a@20261030T100000",
@@ -559,10 +559,20 @@ def test_created_and_updated_share_one_count_family() -> None:
     )
     push = push_event(eid="evt_fam_push", time=_dt(30, 14))
     events = [first, second, third, push]
+    # No snapshot metric counts calendar blocks, so the 3 drops now that
+    # cited-row counts only back numbers for feed citations.
     assert (
         _run(
             "3 calendar blocks and 1 push in the last period",
             [e.id for e in events],
+            events,
+        )
+        == "FACT_NUMBER_UNBACKED"
+    )
+    assert (
+        _run(
+            "1 push in the last period",
+            [push.id],
             events,
         )
         is None
@@ -853,7 +863,7 @@ def test_private_repo_name_still_leaks() -> None:
     )
 
 
-def test_spelled_numbers_backed_by_cited_count() -> None:
+def test_spelled_numbers_backed_by_snapshot_count() -> None:
     pushes = [push_event(eid=f"evt_sp_{i}", time=_dt(30, 14, i)) for i in range(2)]
     ids = [e.id for e in pushes]
     assert _run("Two pushes happened in last.", ids, pushes) is None
@@ -922,5 +932,164 @@ def test_personal_batch_without_tier_field_validates() -> None:
         )
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [push], llm)
-    assert len(result.facts) == 1
-    assert result.facts[0].tier == "public"
+    assert len(result.facts) == 2
+    assert result.facts[0].statement == "Pushes rose from 0 in prior to 1 in last."
+    assert result.facts[1].tier == "public"
+
+
+def _c26_screen_rows(first_minutes: float) -> list[Event]:
+    """11 screen rows in `last`, each holding Cat/A and Cat/B minutes."""
+    return [
+        screen_event(
+            eid=f"evt_c26_{i}",
+            time=_dt(30, 14, i),
+            minutes={"Cat/A": first_minutes, "Cat/B": 10.0},
+        )
+        for i in range(11)
+    ]
+
+
+def test_cited_count_backs_numbers_only_for_feed() -> None:
+    rows = _c26_screen_rows(10.0)
+    cited = [e.id for e in rows[:4]]
+    # Cat/A and Cat/B each total 110 minutes (1.83 hours), so no snapshot
+    # value rounds to 4: the 4 is only the cited count, and it must drop.
+    # Restoring either old clause (type_counts or len(cited)) keeps it.
+    assert (
+        _run(
+            "In the last period, 4 events included both Cat/A and Cat/B screen time.",
+            cited,
+            rows,
+        )
+        == "FACT_NUMBER_UNBACKED"
+    )
+
+
+def test_cited_count_drop_reaches_extract_facts() -> None:
+    from evals.glimmer_cases import personal_aliases, personal_batch
+
+    rows = _c26_screen_rows(10.0)
+    aliases = personal_aliases(tuple(rows))
+    llm = CaseLLM(
+        personal=(
+            personal_batch(
+                {
+                    "statement": (
+                        "In the last period, 4 events included both Cat/A "
+                        "and Cat/B screen time."
+                    ),
+                    "evidence": [aliases[e.id] for e in rows[:4]],
+                }
+            ),
+        )
+    )
+    result = extract_facts(AS_OF, SUBJECT_ID, rows, llm)
+    assert [d.code for d in result.dropped] == ["FACT_NUMBER_UNBACKED"]
+    assert [f.statement for f in result.facts] == [
+        "Cat/A screen hours rose from 0 in prior to 1.83 in last."
+    ]
+
+
+def test_feed_cited_count_still_backs_numbers() -> None:
+    items = [
+        feed_event(
+            eid=f"evt_c26f_{i}",
+            item=f"item-c26f-{i}",
+            day="2026-10-30",
+            time=_dt(30, 9 + i),
+            title=title,
+        )
+        for i, title in enumerate(
+            (
+                "Synthetic transformer pruning benchmark results",
+                "Synthetic container scheduler release notes",
+                "Synthetic vector index library update",
+            )
+        )
+    ]
+    cited = [e.id for e in items[:2]]
+    assert _run("2 feed items about pruning", cited, items) is None
+    assert _run("5 feed items about pruning", cited, items) == "FACT_NUMBER_UNBACKED"
+
+
+def test_feed_topic_count_through_extract_facts() -> None:
+    from evals.glimmer_cases import feed_aliases, feed_batch
+
+    items = [
+        feed_event(
+            eid=f"evt_c26g_{i}",
+            item=f"item-c26g-{i}",
+            day="2026-10-30",
+            time=_dt(30, 9 + i),
+            title=title,
+        )
+        for i, title in enumerate(
+            (
+                "Synthetic transformer pruning benchmark results",
+                "Synthetic container scheduler release notes",
+                "Synthetic vector index library update",
+            )
+        )
+    ]
+    feeds = feed_aliases(tuple(items))
+    llm = CaseLLM(
+        feed=(
+            feed_batch(
+                {
+                    "evidence": [feeds[items[0].id], feeds[items[1].id]],
+                    "topic": "pruning",
+                }
+            ),
+        )
+    )
+    result = extract_facts(AS_OF, SUBJECT_ID, items, llm)
+    assert [f.statement for f in result.facts] == ["2 feed items about pruning"]
+
+
+def test_mixed_feed_and_push_citation_backs_no_count() -> None:
+    from evals.glimmer_cases import feed_event as make_feed
+
+    items = [
+        make_feed(
+            eid=f"evt_c26m_{i}",
+            item=f"item-c26m-{i}",
+            day="2026-10-30",
+            time=_dt(30, 9 + i),
+            title=title,
+        )
+        for i, title in enumerate(
+            (
+                "Synthetic transformer pruning benchmark results",
+                "Synthetic container scheduler release notes",
+                "Synthetic vector index library update",
+            )
+        )
+    ]
+    push = push_event(eid="evt_c26m_push", time=_dt(30, 14))
+    events = [*items, push]
+    # Three feed rows sit in the window on purpose: with only two,
+    # feed.item.count == 2 would back the token through the snapshot.
+    # Replacing all() with any() below keeps this statement.
+    assert (
+        _run("2 things happened", [items[0].id, push.id], events)
+        == "FACT_NUMBER_UNBACKED"
+    )
+
+
+def test_empty_citation_backs_no_zero() -> None:
+    push = push_event(eid="evt_c26z_push", time=_dt(30, 14))
+    assert _run("0 things happened", [], [push]) == "FACT_NUMBER_UNBACKED"
+
+
+def test_snapshot_hours_still_back_a_bare_count() -> None:
+    # Known limit: a number has no unit, so 4.03 Cat/A hours back the
+    # "4 events" statement. D19 removes only the cited-count source.
+    rows = _c26_screen_rows(22.0)
+    assert (
+        _run(
+            "In the last period, 4 events included both Cat/A and Cat/B screen time.",
+            [e.id for e in rows[:4]],
+            rows,
+        )
+        is None
+    )

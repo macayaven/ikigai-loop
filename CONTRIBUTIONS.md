@@ -150,6 +150,26 @@ real-data run is still pending. Evidence in
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high), in an interactive session I ran, which also wrote a first draft of four files before I stopped it. Implementation and fixes: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+## Ticket 9b — code facts (2026-11-01)
+
+Built on branch `t9b-code-facts` per [docs/plans/009b-code-facts.md](docs/plans/009b-code-facts.md):
+code facts for the Glimmer fact layer. A pure `framework/glimmer/code_facts.py`
+reports the largest change in each of five families (screen hours, pushes, PRs,
+calendar tag hours, cancelled blocks) with pinned templates, floors, and
+evidence; the snapshot writes explicit zero keys so "from 0" cites a real key;
+code facts come first, outside the model cap, and model repeats drop as
+duplicates; the store records a per-fact code/model origin with a migration;
+and `extract_facts` gains `personal_pass`/`feed_pass` flags with matching CLI
+switches, so a cycle still returns code facts when the model fails or is off.
+The fact check lets a count of cited rows back a number only when every cited
+row is a feed item; `other` and `system` never win the screen family while
+staying in the snapshot; and `ai` prints as `AI`.
+The 6-known-good / 24-mutant meta-eval is re-baselined by hand with no new
+cases. Claude Code ran one live cycle on synthetic rows outside the Muse sessions; the real-data run is still pending.
+Evidence in [docs/sessions/009b-code-facts.md](docs/sessions/009b-code-facts.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation and fixes: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## Ticket 15a — learner core (2026-11-01)
 
 Built on branch `t15-learner` per [docs/plans/015-learner.md](docs/plans/015-learner.md):

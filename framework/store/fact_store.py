@@ -98,6 +98,11 @@ def resolve_fact_db_path(db_path: Path | None = None) -> Path:
     return Path(os.environ.get("IKIGAI_DATA_DIR", "./data")) / "ikigai.db"
 
 
+def _origin_of(result: FactResult, fact_id: str) -> str:
+    """Per-fact origin: code facts are code, everything else is model."""
+    return "code" if fact_id in set(result.code_fact_ids) else "model"
+
+
 def _identity_payload(result: FactResult) -> str:
     """Canonical bytes identifying a recording; equality means replay."""
     return canonical_json(
@@ -110,6 +115,7 @@ def _identity_payload(result: FactResult) -> str:
                     "statement": f.statement,
                     "evidence": list(f.evidence),
                     "tier": f.tier,
+                    "origin": _origin_of(result, f.id),
                     "window_start": f.window.start.isoformat(),
                     "window_end": f.window.end.isoformat(),
                 }
@@ -139,6 +145,34 @@ class FactStore:
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.executescript(DDL)
+        self._migrate_origin()
+
+    def _migrate_origin(self) -> None:
+        """Add the per-fact origin column to pre-migration files.
+
+        Every fact stored before this ticket was a model fact, so the
+        constant default is historically true. An already-migrated file
+        takes no write lock: the column check reads outside any
+        transaction, so opening while another connection writes never
+        stalls. Only an old file takes BEGIN IMMEDIATE, and the column
+        check runs again inside it, so two processes opening an old file
+        at the same moment still serialise.
+        """
+        conn = self._conn
+        columns = [row[1] for row in conn.execute("PRAGMA table_info(facts)")]
+        if "origin" in columns:
+            return
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            columns = [row[1] for row in conn.execute("PRAGMA table_info(facts)")]
+            if "origin" not in columns:
+                conn.execute(
+                    "ALTER TABLE facts ADD COLUMN origin TEXT NOT NULL DEFAULT 'model'"
+                )
+            conn.execute("COMMIT")
+        except BaseException:
+            conn.execute("ROLLBACK")
+            raise
 
     def close(self) -> None:
         self._conn.close()
@@ -198,8 +232,8 @@ class FactStore:
             for fact in result.facts:
                 conn.execute(
                     "INSERT INTO facts (cycle_id, run, fact_id, subject_id,"
-                    " window_start, window_end, statement, evidence, tier)"
-                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    " window_start, window_end, statement, evidence, tier, origin)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         result.cycle_id,
                         run,
@@ -210,6 +244,7 @@ class FactStore:
                         fact.statement,
                         canonical_json(list(fact.evidence)),
                         fact.tier,
+                        _origin_of(result, fact.id),
                     ),
                 )
             for attempt in result.responses:
@@ -237,8 +272,8 @@ class FactStore:
             (cycle_id, run),
         ).fetchone()
         facts = conn.execute(
-            "SELECT fact_id, statement, evidence, tier, window_start, window_end"
-            " FROM facts WHERE cycle_id = ? AND run = ? ORDER BY rowid",
+            "SELECT fact_id, statement, evidence, tier, origin, window_start,"
+            " window_end FROM facts WHERE cycle_id = ? AND run = ? ORDER BY rowid",
             (cycle_id, run),
         ).fetchall()
         responses = conn.execute(
@@ -256,10 +291,19 @@ class FactStore:
                         "statement": statement,
                         "evidence": json.loads(evidence),
                         "tier": tier,
+                        "origin": origin,
                         "window_start": window_start,
                         "window_end": window_end,
                     }
-                    for fact_id, statement, evidence, tier, window_start, window_end in facts
+                    for (
+                        fact_id,
+                        statement,
+                        evidence,
+                        tier,
+                        origin,
+                        window_start,
+                        window_end,
+                    ) in facts
                 ],
                 "dropped": json.loads(row[2]),
                 "responses": [
@@ -297,7 +341,7 @@ class FactStore:
     def fetch_facts(self, cycle_id: str, run: int) -> list[dict[str, Any]]:
         rows = self._conn.execute(
             "SELECT fact_id, subject_id, window_start, window_end, statement,"
-            " evidence, tier FROM facts WHERE cycle_id = ? AND run = ?"
+            " evidence, tier, origin FROM facts WHERE cycle_id = ? AND run = ?"
             " ORDER BY rowid",
             (cycle_id, run),
         ).fetchall()
@@ -310,8 +354,18 @@ class FactStore:
                 "statement": statement,
                 "evidence": json.loads(evidence),
                 "tier": tier,
+                "origin": origin,
             }
-            for fact_id, subject_id, window_start, window_end, statement, evidence, tier in rows
+            for (
+                fact_id,
+                subject_id,
+                window_start,
+                window_end,
+                statement,
+                evidence,
+                tier,
+                origin,
+            ) in rows
         ]
 
     def fetch_responses(self, cycle_id: str, run: int) -> list[dict[str, Any]]:

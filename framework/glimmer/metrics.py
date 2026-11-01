@@ -168,6 +168,24 @@ def build_metric_snapshot(as_of: datetime, winners: Sequence[Event]) -> MetricSn
                 key = f"tag_hours.{tag}"
                 values[key] = values.get(key, 0.0) + hours
     rollup = build_period_rollup(as_of, winners)
+    screen_universe = {
+        category
+        for name in PERIOD_NAMES
+        for category, hours in rollup[name]["screen_hours"].items()
+        if hours
+    }
+    tag_universe = {
+        tag
+        for name in PERIOD_NAMES
+        for tag, hours in rollup[name]["calendar_hours_by_tag"].items()
+        if hours
+    }
+    cancelled_universe = {
+        tag
+        for name in PERIOD_NAMES
+        for tag, count in rollup[name]["cancelled_blocks_by_tag"].items()
+        if count
+    }
     for name in PERIOD_NAMES:
         period = rollup[name]
         values[f"period.{name}.pushes"] = float(period["pushes"])
@@ -181,10 +199,34 @@ def build_metric_snapshot(as_of: datetime, winners: Sequence[Event]) -> MetricSn
         for tag, count in period["cancelled_blocks_by_tag"].items():
             if count:
                 values[f"period.{name}.cancelled.{tag}"] = float(count)
+        for category in sorted(screen_universe):
+            values.setdefault(f"period.{name}.screen_hours.{category}", 0.0)
+        for tag in sorted(tag_universe):
+            values.setdefault(f"period.{name}.tag_hours.{tag}", 0.0)
+        for tag in sorted(cancelled_universe):
+            values.setdefault(f"period.{name}.cancelled.{tag}", 0.0)
+    keep_zero = (
+        {
+            f"period.{name}.screen_hours.{category}"
+            for name in PERIOD_NAMES
+            for category in screen_universe
+        }
+        | {
+            f"period.{name}.tag_hours.{tag}"
+            for name in PERIOD_NAMES
+            for tag in tag_universe
+        }
+        | {
+            f"period.{name}.cancelled.{tag}"
+            for name in PERIOD_NAMES
+            for tag in cancelled_universe
+        }
+    )
     values = {
         k: v
         for k, v in values.items()
         if v != 0.0
+        or k in keep_zero
         or k
         in (
             "calendar.busy_hours",

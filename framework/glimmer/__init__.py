@@ -2,6 +2,16 @@
 
 from framework.briefing.context import MetricSnapshot
 from framework.glimmer.checks import check_fact, highest_tier, resolve_aliases
+from framework.glimmer.code_facts import (
+    COUNT_FLOOR,
+    HOURS_FLOOR,
+    SCREEN_DISPLAY_NAMES,
+    SCREEN_SKIPPED_CATEGORIES,
+    CodeFact,
+    code_facts,
+    format_metric_value,
+    is_duplicate_of_code,
+)
 from framework.glimmer.facts import (
     ALLOWED_TYPES,
     MAX_FACTS,
@@ -45,14 +55,19 @@ from framework.glimmer.schemas import (
 
 __all__ = [
     "ALLOWED_TYPES",
+    "COUNT_FLOOR",
+    "HOURS_FLOOR",
     "MAX_FACTS",
     "MAX_FEED_PER_SOURCE",
     "MAX_PROMPT_EVENTS",
     "MODEL_MAX_TOKENS",
     "MODEL_TIMEOUT_S",
     "REPAIR_SUFFIX",
+    "SCREEN_DISPLAY_NAMES",
+    "SCREEN_SKIPPED_CATEGORIES",
     "WINDOW",
     "AttemptRecord",
+    "CodeFact",
     "DroppedFact",
     "FactDraft",
     "FactDraftBatch",
@@ -71,8 +86,11 @@ __all__ = [
     "build_period_rollup",
     "build_personal_prompt",
     "check_fact",
+    "code_facts",
     "extract_facts",
+    "format_metric_value",
     "highest_tier",
+    "is_duplicate_of_code",
     "load_llm_config",
     "resolve_aliases",
     "sanitise_model_id",

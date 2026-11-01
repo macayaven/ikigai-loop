@@ -4,6 +4,8 @@ import pytest
 
 from evals.glimmer_cases import (
     AS_OF,
+    LIVE_CONTENT,
+    LIVE_ROWS,
     MUTANTS,
     SUBJECT_ID,
     WINDOW_START,
@@ -12,6 +14,7 @@ from evals.glimmer_cases import (
     ScriptEntry,
     base_case,
     dropped_event_types,
+    live_table_events,
     personal_aliases,
     personal_batch,
 )
@@ -159,7 +162,9 @@ def test_deterministic_replay_identical() -> None:
 def test_unknown_alias_drops() -> None:
     result, _ = _replay(_by_name("F1-"))
     assert [d.code for d in result.dropped] == ["FACT_EVIDENCE_UNKNOWN"]
-    assert result.facts == ()
+    assert [f.statement for f in result.facts] == [
+        "Pushes rose from 0 in prior to 1 in last."
+    ]
 
 
 def test_alias_in_statement_drops() -> None:
@@ -168,7 +173,9 @@ def test_alias_in_statement_drops() -> None:
         "FACT_ALIAS_IN_STATEMENT",
         "FACT_ALIAS_IN_STATEMENT",
     ]
-    assert result.facts == ()
+    assert [f.statement for f in result.facts] == [
+        "Pushes rose from 0 in prior to 7 in last."
+    ]
 
 
 def test_tier_minted_as_highest_evidence_tier() -> None:
@@ -176,10 +183,18 @@ def test_tier_minted_as_highest_evidence_tier() -> None:
 
     g1 = next(c for c in KNOWN_GOOD if c.name == "G1-base")
     result, _ = _replay(g1)
-    assert [f.tier for f in result.facts] == ["private", "public", "public"]
+    assert [f.tier for f in result.facts] == [
+        "private",
+        "public",
+        "public",
+        "private",
+        "private",
+        "public",
+        "public",
+    ]
     g5 = next(c for c in KNOWN_GOOD if c.name == "G5-minted-tier")
     result, _ = _replay(g5)
-    assert [f.tier for f in result.facts] == ["private"]
+    assert [f.tier for f in result.facts] == ["public", "private", "private"]
 
 
 def test_max_facts_cap_overflow() -> None:
@@ -212,7 +227,8 @@ def test_max_facts_cap_overflow() -> None:
     ]
     llm = RecordingLLM(personal=(personal_batch(*drafts),))
     result = extract_facts(AS_OF, SUBJECT_ID, [push], llm)
-    assert len(result.facts) == 12
+    assert len(result.facts) == 13
+    assert result.facts[0].statement == "Pushes rose from 0 in prior to 1 in last."
     assert [d.code for d in result.dropped] == ["FACT_OVER_LIMIT"]
     personal, _ = result.passes
     assert personal.kept == 12
@@ -328,7 +344,9 @@ def test_duplicate_aliases_do_not_inflate_cited_count() -> None:
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [push], llm)
     assert [d.code for d in result.dropped] == ["FACT_NUMBER_UNBACKED"]
-    assert result.facts == ()
+    assert [f.statement for f in result.facts] == [
+        "Pushes rose from 0 in prior to 1 in last."
+    ]
 
 
 def test_kept_evidence_has_no_duplicates() -> None:
@@ -351,8 +369,8 @@ def test_kept_evidence_has_no_duplicates() -> None:
         )
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [push], llm)
-    assert len(result.facts) == 1
-    assert list(result.facts[0].evidence) == [push.id]
+    assert len(result.facts) == 2
+    assert list(result.facts[1].evidence) == [push.id]
 
 
 def test_blank_statement_takes_repair_retry() -> None:
@@ -381,7 +399,7 @@ def test_blank_statement_takes_repair_retry() -> None:
         )
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [push], llm)
-    assert len(result.facts) == 1
+    assert len(result.facts) == 2
     personal, _ = result.passes
     assert personal.attempts == 2
     assert personal.raw_valid is True
@@ -502,7 +520,7 @@ def test_duplicate_statement_and_evidence_drops_second() -> None:
     }
     llm = RecordingLLM(personal=(personal_batch(draft, draft),))
     result = extract_facts(AS_OF, SUBJECT_ID, [push], llm)
-    assert len(result.facts) == 1
+    assert len(result.facts) == 2
     assert [d.code for d in result.dropped] == ["FACT_DUPLICATE"]
 
 
@@ -528,7 +546,7 @@ def test_duplicate_with_swapped_evidence_order_drops_second() -> None:
         )
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [first, second], llm)
-    assert len(result.facts) == 1
+    assert len(result.facts) == 2
     assert [d.code for d in result.dropped] == ["FACT_DUPLICATE"]
 
 
@@ -781,443 +799,9 @@ def test_empty_content_other_reason_takes_repair_retry() -> None:
 
 def test_failed_personal_pass_keeps_feed_facts() -> None:
     result, _ = _replay(_by_name("F7-"))
-    assert len(result.facts) == 1
+    assert len(result.facts) == 2
+    assert result.facts[0].statement == "Pushes rose from 0 in prior to 1 in last."
     assert result.noop_reason is None
-
-
-_LIVE_CONTENT = (
-    '{"facts": [\n'
-    '  {"statement": "Github pushes decreased from 3 in earlier to 1 in prior'
-    ' and to 0 in last.", "evidence": ["e6", "e14", "e17", "e22"]},\n'
-    '  {"statement": "Work/Programming screen hours decreased from 7.0 in earlier'
-    ' to 4.75 in prior.", "evidence": ["e11", "e13", "e15", "e16", "e19",'
-    ' "e20", "e21", "e23"]},\n'
-    '  {"statement": "Work/Programming screen hours decreased from 4.75 in prior'
-    ' to 1.75 in last.", "evidence": ["e19", "e20", "e21", "e23", "e42",'
-    ' "e43", "e44"]},\n'
-    '  {"statement": "Comms/Chat screen hours increased from 1.27 in prior'
-    ' to 3.45 in last.", "evidence": ["e28", "e29", "e30", "e42", "e43",'
-    ' "e44"]},\n'
-    '  {"statement": "In prior period, 1 calendar block with tag iki-deep was'
-    ' cancelled and 1 github push occurred.", "evidence": ["e27", "e22"]}\n'
-    "]}"
-)
-
-# (fixture alias, type, time, data) transcribed from the live-run fixture.
-_LIVE_ROWS: tuple[tuple[str, str, str, dict[str, object]], ...] = (
-    (
-        "e1",
-        "screen.hour",
-        "2026-10-28T14:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
-        },
-    ),
-    (
-        "e2",
-        "screen.hour",
-        "2026-10-28T15:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
-        },
-    ),
-    (
-        "e3",
-        "screen.hour",
-        "2026-10-28T16:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
-        },
-    ),
-    (
-        "e4",
-        "screen.hour",
-        "2026-10-28T17:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
-        },
-    ),
-    (
-        "e5",
-        "screen.hour",
-        "2026-10-28T18:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
-        },
-    ),
-    (
-        "e6",
-        "github.push",
-        "2026-10-28T18:30:00+01:00",
-        {"repo": "example-user/demo-repo", "counts": {"commits": 2}},
-    ),
-    (
-        "e7",
-        "screen.hour",
-        "2026-10-28T19:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 10, "Work/Programming": 40},
-        },
-    ),
-    (
-        "e8",
-        "calendar.event.created",
-        "2026-10-28T20:00:00+01:00",
-        {
-            "busy": True,
-            "category": "personal",
-            "end": "2026-10-28T21:00:00+01:00",
-            "is_new": False,
-            "start": "2026-10-28T20:00:00+01:00",
-            "tags": ["iki-family"],
-        },
-    ),
-    (
-        "e9",
-        "screen.hour",
-        "2026-10-28T21:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 6, "Media/Video": 5}},
-    ),
-    (
-        "e10",
-        "screen.hour",
-        "2026-10-28T22:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 6, "Media/Video": 5}},
-    ),
-    (
-        "e11",
-        "screen.hour",
-        "2026-10-29T09:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e12",
-        "calendar.event.created",
-        "2026-10-29T10:00:00+01:00",
-        {
-            "busy": True,
-            "category": "work",
-            "end": "2026-10-29T13:00:00+01:00",
-            "is_new": False,
-            "start": "2026-10-29T10:00:00+01:00",
-            "tags": ["iki-deep"],
-        },
-    ),
-    (
-        "e13",
-        "screen.hour",
-        "2026-10-29T10:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e14",
-        "github.push",
-        "2026-10-29T11:00:00+01:00",
-        {"repo": "example-user/demo-repo", "counts": {"commits": 3}},
-    ),
-    (
-        "e15",
-        "screen.hour",
-        "2026-10-29T11:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e16",
-        "screen.hour",
-        "2026-10-29T12:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e17",
-        "github.push",
-        "2026-10-29T12:30:00+01:00",
-        {"repo": "example-user/demo-repo", "counts": {"commits": 1}},
-    ),
-    (
-        "e18",
-        "calendar.event.created",
-        "2026-10-29T15:00:00+01:00",
-        {
-            "busy": True,
-            "category": "work",
-            "end": "2026-10-29T18:00:00+01:00",
-            "is_new": False,
-            "start": "2026-10-29T15:00:00+01:00",
-            "tags": ["iki-deep"],
-        },
-    ),
-    (
-        "e19",
-        "screen.hour",
-        "2026-10-29T15:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e20",
-        "screen.hour",
-        "2026-10-29T16:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e21",
-        "screen.hour",
-        "2026-10-29T17:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e22",
-        "github.push",
-        "2026-10-29T17:40:00+01:00",
-        {"repo": "example-user/demo-repo", "counts": {"commits": 4}},
-    ),
-    (
-        "e23",
-        "screen.hour",
-        "2026-10-29T18:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e24",
-        "github.pr",
-        "2026-10-29T18:10:00+01:00",
-        {"repo": "example-user/demo-repo", "counts": {"opened": 1}},
-    ),
-    (
-        "e25",
-        "screen.hour",
-        "2026-10-29T19:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 8, "Work/Programming": 45},
-        },
-    ),
-    (
-        "e26",
-        "calendar.event.created",
-        "2026-10-30T09:00:00+01:00",
-        {
-            "busy": True,
-            "category": "work",
-            "end": "2026-10-30T09:30:00+01:00",
-            "is_new": False,
-            "start": "2026-10-30T09:00:00+01:00",
-            "tags": [],
-        },
-    ),
-    (
-        "e27",
-        "calendar.event.cancelled",
-        "2026-10-30T10:00:00+01:00",
-        {
-            "busy": True,
-            "category": "work",
-            "end": "2026-10-30T12:00:00+01:00",
-            "is_new": False,
-            "start": "2026-10-30T10:00:00+01:00",
-            "tags": ["iki-deep"],
-        },
-    ),
-    (
-        "e28",
-        "screen.hour",
-        "2026-10-30T10:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
-        },
-    ),
-    (
-        "e29",
-        "screen.hour",
-        "2026-10-30T11:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
-        },
-    ),
-    (
-        "e30",
-        "screen.hour",
-        "2026-10-30T12:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
-        },
-    ),
-    (
-        "e31",
-        "screen.hour",
-        "2026-10-30T13:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
-        },
-    ),
-    (
-        "e32",
-        "screen.hour",
-        "2026-10-30T14:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
-        },
-    ),
-    (
-        "e33",
-        "screen.hour",
-        "2026-10-30T15:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 12, "Work/Programming": 20},
-        },
-    ),
-    (
-        "e34",
-        "screen.hour",
-        "2026-10-30T16:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
-    ),
-    (
-        "e35",
-        "screen.hour",
-        "2026-10-30T17:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
-    ),
-    (
-        "e36",
-        "screen.hour",
-        "2026-10-30T18:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
-    ),
-    (
-        "e37",
-        "screen.hour",
-        "2026-10-30T19:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
-    ),
-    (
-        "e38",
-        "screen.hour",
-        "2026-10-30T20:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
-    ),
-    (
-        "e39",
-        "screen.hour",
-        "2026-10-30T21:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
-    ),
-    (
-        "e40",
-        "screen.hour",
-        "2026-10-30T22:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
-    ),
-    (
-        "e41",
-        "screen.hour",
-        "2026-10-30T23:00:00+01:00",
-        {"device": "mac", "minutes_by_category": {"Comms/Chat": 12, "Media/Video": 30}},
-    ),
-    (
-        "e42",
-        "screen.hour",
-        "2026-10-31T10:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 25, "Work/Programming": 15},
-        },
-    ),
-    (
-        "e43",
-        "screen.hour",
-        "2026-10-31T11:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 25, "Work/Programming": 15},
-        },
-    ),
-    (
-        "e44",
-        "screen.hour",
-        "2026-10-31T12:00:00+01:00",
-        {
-            "device": "mac",
-            "minutes_by_category": {"Comms/Chat": 25, "Work/Programming": 15},
-        },
-    ),
-)
-
-
-def _live_table_events() -> list[Event]:
-    """Real ``Event`` objects for the live-run fixture rows above."""
-    from datetime import UTC, datetime
-
-    events: list[Event] = []
-    for index, (alias, etype, time_iso, data) in enumerate(_LIVE_ROWS, start=1):
-        moment = datetime.fromisoformat(time_iso)
-        utc_iso = moment.astimezone(UTC).isoformat()
-        if etype.startswith("calendar.event."):
-            source, tier = "calendar-personal", "private"
-            source_id = f"uid-{index}@{utc_iso}@seq1"
-            if etype == "calendar.event.cancelled":
-                source_id += "#cancelled"
-        elif etype == "screen.hour":
-            source, tier = "activitywatch", "private"
-            source_id = f"mac:{utc_iso}:d{index}"
-        else:
-            source, tier = "github", "public"
-            source_id = str(7000 + index)
-        payload = dict(data)
-        payload["type"] = etype
-        events.append(
-            Event.model_validate(
-                {
-                    "id": f"evt_{index:04d}",
-                    "subject_id": SUBJECT_ID,
-                    "source": source,
-                    "type": etype,
-                    "time": time_iso,
-                    "source_id": source_id,
-                    "data": payload,
-                    "tier": tier,
-                    "collected_at": "2026-10-31T12:59:00+01:00",
-                    "collector_version": "synthetic-live@0.1.0",
-                }
-            )
-        )
-        assert alias == f"e{index}", alias
-    return events
 
 
 def test_live_model_output_all_five_kept() -> None:
@@ -1225,13 +809,29 @@ def test_live_model_output_all_five_kept() -> None:
 
     from evals.glimmer_cases import ScriptEntry as Entry
 
-    events = _live_table_events()
-    llm = RecordingLLM(personal=(Entry(text=_LIVE_CONTENT),))
+    events = live_table_events()
+    llm = RecordingLLM(personal=(Entry(text=LIVE_CONTENT),))
     result = extract_facts(AS_OF, SUBJECT_ID, events, llm)
-    assert len(result.facts) == 5
+    assert len(result.facts) == 10
+    assert [f.statement for f in result.facts[:5]] == [
+        "Media/Video screen hours rose from 0 in prior to 4 in last.",
+        "Pushes fell from 3 in earlier to 1 in prior.",
+        "Pull requests fell from 1 in prior to 0 in last.",
+        "iki-deep calendar hours fell from 3 in prior to 0 in last.",
+        "Cancelled iki-deep blocks fell from 1 in prior to 0 in last.",
+    ]
+    assert [f.id for f in result.facts[:5]] == list(result.code_fact_ids)
     assert result.dropped == ()
     assert result.is_noop is False
+    personal, feed = result.passes
+    assert personal.kept == 5
+    assert feed.kept == 0
     assert [f.tier for f in result.facts] == [
+        "private",
+        "public",
+        "public",
+        "private",
+        "private",
         "public",
         "private",
         "private",
@@ -1246,7 +846,7 @@ def test_live_model_output_all_five_kept() -> None:
         for line in body.splitlines()
     }
     assert len(by_alias) == 44
-    for index, (alias, etype, time_iso, _) in enumerate(_LIVE_ROWS, start=1):
+    for index, (alias, etype, time_iso, _) in enumerate(LIVE_ROWS, start=1):
         assert by_alias[alias]["type"] == etype, alias
         assert by_alias[alias]["time"] == time_iso, alias
 
@@ -1280,7 +880,7 @@ def test_live_table_zero_keep_statements() -> None:
     from framework.glimmer.checks import check_fact
     from framework.glimmer.metrics import build_metric_snapshot, select_winners
 
-    events = _live_table_events()
+    events = live_table_events()
     winners = select_winners(events)
     assert len(winners) == 44
     winning_ids = frozenset(e.id for e in winners)
@@ -1406,3 +1006,79 @@ def test_unavailable_latency_reaches_pass_total() -> None:
     assert personal.noop_reason == "NOOP_LLM_UNAVAILABLE"
     assert personal.attempts == 2
     assert personal.latency_ms == 1334
+
+
+def test_personal_prompt_lists_code_facts_block() -> None:
+    from evals.glimmer_cases import ScriptEntry as Entry
+
+    events = live_table_events()
+    llm = RecordingLLM(personal=(Entry(text=LIVE_CONTENT),))
+    extract_facts(AS_OF, SUBJECT_ID, events, llm)
+    (prompt,) = llm.personal_prompts
+    assert "CODE FACTS (already reported by code; do not restate them):" in prompt
+    for statement in (
+        "Media/Video screen hours rose from 0 in prior to 4 in last.",
+        "Pushes fell from 3 in earlier to 1 in prior.",
+        "Pull requests fell from 1 in prior to 0 in last.",
+        "iki-deep calendar hours fell from 3 in prior to 0 in last.",
+        "Cancelled iki-deep blocks fell from 1 in prior to 0 in last.",
+    ):
+        assert f"- {statement}" in prompt
+    assert (
+        "- Do not restate any statement listed under CODE FACTS;"
+        " report only what it does not cover." in prompt
+    )
+    assert (
+        prompt.index("PERIODS (JSON")
+        < prompt.index("CODE FACTS (already")
+        < prompt.index("EVENTS (one JSON")
+    )
+
+
+def test_personal_prompt_block_empty_state_and_number_rule() -> None:
+    from evals.glimmer_cases import _dt as dt
+    from evals.glimmer_cases import cal_event, feed_batch
+
+    block = cal_event(
+        eid="evt_pb_block",
+        key="pb-1@20261030T140000",
+        lm="seq1",
+        time=dt(30, 14),
+        end=dt(30, 15),
+        tags=(),
+    )
+    llm = RecordingLLM(
+        personal=(personal_batch(),),
+        feed=(feed_batch(),),
+    )
+
+    extract_facts(AS_OF, SUBJECT_ID, [block], llm)
+    (prompt,) = llm.personal_prompts
+    assert "- none" in prompt
+    assert (
+        "- Every number in a statement must come from the METRICS or PERIODS values."
+        " Do not count rows or events." in prompt
+    )
+    assert "count of the evidence" not in prompt
+
+
+def test_feed_prompt_has_no_code_block() -> None:
+    from evals.glimmer_cases import _dt as dt
+    from evals.glimmer_cases import feed_aliases, feed_batch, feed_event
+
+    item = feed_event(
+        eid="evt_fb_only",
+        item="item-fb",
+        day="2026-10-30",
+        time=dt(30, 9),
+        title="Synthetic transformer pruning benchmark results",
+    )
+    feeds = feed_aliases((item,))
+    llm = RecordingLLM(
+        feed=(
+            feed_batch({"evidence": [feeds[item.id]], "topic": "neural pruning tools"}),
+        ),
+    )
+    extract_facts(AS_OF, SUBJECT_ID, [item], llm)
+    (prompt,) = llm.feed_prompts
+    assert "CODE FACTS" not in prompt

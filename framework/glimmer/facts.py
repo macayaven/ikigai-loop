@@ -19,6 +19,13 @@ from pydantic import ValidationError
 from framework.briefing.context import MetricSnapshot
 from framework.briefing.numbers import extract_number_tokens
 from framework.glimmer.checks import check_fact, highest_tier, resolve_aliases
+from framework.glimmer.code_facts import (
+    CodeFact,
+    is_duplicate_of_code,
+)
+from framework.glimmer.code_facts import (
+    code_facts as _build_code_facts,
+)
 from framework.glimmer.metrics import (
     WINDOW,
     build_metric_snapshot,
@@ -105,6 +112,7 @@ class AttemptRecord:
 @dataclass(frozen=True)
 class FactResult:
     facts: tuple[Fact, ...]
+    code_fact_ids: tuple[str, ...]
     snapshot: MetricSnapshot
     passes: tuple[PassResult, PassResult]  # always (personal, feed) order
     responses: tuple[AttemptRecord, ...]
@@ -264,9 +272,19 @@ def _summarise(
 
 
 def extract_facts(
-    as_of: datetime, subject_id: str, events: Sequence[Event], llm: LLMClient
+    as_of: datetime,
+    subject_id: str,
+    events: Sequence[Event],
+    llm: LLMClient,
+    *,
+    personal_pass: bool = True,
+    feed_pass: bool = True,
 ) -> FactResult:
-    """Filter, measure, prompt twice, check, and mint the cycle's facts."""
+    """Filter, measure, prompt twice, check, and mint the cycle's facts.
+
+    A pass flag that is False skips that model pass entirely: no prompt
+    is built and the model is never called for it.
+    """
     as_of = fixed_offset(as_of)
     window_start = as_of - WINDOW
     filtered = [
@@ -290,13 +308,14 @@ def extract_facts(
     kept: list[Fact] = []
     dropped: list[DroppedFact] = []
     seen_ids: set[str] = set()
+    model_base = 0  # len(kept) once code facts are in; the cap counts models only
 
     def _keep(statement: str, evidence_ids: Sequence[str], tier: Tier) -> None:
         fact_id = _mint_id(statement, evidence_ids)
         if fact_id in seen_ids:
             dropped.append(_drop(statement, "FACT_DUPLICATE"))
             return
-        if len(kept) >= MAX_FACTS:
+        if len(kept) - model_base >= MAX_FACTS:
             dropped.append(_drop(statement, "FACT_OVER_LIMIT"))
             return
         seen_ids.add(fact_id)
@@ -324,17 +343,64 @@ def extract_facts(
             window_start=window_start,
         )
 
+    # Code facts first: largest change per family, outside the model cap.
+    computed_code: tuple[CodeFact, ...] = _build_code_facts(as_of, winners, rollup)
+    kept_code: list[CodeFact] = []
+    code_ids: list[str] = []
+    for code_fact in computed_code:
+        failure_code = check_fact(
+            code_fact.statement,
+            list(code_fact.evidence),
+            known_by_id=known_by_id,
+            winning_ids=winning_ids,
+            winners=winners_list,
+            snapshot=snapshot,
+            feed_titles=(),
+            as_of=as_of,
+            window_start=window_start,
+        )
+        if failure_code is not None:
+            dropped.append(_drop(code_fact.statement, f"CODE_{failure_code}"))
+            continue
+        fact_id = _mint_id(code_fact.statement, list(code_fact.evidence))
+        if fact_id in seen_ids:
+            dropped.append(_drop(code_fact.statement, "FACT_DUPLICATE"))
+            continue
+        seen_ids.add(fact_id)
+        kept.append(
+            Fact(
+                id=fact_id,
+                subject_id=subject_id,
+                window=FactWindow(start=window_start, end=as_of),
+                statement=code_fact.statement,
+                evidence=list(code_fact.evidence),
+                tier=code_fact.tier,
+            )
+        )
+        kept_code.append(code_fact)
+        code_ids.append(fact_id)
+    model_base = len(kept)
+
     # Personal pass: most recent MAX_PROMPT_EVENTS winning non-feed rows.
     personal_rows = [e for e in winners if e.type != "feed.item"]
     prompt_rows = personal_rows[-MAX_PROMPT_EVENTS:]
-    if not prompt_rows:
-        personal_pass, personal_records, personal_prompt = _skipped(
+    if not personal_pass:
+        personal_result, personal_records, personal_prompt = _skipped(
+            "personal", "NOOP_PERSONAL_SKIPPED"
+        )
+    elif not prompt_rows:
+        personal_result, personal_records, personal_prompt = _skipped(
             "personal", "NOOP_NO_PERSONAL_EVENTS"
         )
     else:
         aliased = [(f"e{i + 1}", e) for i, e in enumerate(prompt_rows)]
         personal_prompt = build_personal_prompt(
-            as_of, window_start, snapshot, rollup, aliased
+            as_of,
+            window_start,
+            snapshot,
+            rollup,
+            aliased,
+            [fact.statement for fact in kept_code],
         )
         alias_map = {alias: e.id for alias, e in aliased}
         responses, calls, failure, empty, batch, error_ms = _run_llm(
@@ -346,6 +412,12 @@ def extract_facts(
                 if resolved is None:
                     dropped.append(_drop(draft.statement, "FACT_EVIDENCE_UNKNOWN"))
                     continue
+                if (
+                    is_duplicate_of_code(draft.statement, resolved, kept_code)
+                    is not None
+                ):
+                    dropped.append(_drop(draft.statement, "FACT_DUPLICATE_OF_CODE"))
+                    continue
                 code = _checked(draft.statement, resolved)
                 if code is not None:
                     dropped.append(_drop(draft.statement, code))
@@ -355,12 +427,12 @@ def extract_facts(
                     resolved,
                     cast(Tier, highest_tier([known_by_id[i] for i in resolved])),
                 )
-        personal_kept = len(kept)
-        personal_pass, personal_records = _summarise(
+        personal_start = model_base
+        personal_result, personal_records = _summarise(
             "personal",
             responses,
             calls,
-            personal_kept,
+            len(kept) - personal_start,
             failure,
             empty,
             "NOOP_MODEL_RETURNED_NO_FACTS",
@@ -370,8 +442,10 @@ def extract_facts(
 
     # Feed pass: capped winners only.
     capped = _cap_feed([e for e in winners if e.type == "feed.item"])
-    if not capped:
-        feed_pass, feed_records, feed_prompt = _skipped("feed", "NOOP_NO_FEED_ITEMS")
+    if not feed_pass:
+        feed_result, feed_records, feed_prompt = _skipped("feed", "NOOP_FEED_SKIPPED")
+    elif not capped:
+        feed_result, feed_records, feed_prompt = _skipped("feed", "NOOP_NO_FEED_ITEMS")
     else:
         f_aliased = [(f"f{i + 1}", e) for i, e in enumerate(capped)]
         feed_prompt = build_feed_prompt(f_aliased)
@@ -399,7 +473,7 @@ def extract_facts(
                     dropped.append(_drop(statement, code))
                     continue
                 _keep(statement, distinct, "public")
-        feed_pass, feed_records = _summarise(
+        feed_result, feed_records = _summarise(
             "feed",
             responses,
             calls,
@@ -417,8 +491,9 @@ def extract_facts(
     is_noop = not kept
     return FactResult(
         facts=tuple(kept),
+        code_fact_ids=tuple(code_ids),
         snapshot=snapshot,
-        passes=(personal_pass, feed_pass),
+        passes=(personal_result, feed_result),
         responses=(*personal_records, *feed_records),
         cycle_id=(
             f"cycle-{subject_id}-"

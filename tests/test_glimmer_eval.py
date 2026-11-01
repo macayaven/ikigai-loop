@@ -40,7 +40,7 @@ def test_scorer_rejects_tampered_expectation() -> None:
     raw = by_id["F3-unbacked-number"].metadata
     assert raw is not None
     metadata: dict[str, Any] = dict(raw)
-    metadata["expected_kept"] = 1
+    metadata["expected_kept"] = 2
     assert score_case(metadata).value == INCORRECT
 
 

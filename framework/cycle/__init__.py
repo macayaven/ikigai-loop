@@ -16,11 +16,16 @@ def run_cycle(
     store: EventStore,
     fact_store: FactStore,
     llm: LLMClient,
+    *,
+    personal_pass: bool = True,
+    feed_pass: bool = True,
 ) -> tuple[FactResult, int]:
     """Load the window, extract facts, record the cycle, return ``(result, run)``."""
     as_of = fixed_offset(as_of)
     events = store.events_between(
         subject_id, as_of - WINDOW, as_of, types=ALLOWED_TYPES
     )
-    result = extract_facts(as_of, subject_id, events, llm)
+    result = extract_facts(
+        as_of, subject_id, events, llm, personal_pass=personal_pass, feed_pass=feed_pass
+    )
     return result, fact_store.record_cycle(result)
