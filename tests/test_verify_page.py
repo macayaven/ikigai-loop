@@ -223,3 +223,59 @@ def test_report_pane_is_live_and_margins_line_up() -> None:
     match = re.search(r'<pre id="report"([^>]*)>', page)
     assert match is not None
     assert 'aria-live="polite"' in match.group(1)
+
+
+PINNED_MADE_UP_LINE = (
+    "This example is made up: the claim says 9 and the records say 5. "
+    "Replace that JSON with your own, then press Run."
+)
+
+
+def test_page_names_made_up_example() -> None:
+    page = PAGE.read_text()
+    assert PINNED_MADE_UP_LINE in page
+    assert "Start here: press False number" not in page
+
+
+def test_made_up_sentence_matches_false_number_example() -> None:
+    page = PAGE.read_text()
+    match = re.search(r"claim says (\d+) and the records say (\d+)", page)
+    assert match is not None, "made-up sentence must state both numbers"
+    claim_says = int(match.group(1))
+    records_say = int(match.group(2))
+    data = json.loads(_embedded_examples(page)["ex-false-number"])
+    claim_value = data["claims"][0]["metric_refs"][0]["value"]
+    metric_id = data["claims"][0]["metric_refs"][0]["metric_id"]
+    metric_value = data["metrics"][metric_id]
+    assert claim_value == claim_says
+    assert metric_value == records_say
+
+
+def test_made_up_label_sits_before_examples_in_same_row() -> None:
+    page = PAGE.read_text()
+    assert "Made-up examples:" in page
+    controls = re.search(r'<div class="controls">(.*?)</div>', page, re.DOTALL)
+    assert controls is not None
+    row = controls.group(1)
+    assert "Made-up examples:" in row
+    run_at = row.index('id="run"')
+    label_at = row.index("Made-up examples:")
+    ex1_at = row.index('id="ex1"')
+    ex2_at = row.index('id="ex2"')
+    ex3_at = row.index('id="ex3"')
+    assert run_at < label_at < ex1_at < ex2_at < ex3_at
+    assert "Clean pass" in row
+    assert "False number" in row
+    assert "Leaked private term" in row
+
+
+def test_boot_preloads_false_number_only_when_input_empty() -> None:
+    page = PAGE.read_text()
+    boot = page[page.index("async function boot()") :]
+    assert 'fillPretty("ex-false-number")' in boot
+    assert "runCheck()" in boot
+    guard = re.search(r'if\s*\(\s*input\.value\s*===\s*""\s*\)', boot)
+    assert guard is not None
+    assert boot.index('input.value === ""') < boot.index(
+        'fillPretty("ex-false-number")'
+    )
