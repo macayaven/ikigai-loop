@@ -349,7 +349,7 @@ What it can't show: the titles are invented, ten per label, and a real calendar 
 
 Where the files came from:
 
-- `evals/r10_cases.json`: a separate agent wrote these 80 invented titles and froze them by hash before this ticket's plan was written. None comes from my calendar or anyone else's. Muse Code didn't write them, and no session saw them before the run.
+- `evals/r10_cases.json`: a separate Claude Code agent wrote these 80 invented titles and froze them by hash before this ticket's plan was written. None comes from my calendar or anyone else's. Muse Code didn't write them, and no session saw them before the run.
 - `evals/r10_results/`: the runner's output. I made one edit after the run: in `muse-glimmer-30b.jsonl`, `seconds` is rounded to milliseconds, because two long floats happened to hold a digit run my repo hygiene scan flags. The report is byte-identical before and after, and no answer, token count or header changed.
 
 What was known about the set before the run: 80 titles, the file's shape, and one count from a shape check, that six titles hold a literal `iki-` token. Nobody working on this ticket read a title. That count came before the keyword list's last rewrite, which added the blanking of literal tokens. After the run a scratch script ran the list with the blanking on and off: 51 correct and 50 strict with it, 49 and 48 without. It moved two titles, in the list's favour, and the decision doesn't depend on it.
