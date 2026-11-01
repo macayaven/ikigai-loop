@@ -54,7 +54,7 @@ true_p n_cards correct_side mean_absolute_error coverage mean_interval_width
 0.900 13 1.000 0.070 0.966 0.328
 0.900 30 1.000 0.044 0.974 0.215
 0.900 100 1.000 0.024 0.943 0.118
-n_cards is the number of real two-proposal choices fed to one posterior. Cards with one proposal, and neither, wrong or why taps, add none. My live run expects about 13 cards over three days, and Disconnect appears on at most 3 of the 5 slots a day, so at most about 9 of them can be real choices, split over three buckets. A live bucket's posterior will hold about 3 choices, so even the n = 5 row is optimistic for it. The n = 13 row is an upper bound on the pooled reading, available only if the preference does not vary by bucket.
+n_cards is the number of real two-proposal choices fed to one posterior. Cards with one proposal, and neither, wrong or why taps, add none. My live run expects about 13 cards over three days, and Disconnect appears at 15:30, 20:30 and 22:30, so at most about 7 of them can be real choices, 2 or 3 per time bucket. A live bucket's posterior will hold about 3 choices, so even the n = 5 row is optimistic for it. The n = 13 row is an upper bound on the pooled reading, available only if the preference does not vary by bucket.
 ```
 
 Coverage at a fixed preference is not meant to read 0.95. A credible interval is 95% only on average over the prior, and the plan's frozen exact grid runs from 0.9185 to 0.9898 across these cells. Read coverage with the interval width beside it, because a wide enough interval always covers.
@@ -120,4 +120,4 @@ Over every touched file, I ran the banned-word pattern from the plan's AT-BAN ro
 
 - Byte-identical replay and the golden string have only run on macOS so far. The CI run on Linux will be the first run there.
 - Nothing calls the package yet. T11 and T13 are on other branches, so no live call path has run, and no real ruling has gone through it.
-- The table says what simulated choices fed to one posterior can show. My live run gives each bucket about 3 real choices, which is below the smallest row.
+- The table says what simulated choices fed to one posterior can show. My live run gives each bucket 2 or 3 real choices, which is below the smallest row.

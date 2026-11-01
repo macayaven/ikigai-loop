@@ -233,7 +233,7 @@ Frozen quantile references (q0.025, q0.975), computed with scipy outside this re
 
 What `n_cards` means, stated here, in the JSON and under the printed table (D-23). Fixed note text:
 
-> n_cards is the number of real two-proposal choices fed to one posterior. Cards with one proposal, and neither, wrong or why taps, add none. My live run expects about 13 cards over three days, and Disconnect appears on at most 3 of the 5 slots a day, so at most about 9 of them can be real choices, split over three buckets. A live bucket's posterior will hold about 3 choices, so even the n = 5 row is optimistic for it. The n = 13 row is an upper bound on the pooled reading, available only if the preference does not vary by bucket.
+> n_cards is the number of real two-proposal choices fed to one posterior. Cards with one proposal, and neither, wrong or why taps, add none. My live run expects about 13 cards over three days, and Disconnect appears at 15:30, 20:30 and 22:30, so at most about 7 of them can be real choices, 2 or 3 per time bucket. A live bucket's posterior will hold about 3 choices, so even the n = 5 row is optimistic for it. The n = 13 row is an upper bound on the pooled reading, available only if the preference does not vary by bucket.
 
 Frozen exact grid, computed by enumeration outside this repo on 2026-11-01 and carried in tests as literals with that sentence attached. Each cell is (correct_side, mean_absolute_error, coverage, mean_interval_width) at (true_p, n_cards):
 
