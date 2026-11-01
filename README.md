@@ -23,6 +23,7 @@ Built and merged:
 - Deterministic gate (`framework/briefing/gate.py`, cases in `evals/briefing_cases.py`): no model, no network; it catches all 38 mutant briefings and passes all 20 known-good ones (`tests/test_briefing_mutants.py`, passing).
 - Commitments and the gate additions they need (`framework/briefing/commitments.py`, `framework/briefing/labels.py`, made-up examples in `profiles/commitments.example.json`): an action passes only if it is a commitment I wrote, in my words; a claim that cites a metric passes only if it names that metric and its period and any direction word agrees with the values; advice wording fails. 18 of those 38 mutants and 8 of those 20 known-good briefings test these additions. What the gate still misses is listed at the top of `framework/briefing/numbers.py`.
 - Glimmer fact layer (`framework/glimmer/`, `framework/store/fact_store.py`, `framework/cycle/`): filters events to an allowlist, computes metrics and three 24-hour periods with no model, asks Muse Glimmer in two isolated passes, and drops any fact that fails its deterministic checks; 196 tests in `tests/test_glimmer_*.py`, `tests/test_fact_store.py` and `tests/test_cycle_cli.py`, passing.
+- Learner core (`framework/learner/`): Beta posteriors per time bucket over which of my two goals I take, commitment ranking, scoring each prediction before the ruling it predicts, byte-identical replay, and a known-preference test on simulated rulings; 146 tests in `tests/test_learner_*.py`, passing. Nothing calls it yet, and no real ruling has gone through it.
 
 Not built yet:
 
@@ -30,7 +31,7 @@ Not built yet:
 - The Telegram card.
 - The orchestrator.
 - Voice correction.
-- The learner and the proof harness.
+- The proof harness.
 - The replay viewer.
 
 Muse Glimmer has generated facts through this code in a seeded run on synthetic data. No model has generated a card yet, no card has been delivered, and I claim no results.

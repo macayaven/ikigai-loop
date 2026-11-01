@@ -1,0 +1,25 @@
+{
+  "additionalProperties": false,
+  "description": "One scored probability: the call plus its two losses.",
+  "properties": {
+    "brier": {
+      "title": "Brier",
+      "type": "number"
+    },
+    "log_loss": {
+      "title": "Log Loss",
+      "type": "number"
+    },
+    "prediction": {
+      "title": "Prediction",
+      "type": "number"
+    }
+  },
+  "required": [
+    "prediction",
+    "brier",
+    "log_loss"
+  ],
+  "title": "PredictorScore",
+  "type": "object"
+}

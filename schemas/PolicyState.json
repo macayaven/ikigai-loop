@@ -1,0 +1,331 @@
+{
+  "$defs": {
+    "BucketState": {
+      "additionalProperties": false,
+      "description": "Counts for one time bucket; alpha and beta start at the prior.",
+      "properties": {
+        "alpha": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Alpha",
+          "type": "integer"
+        },
+        "beta": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Beta",
+          "type": "integer"
+        },
+        "neither": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Neither",
+          "type": "integer"
+        },
+        "single_taken": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Single Taken",
+          "type": "integer"
+        },
+        "why": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Why",
+          "type": "integer"
+        },
+        "wrong": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Wrong",
+          "type": "integer"
+        }
+      },
+      "title": "BucketState",
+      "type": "object"
+    },
+    "CommitmentState": {
+      "additionalProperties": false,
+      "description": "Offer counts for one commitment; taken plus declined never pass offered.",
+      "properties": {
+        "declined": {
+          "minimum": 0,
+          "title": "Declined",
+          "type": "integer"
+        },
+        "last_offered_slot": {
+          "format": "date-time",
+          "title": "Last Offered Slot",
+          "type": "string"
+        },
+        "offered": {
+          "minimum": 0,
+          "title": "Offered",
+          "type": "integer"
+        },
+        "profile_id": {
+          "enum": [
+            "builder",
+            "disconnect"
+          ],
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "taken": {
+          "minimum": 0,
+          "title": "Taken",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "profile_id",
+        "offered",
+        "taken",
+        "declined",
+        "last_offered_slot"
+      ],
+      "title": "CommitmentState",
+      "type": "object"
+    },
+    "PickLogEntry": {
+      "additionalProperties": false,
+      "description": "What one proposal on one card showed, kept for card checks.",
+      "properties": {
+        "alternative": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alternative"
+        },
+        "bucket": {
+          "enum": [
+            "afternoon",
+            "evening",
+            "night"
+          ],
+          "title": "Bucket",
+          "type": "string"
+        },
+        "card_id": {
+          "minLength": 1,
+          "title": "Card Id",
+          "type": "string"
+        },
+        "label": {
+          "enum": [
+            "A",
+            "B"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "offered": {
+          "minLength": 1,
+          "title": "Offered",
+          "type": "string"
+        },
+        "pick": {
+          "minLength": 1,
+          "title": "Pick",
+          "type": "string"
+        },
+        "profile_id": {
+          "enum": [
+            "builder",
+            "disconnect"
+          ],
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "slot": {
+          "format": "date-time",
+          "title": "Slot",
+          "type": "string"
+        }
+      },
+      "required": [
+        "card_id",
+        "slot",
+        "bucket",
+        "profile_id",
+        "label",
+        "offered",
+        "pick"
+      ],
+      "title": "PickLogEntry",
+      "type": "object"
+    },
+    "PredictorScore": {
+      "additionalProperties": false,
+      "description": "One scored probability: the call plus its two losses.",
+      "properties": {
+        "brier": {
+          "title": "Brier",
+          "type": "number"
+        },
+        "log_loss": {
+          "title": "Log Loss",
+          "type": "number"
+        },
+        "prediction": {
+          "title": "Prediction",
+          "type": "number"
+        }
+      },
+      "required": [
+        "prediction",
+        "brier",
+        "log_loss"
+      ],
+      "title": "PredictorScore",
+      "type": "object"
+    },
+    "ScoreEntry": {
+      "additionalProperties": false,
+      "description": "The four predictions made before one posterior-moving ruling.",
+      "properties": {
+        "always_half": {
+          "$ref": "#/$defs/PredictorScore"
+        },
+        "bucket": {
+          "enum": [
+            "afternoon",
+            "evening",
+            "night"
+          ],
+          "title": "Bucket",
+          "type": "string"
+        },
+        "card_id": {
+          "minLength": 1,
+          "title": "Card Id",
+          "type": "string"
+        },
+        "learner": {
+          "$ref": "#/$defs/PredictorScore"
+        },
+        "majority": {
+          "$ref": "#/$defs/PredictorScore"
+        },
+        "outcome": {
+          "enum": [
+            0,
+            1
+          ],
+          "title": "Outcome",
+          "type": "integer"
+        },
+        "pooled_rate": {
+          "$ref": "#/$defs/PredictorScore"
+        }
+      },
+      "required": [
+        "card_id",
+        "bucket",
+        "outcome",
+        "learner",
+        "always_half",
+        "majority",
+        "pooled_rate"
+      ],
+      "title": "ScoreEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The whole learner: counts, card ledger, and both logs.",
+  "properties": {
+    "buckets": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BucketState"
+      },
+      "propertyNames": {
+        "enum": [
+          "afternoon",
+          "evening",
+          "night"
+        ]
+      },
+      "title": "Buckets",
+      "type": "object"
+    },
+    "cards": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "enum": [
+              "A",
+              "B",
+              "neither"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Cards",
+      "type": "object"
+    },
+    "commitments": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CommitmentState"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Commitments",
+      "type": "object"
+    },
+    "duplicates": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Duplicates",
+      "type": "integer"
+    },
+    "pick_log": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PickLogEntry"
+      },
+      "title": "Pick Log",
+      "type": "array"
+    },
+    "preference": {
+      "const": "builder_over_disconnect",
+      "default": "builder_over_disconnect",
+      "title": "Preference",
+      "type": "string"
+    },
+    "rulings_seen": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Rulings Seen",
+      "type": "integer"
+    },
+    "score_log": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ScoreEntry"
+      },
+      "title": "Score Log",
+      "type": "array"
+    }
+  },
+  "required": [
+    "buckets"
+  ],
+  "title": "PolicyState",
+  "type": "object"
+}

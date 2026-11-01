@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "description": "Offer counts for one commitment; taken plus declined never pass offered.",
+  "properties": {
+    "declined": {
+      "minimum": 0,
+      "title": "Declined",
+      "type": "integer"
+    },
+    "last_offered_slot": {
+      "format": "date-time",
+      "title": "Last Offered Slot",
+      "type": "string"
+    },
+    "offered": {
+      "minimum": 0,
+      "title": "Offered",
+      "type": "integer"
+    },
+    "profile_id": {
+      "enum": [
+        "builder",
+        "disconnect"
+      ],
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "taken": {
+      "minimum": 0,
+      "title": "Taken",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "profile_id",
+    "offered",
+    "taken",
+    "declined",
+    "last_offered_slot"
+  ],
+  "title": "CommitmentState",
+  "type": "object"
+}

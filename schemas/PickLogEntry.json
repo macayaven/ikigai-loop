@@ -1,0 +1,75 @@
+{
+  "additionalProperties": false,
+  "description": "What one proposal on one card showed, kept for card checks.",
+  "properties": {
+    "alternative": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Alternative"
+    },
+    "bucket": {
+      "enum": [
+        "afternoon",
+        "evening",
+        "night"
+      ],
+      "title": "Bucket",
+      "type": "string"
+    },
+    "card_id": {
+      "minLength": 1,
+      "title": "Card Id",
+      "type": "string"
+    },
+    "label": {
+      "enum": [
+        "A",
+        "B"
+      ],
+      "title": "Label",
+      "type": "string"
+    },
+    "offered": {
+      "minLength": 1,
+      "title": "Offered",
+      "type": "string"
+    },
+    "pick": {
+      "minLength": 1,
+      "title": "Pick",
+      "type": "string"
+    },
+    "profile_id": {
+      "enum": [
+        "builder",
+        "disconnect"
+      ],
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "slot": {
+      "format": "date-time",
+      "title": "Slot",
+      "type": "string"
+    }
+  },
+  "required": [
+    "card_id",
+    "slot",
+    "bucket",
+    "profile_id",
+    "label",
+    "offered",
+    "pick"
+  ],
+  "title": "PickLogEntry",
+  "type": "object"
+}
