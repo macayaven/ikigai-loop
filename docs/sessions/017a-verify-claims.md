@@ -75,6 +75,7 @@ All test data and the recipe's data are synthetic, the new tests use no network,
 After merge, with Pages on, Claude Code checked the page live at https://carloscrespomacaya.com/ikigai-loop/verify/ and at https://macayaven.github.io/ikigai-loop/verify/, which redirects there. In Chrome, Firefox and emulated iPhone WebKit: 11 GET requests while loading, to the page host and cdn.jsdelivr.net, then 0 after load; a canary in the pasted input appeared in no request; no cookies, storage or service workers. The README command ran for real from an empty folder with a fresh uv cache: exit 1 with `L1B_METRIC_VALUE_MISMATCH`, in 6 seconds.
 
 Still unmeasured: a real phone, and how long a person takes.
+I changed the page after this check so it opens with the labelled made-up example already run, and I will rerun this live check after merge.
 
 ## Known gaps
 

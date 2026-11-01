@@ -25,7 +25,8 @@ textarea, pre {
   white-space: pre-wrap; word-break: break-word;
 }
 pre { margin: 0; }
-.controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.8rem 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.8rem 0; align-items: center; }
+.controls .examples-label { align-self: center; }
 button { padding: 0.5rem 1rem; border: 1px solid #bbb; border-radius: 0.4rem; font-size: 1rem; }
 button:disabled { opacity: 0.45; }
 .note { font-size: 0.9rem; opacity: 0.9; }
@@ -34,13 +35,14 @@ button:disabled { opacity: 0.45; }
 <body>
 <h1>Verify claims in your agent's output</h1>
 <p>Give it your agent's claims and your own records as JSON. See which numbers and sources don't reconcile.</p>
-<p>Start here: press False number and read the report. Then replace that JSON with your own.</p>
+<p>This example is made up: the claim says 9 and the records say 5. Replace that JSON with your own, then press Run.</p>
 <p class="note">This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.</p>
 <p class="note">Everything runs on your machine. I load the checker once, then nothing is sent anywhere.</p>
 <p class="note">The input holds your agent's claims plus your own records: facts and metrics come from your system of record, never from the agent's output. <a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">Every field</a> is in the worked example, and <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/ADAPTER.md">the adapter recipe</a> maps another shape to it.</p>
 <p id="progress" class="note" aria-live="polite">Loading the checker…</p>
 <div class="controls">
 <button id="run" disabled>Run</button>
+<span class="examples-label">Made-up examples:</span>
 <button id="ex1" disabled>Clean pass</button>
 <button id="ex2" disabled>False number</button>
 <button id="ex3" disabled>Leaked private term</button>
@@ -106,6 +108,10 @@ async function boot() {
     }
     for (const el of [document.getElementById("ex1"), document.getElementById("ex2"), document.getElementById("ex3")]) {
       el.disabled = false;
+    }
+    if (input.value === "") {
+      fillPretty("ex-false-number");
+      runCheck();
     }
   } catch (err) {
     progress.textContent = "Loading failed; nothing was sent.";
