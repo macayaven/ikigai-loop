@@ -1,0 +1,143 @@
+{
+  "$defs": {
+    "Commitment": {
+      "additionalProperties": false,
+      "description": "One user-written commitment an action may be scheduled from.",
+      "properties": {
+        "dimension": {
+          "enum": [
+            "love",
+            "good_at",
+            "world_needs",
+            "paid_for",
+            "limit",
+            "contrast"
+          ],
+          "title": "Dimension",
+          "type": "string"
+        },
+        "evidence": {
+          "enum": [
+            "tap",
+            "calendar_tag",
+            "github_push",
+            "no_screen"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "build",
+            "write",
+            "read",
+            "apply",
+            "outreach",
+            "walk",
+            "rest",
+            "music",
+            "social",
+            "plan",
+            "checkin"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "profile_id": {
+          "minLength": 1,
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "tag": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tag"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "profile_id",
+        "title",
+        "kind",
+        "dimension",
+        "evidence"
+      ],
+      "title": "Commitment",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A labelled fallback: a commitment and a window, no prose.",
+  "properties": {
+    "commitment": {
+      "$ref": "#/$defs/Commitment"
+    },
+    "kind": {
+      "const": "fallback",
+      "title": "Kind",
+      "type": "string"
+    },
+    "profile_id": {
+      "minLength": 1,
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "proposed_end": {
+      "format": "date-time",
+      "title": "Proposed End",
+      "type": "string"
+    },
+    "proposed_start": {
+      "format": "date-time",
+      "title": "Proposed Start",
+      "type": "string"
+    },
+    "reason_codes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Reason Codes",
+      "type": "array"
+    },
+    "slot": {
+      "format": "date-time",
+      "title": "Slot",
+      "type": "string"
+    },
+    "subject_id": {
+      "minLength": 1,
+      "title": "Subject Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "profile_id",
+    "subject_id",
+    "slot",
+    "commitment",
+    "proposed_start",
+    "proposed_end",
+    "reason_codes"
+  ],
+  "title": "FallbackProposal",
+  "type": "object"
+}

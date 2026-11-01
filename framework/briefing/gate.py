@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
-from framework.briefing.context import GateContext, TimeInterval
+from framework.briefing.context import GateContext, ProfileLimits, TimeInterval
 from framework.briefing.labels import MetricBinding, metric_label_binding
 from framework.briefing.numbers import extract_number_tokens
 from framework.briefing.schemas import Action, Briefing, Claim
@@ -500,14 +500,13 @@ def _l1_slot_and_interval_checks(
 ) -> list[Violation]:
     violations: list[Violation] = []
     if context.check_slot:
-        local = briefing.slot.astimezone(ZoneInfo(context.limits.timezone)).time()
-        if not (context.limits.allowed_start <= local < context.limits.allowed_end):
+        for code in slot_window_codes(briefing.slot, context.limits):
             violations.append(
                 Violation(
-                    "L1_SLOT_OUTSIDE_ALLOWED_HOURS",
+                    code,
                     "L1",
                     "slot",
-                    "slot outside allowed hours",
+                    _SLOT_MESSAGES[code],
                 )
             )
     for action in _iter_actions(briefing):
@@ -1021,3 +1020,46 @@ def direction_sides(
 
 ADVICE_WORDS: tuple[str, ...] = tuple(sorted(_ADVICE_SINGLES)) + tuple(_ADVICE_PHRASES)
 """Ticket 17a: the gate's pinned advice list, for callers replicating it."""
+
+ADVICE_PHRASES = _ADVICE_PHRASES
+UP_WORDS = _UP_WORDS
+DOWN_WORDS = _DOWN_WORDS
+PERIOD_WORDS = _PERIOD_WORDS
+
+_SLOT_MESSAGES = {
+    "L1_SLOT_OUTSIDE_ALLOWED_HOURS": "slot outside allowed hours",
+}
+
+
+def slot_window_codes(slot: datetime, limits: ProfileLimits) -> tuple[str, ...]:
+    """Slot verdicts against the allowed window; one truth for gate and core."""
+    local = slot.astimezone(ZoneInfo(limits.timezone)).time()
+    if not (limits.allowed_start <= local < limits.allowed_end):
+        return ("L1_SLOT_OUTSIDE_ALLOWED_HOURS",)
+    return ()
+
+
+_OUTBOUND_ALLOWLIST = frozenset(
+    {"L1_SECRET", "L1_PII", "L1_PRIVATE_TERM", "L1_RAW_VALUE"}
+)
+
+
+def scan_outbound_text(
+    text: str,
+    *,
+    private_terms: tuple[str, ...] = (),
+    private_terms_available: bool,
+    forbidden_raw_literals: tuple[str, ...] = (),
+) -> tuple[str, ...]:
+    """Pre-send verdicts for one outbound string; allowlisted codes only."""
+    if not private_terms_available:
+        return ("L1_PRIVATE_TERMS_UNAVAILABLE",)
+    return tuple(
+        code
+        for code in text_check_codes(
+            text,
+            private_terms=private_terms,
+            forbidden_raw_literals=forbidden_raw_literals,
+        )
+        if code in _OUTBOUND_ALLOWLIST
+    )

@@ -1,7 +1,12 @@
 """Ticket 9: Glimmer fact layer (pure core plus CLI-edge client)."""
 
 from framework.briefing.context import MetricSnapshot
-from framework.glimmer.checks import check_fact, highest_tier, resolve_aliases
+from framework.glimmer.checks import (
+    check_fact,
+    highest_tier,
+    private_free_text_values,
+    resolve_aliases,
+)
 from framework.glimmer.code_facts import (
     COUNT_FLOOR,
     HOURS_FLOOR,
@@ -92,6 +97,7 @@ __all__ = [
     "highest_tier",
     "is_duplicate_of_code",
     "load_llm_config",
+    "private_free_text_values",
     "resolve_aliases",
     "sanitise_model_id",
     "select_winners",

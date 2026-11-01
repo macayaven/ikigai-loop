@@ -7,11 +7,30 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from framework.cycle import run_cycle
+from framework.briefing import load_commitments
+from framework.briefing.context import ProfileLimits, load_private_terms
+from framework.cycle import (
+    UnknownCycleError,
+    forbidden_literals_for,
+    run_cycle,
+    run_proposals,
+)
 from framework.glimmer.facts import FactResult, LLMClient, LLMResponse
 from framework.glimmer.llm import OpenAICompatibleClient, load_llm_config
+from framework.proposal.client import (
+    ContributorModelRefused,
+    MetaClient,
+    MetaConfigError,
+    load_meta_config,
+    refuse_contributor_model,
+)
+from framework.proposal.core import ModelParams, ProposalResult
+from framework.proposal.defaults import DEFAULT_EFFORT, DEFAULT_MODEL
+from framework.proposal.muse_client import MuseExecClient, resolve_muse_bin
 from framework.store.fact_store import FactStore
+from framework.store.proposal_store import ProposalStore
 from framework.store.store import EventStore
 
 
@@ -49,6 +68,193 @@ def _format_line(result: FactResult, run: int) -> str:
     )
 
 
+def _format_proposal_line(result: ProposalResult) -> str:
+    codes = sorted(
+        set(result.reason_codes)
+        | {code for attempt in result.attempts for code, _ in attempt.codes}
+    )
+    seconds = sum(attempt.latency_ms for attempt in result.attempts) / 1000
+    tokens = sum(attempt.completion_tokens or 0 for attempt in result.attempts)
+    stale = "-" if result.cycle_id == "no-cycle" else str(int(result.cycle_age_s))
+    return (
+        f"profile={result.profile_id} kind={result.kind}"
+        f" attempts={len(result.attempts)} codes={','.join(codes) or '-'}"
+        f" seconds={seconds:.1f}s tokens={tokens} stale={stale}"
+    )
+
+
+def _parse_proposal_instant(raw: str) -> datetime | None:
+    try:
+        instant = datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+    if instant.tzinfo is None or instant.tzinfo.utcoffset(instant) is None:
+        return None
+    return instant
+
+
+def parse_proposal_limits(
+    *, timezone: str, allowed_start: str, allowed_end: str
+) -> ProfileLimits:
+    """Parse the clock flags; on any failure raise ValueError naming the flag."""
+    try:
+        start = datetime.strptime(allowed_start, "%H:%M").time()
+    except ValueError:
+        raise ValueError("error: --allowed-start must be HH:MM") from None
+    try:
+        end = datetime.strptime(allowed_end, "%H:%M").time()
+    except ValueError:
+        raise ValueError("error: --allowed-end must be HH:MM") from None
+    if not start < end:
+        raise ValueError(
+            "error: --allowed-start must be before --allowed-end"
+        ) from None
+    try:
+        ZoneInfo(timezone)
+    except ZoneInfoNotFoundError:
+        raise ValueError("error: --timezone must be a valid IANA timezone") from None
+    try:
+        return ProfileLimits(
+            timezone=timezone,
+            allowed_start=start,
+            allowed_end=end,
+            max_actions=3,
+        )
+    except ValueError:
+        raise ValueError("error: --timezone must be a valid IANA timezone") from None
+
+
+def _run_propose(args: argparse.Namespace) -> int:
+    try:
+        refuse_contributor_model(args.model)
+        refuse_contributor_model(args.retry_model)
+    except ContributorModelRefused as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    required = ["HIDDEN_CRITERIA_DIR", "IKIGAI_COMMITMENTS_FILE"]
+    if args.transport == "api":
+        required = ["META_API_KEY", *required]
+    for variable in required:
+        if not os.environ.get(variable, ""):
+            print(f"error: {variable}", file=sys.stderr)
+            return 2
+    as_of = _parse_proposal_instant(args.as_of)
+    if as_of is None:
+        print("error: --as-of must be an ISO-8601 datetime", file=sys.stderr)
+        return 2
+    slot = _parse_proposal_instant(args.slot)
+    if slot is None:
+        print("error: --slot must be an ISO-8601 datetime", file=sys.stderr)
+        return 2
+    subject_id = args.subject_id or os.environ.get("IKIGAI_SUBJECT_ID", "")
+    if not subject_id:
+        print("error: IKIGAI_SUBJECT_ID", file=sys.stderr)
+        return 2
+    try:
+        limits = parse_proposal_limits(
+            timezone=args.timezone,
+            allowed_start=args.allowed_start,
+            allowed_end=args.allowed_end,
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+    api_key = ""
+    muse_bin = ""
+    if args.transport == "api":
+        try:
+            api_key = load_meta_config().api_key
+        except MetaConfigError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+    else:
+        muse_bin = resolve_muse_bin()
+        if not (os.path.isfile(muse_bin) and os.access(muse_bin, os.X_OK)):
+            print("error: MUSE_BIN", file=sys.stderr)
+            return 2
+    try:
+        terms = load_private_terms()
+        db_path = Path(args.db) if args.db else None
+        store = EventStore(db_path=db_path)
+        try:
+            fact_store = FactStore(db_path=store.db_path)
+            try:
+                proposal_store = ProposalStore(db_path=store.db_path)
+                try:
+                    if args.cycle_id is not None and not fact_store.runs(args.cycle_id):
+                        print("error: unknown --cycle-id", file=sys.stderr)
+                        return 2
+                    literals = forbidden_literals_for(store, subject_id, as_of)
+                    loaded = load_commitments(
+                        os.environ,
+                        private_terms=terms.terms,
+                        forbidden_raw_literals=literals,
+                    )
+                    if not loaded.available:
+                        print(
+                            f"error: commitments unavailable: {loaded.reason}",
+                            file=sys.stderr,
+                        )
+                        return 2
+                    eligible_by_profile = {
+                        profile_id: tuple(
+                            commitment
+                            for commitment in loaded.commitments
+                            if commitment.profile_id == profile_id
+                        )
+                        for profile_id in args.profile
+                    }
+                    if args.transport == "api":
+                        client = MetaClient(
+                            api_key=api_key,
+                            private_terms=terms.terms,
+                            private_terms_available=terms.available,
+                        )
+                    else:
+                        client = MuseExecClient(
+                            private_terms=terms.terms,
+                            private_terms_available=terms.available,
+                            muse_bin=muse_bin,
+                        )
+                    try:
+                        results = run_proposals(
+                            as_of=as_of,
+                            slot=slot,
+                            subject_id=subject_id,
+                            profiles=tuple(args.profile),
+                            store=store,
+                            fact_store=fact_store,
+                            proposal_store=proposal_store,
+                            client=client,
+                            private_terms=terms,
+                            eligible_by_profile=eligible_by_profile,
+                            limits=limits,
+                            models=ModelParams(
+                                first_model=args.model,
+                                first_effort=args.effort,
+                                retry_model=args.retry_model,
+                                retry_effort=args.retry_effort,
+                            ),
+                            stale_after_s=float(args.stale_cycle_hours) * 3600.0,
+                            cycle_id=args.cycle_id,
+                        )
+                    except UnknownCycleError:
+                        print("error: unknown --cycle-id", file=sys.stderr)
+                        return 2
+                    for result in results:
+                        print(_format_proposal_line(result))
+                finally:
+                    proposal_store.close()
+            finally:
+                fact_store.close()
+        finally:
+            store.close()
+    except Exception as exc:  # noqa: BLE001 -- the CLI maps every failure to one line
+        print(f"error: {type(exc).__name__}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m framework.cycle")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -58,7 +264,41 @@ def main(argv: list[str] | None = None) -> int:
     facts.add_argument("--db", default=None)
     facts.add_argument("--no-personal-pass", action="store_true")
     facts.add_argument("--no-feed-pass", action="store_true")
+    propose = sub.add_parser("propose")
+    propose.add_argument("--as-of", required=True)
+    propose.add_argument("--slot", required=True)
+    propose.add_argument("--subject-id", default=None)
+    propose.add_argument("--db", default=None)
+    propose.add_argument("--cycle-id", default=None)
+    propose.add_argument("--profile", action="append", default=None)
+    propose.add_argument("--model", default=DEFAULT_MODEL)
+    propose.add_argument("--effort", default=DEFAULT_EFFORT)
+    propose.add_argument("--retry-model", default=DEFAULT_MODEL)
+    propose.add_argument("--retry-effort", default=DEFAULT_EFFORT)
+    propose.add_argument("--transport", choices=("muse", "api"), default="muse")
+    propose.add_argument("--timezone", default="Europe/Madrid")
+    propose.add_argument("--allowed-start", default="13:00")
+    propose.add_argument("--allowed-end", default="23:30")
+    propose.add_argument("--stale-cycle-hours", default="12.0")
     args = parser.parse_args(argv)
+    if args.command == "propose":
+        if args.profile is None:
+            args.profile = ["builder", "disconnect"]
+        if args.effort not in ("minimal", "low", "medium", "high"):
+            print("error: --effort must be minimal|low|medium|high", file=sys.stderr)
+            return 2
+        if args.retry_effort not in ("minimal", "low", "medium", "high"):
+            print(
+                "error: --retry-effort must be minimal|low|medium|high",
+                file=sys.stderr,
+            )
+            return 2
+        try:
+            args.stale_cycle_hours = float(args.stale_cycle_hours)
+        except (TypeError, ValueError):
+            print("error: --stale-cycle-hours must be a number", file=sys.stderr)
+            return 2
+        return _run_propose(args)
     try:
         as_of = datetime.fromisoformat(args.as_of)
     except ValueError:

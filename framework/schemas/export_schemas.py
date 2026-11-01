@@ -35,6 +35,7 @@ from framework.learner.schemas import (
     Ruling,
     ScoreEntry,
 )
+from framework.proposal.schemas import ClaimDraft, FallbackProposal, ProposalDraft
 from framework.schemas.core import Criterion, Fact, FactWindow, IkigaiWeights, Profile
 from framework.schemas.events import (
     AppApproveData,
@@ -125,6 +126,9 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     ScoreEntry,
     PickLogEntry,
     PolicyState,
+    ProposalDraft,
+    ClaimDraft,
+    FallbackProposal,
 )
 
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"

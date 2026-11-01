@@ -29,7 +29,7 @@ This is the design. Status below says which parts exist today.
 1. Two goals compete for the same hour: Builder and Disconnect (family time, screens off).
 2. Collectors store my own signals on my own machine.
 3. Muse Glimmer, an open-weight model on my own hardware, turns them into facts that cite their events.
-4. Muse Wonder, through Meta's API, sees only those facts and my commitments, and proposes one commitment per goal for the next free slot.
+4. Muse Wonder, through Muse Code headless on my subscription, sees only those facts and my commitments, and proposes one commitment per goal for the next free slot.
 5. A deterministic gate with no model and no network rejects whatever it can't reconcile.
 6. A Telegram card offers both proposals and a tap rules between them.
 7. A voice note corrects the system and the next card changes. Its audio goes to Meta's API for transcription by Muse Voice Transcribe; raw screen, calendar and GitHub rows stay on my machine.
@@ -48,16 +48,15 @@ Built and merged:
 - Learner core (`framework/learner/`): Beta posteriors per time bucket over which of my two goals I take, commitment ranking, scoring each prediction before the ruling it predicts, byte-identical replay, and a known-preference test on simulated rulings; 146 tests in `tests/test_learner_*.py`, passing. Nothing calls it yet, and no real ruling has gone through it.
 - Pre-registration ([docs/PREREG.md](docs/PREREG.md)): the Nov 2-4 live run's predictions and rules, committed before the first card, with the R3 steering pairs as data (`evals/r3_pairs.json`). Nov 1 deviations, made before any card, are logged at its end.
 - Telegram card (`framework/telegram/`): one photo message with a chart and buttons, taps stored as `app.tap`, long polling with no public endpoint; 160 tests in `tests/test_telegram_*.py`, passing. Nothing schedules it yet, and no real card or ruling has gone through it.
+- The Wonder proposal step (`framework/proposal/`, `framework/store/proposal_store.py`): one guarded Muse Wonder call per goal for the next free hour through Muse Code headless on my subscription, with the Model API transport still in the code for anyone with a key; every draft is gated with one retry on the violations, and anything else becomes a labelled fallback or a noop; attempts and results persist append-only for the next run and the first-draft failure report; 237 tests in `tests/test_proposal_*.py`, passing. Nothing schedules it yet.
 
 Not built yet:
-
-- The Wonder proposal step.
 - The orchestrator.
 - Voice correction.
 - The proof harness.
 - The replay viewer.
 
-Muse Glimmer has generated facts through this code in a seeded run on synthetic data. No model has generated a card yet. The only card delivered so far is a sample with made-up values, sent to my phone to test the transport, and I claim no results.
+Muse Glimmer has generated facts through this code in a seeded run on synthetic data. Muse Wonder has written proposals through this code on synthetic data, on Muse Code headless on my subscription, with the numbers in [docs/sessions/011-wonder-proposal.md](docs/sessions/011-wonder-proposal.md). No model has generated a card yet. The only card delivered so far is a sample with made-up values, sent to my phone to test the transport, and I claim no results.
 
 ## No medical advice
 

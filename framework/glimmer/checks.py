@@ -234,6 +234,11 @@ def _leak_values(winners: Sequence[Event]) -> list[str]:
     return [v for v in values if len(_collapse(v)) >= 3]
 
 
+def private_free_text_values(events: Sequence[Event]) -> tuple[str, ...]:
+    """Free-text values the outbound scan must never carry (Ticket 11)."""
+    return tuple(_leak_values(events))
+
+
 def check_fact(
     statement: str,
     evidence_ids: Sequence[str],
