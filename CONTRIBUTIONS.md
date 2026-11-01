@@ -150,6 +150,17 @@ real-data run is still pending. Evidence in
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high), in an interactive session I ran, which also wrote a first draft of four files before I stopped it. Implementation and fixes: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+## Ticket 15a — learner core (2026-11-01)
+
+Built on branch `t15-learner` per [docs/plans/015-learner.md](docs/plans/015-learner.md):
+`framework/learner/`, a pure package that turns card rulings into per-slot
+preference counts, scores four predictors before each posterior-moving
+ruling, ranks commitments for the proposal prompt, and runs the
+known-preference test on simulated rulings. Evidence in
+[docs/sessions/015-learner.md](docs/sessions/015-learner.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

@@ -25,6 +25,16 @@ from framework.glimmer.schemas import (
     FeedTopicBatch,
     FeedTopicDraft,
 )
+from framework.learner.schemas import (
+    BucketState,
+    CommitmentState,
+    PickLogEntry,
+    PolicyState,
+    PredictorScore,
+    Proposal,
+    Ruling,
+    ScoreEntry,
+)
 from framework.schemas.core import Criterion, Fact, FactWindow, IkigaiWeights, Profile
 from framework.schemas.events import (
     AppApproveData,
@@ -107,6 +117,14 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     FactDraftBatch,
     FeedTopicDraft,
     FeedTopicBatch,
+    Proposal,
+    Ruling,
+    BucketState,
+    CommitmentState,
+    PredictorScore,
+    ScoreEntry,
+    PickLogEntry,
+    PolicyState,
 )
 
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"

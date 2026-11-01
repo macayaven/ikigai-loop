@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "description": "One labelled offer as shown on a card.",
+  "properties": {
+    "commitment_id": {
+      "minLength": 1,
+      "title": "Commitment Id",
+      "type": "string"
+    },
+    "label": {
+      "enum": [
+        "A",
+        "B"
+      ],
+      "title": "Label",
+      "type": "string"
+    },
+    "policy_alternative": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Policy Alternative"
+    },
+    "policy_pick": {
+      "minLength": 1,
+      "title": "Policy Pick",
+      "type": "string"
+    },
+    "profile_id": {
+      "enum": [
+        "builder",
+        "disconnect"
+      ],
+      "title": "Profile Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "label",
+    "profile_id",
+    "commitment_id",
+    "policy_pick"
+  ],
+  "title": "Proposal",
+  "type": "object"
+}

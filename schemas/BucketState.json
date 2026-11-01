@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "description": "Counts for one time bucket; alpha and beta start at the prior.",
+  "properties": {
+    "alpha": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Alpha",
+      "type": "integer"
+    },
+    "beta": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Beta",
+      "type": "integer"
+    },
+    "neither": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Neither",
+      "type": "integer"
+    },
+    "single_taken": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Single Taken",
+      "type": "integer"
+    },
+    "why": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Why",
+      "type": "integer"
+    },
+    "wrong": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Wrong",
+      "type": "integer"
+    }
+  },
+  "title": "BucketState",
+  "type": "object"
+}
