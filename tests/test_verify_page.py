@@ -17,7 +17,8 @@ BUNDLE = ROOT / "docs" / "verify" / "bundle.json"
 EXAMPLES = ROOT / "docs" / "verify" / "examples"
 
 PINNED_HEADLINE = (
-    "Paste your agent's output. See which numbers and sources don't reconcile."
+    "Give it your agent's claims and your own records as JSON. "
+    "See which numbers and sources don't reconcile."
 )
 PINNED_PYODIDE = "0.27.7"
 PINNED_JSDELIVR = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"

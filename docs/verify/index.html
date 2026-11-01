@@ -33,7 +33,8 @@ button:disabled { opacity: 0.45; }
 </head>
 <body>
 <h1>Verify claims in your agent's output</h1>
-<p>Paste your agent's output. See which numbers and sources don't reconcile.</p>
+<p>Give it your agent's claims and your own records as JSON. See which numbers and sources don't reconcile.</p>
+<p>Start here: press False number and read the report. Then replace that JSON with your own.</p>
 <p class="note">This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.</p>
 <p class="note">Everything runs on your machine. I load the checker once, then nothing is sent anywhere.</p>
 <p class="note">The input holds your agent's claims plus your own records: facts and metrics come from your system of record, never from the agent's output. <a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">Every field</a> is in the worked example, and <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/ADAPTER.md">the adapter recipe</a> maps another shape to it.</p>
