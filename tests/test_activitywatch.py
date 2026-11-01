@@ -10,6 +10,7 @@ import pytest
 
 from framework.collectors.activitywatch import (
     ActivityWatchCollector,
+    _classify,
     push_events,
 )
 from framework.collectors.common import CollectorError, HttpResponse
@@ -462,6 +463,115 @@ def test_push_events_non_2xx_raises_without_url_or_token() -> None:
         )
     assert INGEST_URL not in str(excinfo.value)
     assert INGEST_TOKEN not in str(excinfo.value)
+
+
+APP_CATEGORY_CASES: list[tuple[str, str]] = [
+    # Ticket 7b: every added needle, plus the ordering pins.
+    ("ChatGPT", "ai"),
+    ("com.openai.chat", "ai"),
+    ("Claude", "ai"),
+    ("com.anthropic.claude", "ai"),
+    ("Perplexity", "ai"),
+    ("Gemini", "ai"),
+    ("Copilot", "ai"),
+    # A code editor whose name holds an ai needle still wins (ai is after code).
+    ("Copilot.vim", "code"),
+    ("Telegram", "comms"),
+    ("ph.telegra.telegraph", "comms"),
+    ("com.apple.systempreferences", "system"),
+    ("Finder", "system"),
+    ("System Settings", "system"),
+    ("UserNotificationCenter", "system"),
+    ("Shortcuts", "system"),
+    ("Screen Sharing", "system"),
+    ("Authenticator", "system"),
+    ("1Password", "system"),
+    ("SuperWhisper", "system"),
+    # System is last, so these keep their earlier categories.
+    ("com.apple.mobilesafari", "browse"),
+    ("com.apple.mobilesms", "comms"),
+    ("com.apple.music", "media"),
+]
+
+
+@pytest.mark.parametrize(("app", "category"), APP_CATEGORY_CASES)
+def test_app_category_table(app: str, category: str) -> None:
+    assert _classify(app) == category
+
+
+def test_telegra_matches_nothing_else_in_table_cases() -> None:
+    hits = [app for app, _ in APP_CATEGORY_CASES if "telegra" in app.lower()]
+    assert hits == ["Telegram", "ph.telegra.telegraph"]
+
+
+def _fresh_gate_case(
+    text: str, refs: list[tuple[str, float]]
+) -> tuple[dict[str, Any], Any]:
+    import copy
+
+    from evals.briefing_cases import base_case
+    from framework.briefing.context import MetricSnapshot
+
+    case = base_case("builder")
+    briefing = copy.deepcopy(case.briefing)
+    claim = next(s for s in briefing["sections"] if s["type"] == "working")["claims"][0]
+    claim["text"] = text
+    claim["metric_refs"] = [
+        {"metric_id": metric_id, "value": value} for metric_id, value in refs
+    ]
+    values = dict(case.context.metrics.values)
+    for metric_id, value in refs:
+        values[metric_id] = value
+    context = case.context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+    return briefing, context
+
+
+@pytest.mark.parametrize(
+    ("metric_id", "period", "labels"),
+    [
+        ("screen_hours.ai", None, frozenset({"ai"})),
+        ("screen_hours.system", None, frozenset({"system"})),
+        ("period.last.screen_hours.ai", "last", frozenset({"ai"})),
+        ("period.last.screen_hours.system", "last", frozenset({"system"})),
+    ],
+)
+def test_new_categories_bind_labels(
+    metric_id: str, period: str | None, labels: frozenset[str]
+) -> None:
+    from framework.briefing.labels import metric_label_binding
+
+    binding = metric_label_binding(metric_id)
+    assert binding is not None, metric_id
+    assert binding.labels == labels, metric_id
+    assert binding.period == period, metric_id
+    assert binding.family == metric_id.removeprefix("period.last."), metric_id
+    assert binding.requires_cancel is False, metric_id
+
+
+def test_ai_sentence_passes_gate() -> None:
+    from framework.briefing.gate import evaluate_briefing
+
+    briefing, context = _fresh_gate_case(
+        "AI screen hours rose from 1 in prior to 2 in last.",
+        [
+            ("period.prior.screen_hours.ai", 1.0),
+            ("period.last.screen_hours.ai", 2.0),
+        ],
+    )
+    assert evaluate_briefing(briefing, context).passed is True
+
+
+def test_system_sentence_passes_gate() -> None:
+    from framework.briefing.gate import evaluate_briefing
+
+    briefing, context = _fresh_gate_case(
+        "System screen hours fell from 2 in prior to 1 in last.",
+        [
+            ("period.prior.screen_hours.system", 2.0),
+            ("period.last.screen_hours.system", 1.0),
+        ],
+    )
+    assert evaluate_briefing(briefing, context).passed is True
 
 
 def test_no_uuid_shaped_string_in_source_ids() -> None:

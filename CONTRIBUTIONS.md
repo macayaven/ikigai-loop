@@ -169,6 +169,20 @@ The text of docs/PREREG.md was drafted by Claude Code and adopted by me. The rul
 
 Prompts and review by Claude Code. Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+## Ticket 7b — screen categories (2026-11-01)
+
+Built on branch `t7b-screen-categories`: the ActivityWatch `CATEGORY_TABLE`
+gains an `ai` category after `code` and a `system` category last, and the
+comms needle `telegram` becomes `telegra` so the iOS bundle id matches too;
+tests pin every added needle, the code/system ordering wins, and the gate
+pass for both new categories. Also records the Ticket 9 real-store run line
+in [docs/sessions/009-glimmer-facts.md](docs/sessions/009-glimmer-facts.md).
+It also bumps the collector version to `activitywatch@0.2.0` for the new
+category table. The push path already prints `inserted=N noop=M` (Ticket 8),
+with a CLI test pinning it, so no log-label change was needed.
+
+Prompts and review by Claude Code. Implementation by muse-spark-1.3, in Muse Code, in a headless session Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

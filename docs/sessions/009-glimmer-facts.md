@@ -293,5 +293,8 @@ fixes. The second round changed how the opener is built and the latency on a
 bad envelope. The final client was checked against the same endpoint with a
 model name that does not exist: it got a 404 and loaded nothing. The live run also predates the move onto Ticket 10. The replay ran on the moved tree, with the wider parser and the repo-name mask, and its result did not change.
 
-(b) Real-data run, on a copy of the real database: **pending**. It runs
-after this commit. Only its printed line goes here, with `cycle=<redacted>`.
+(b) Real-data run, on a copy of the real database:
+
+`cycle=<redacted> run=1 kept=9 dropped=0 noop=- personal=4:-:464.2s:stop feed=5:-:186.4s:stop codes=-`
+
+Run on Nov 1 on a copy of my real store of 1,000 rows, on the Spark, through llama-swap, in about 11 minutes. Claude Code read the statements in review and checked them against the rows. Of the 4 personal statements, 1 was a real comparison across periods, and its numbers match the rows. The other 3 were co-occurrence counts nobody would act on, and all 3 undercount: 4 where the period has 11 such rows, 4 where it has 9, and 3 where it has 8. Each number is how many rows the model cited, and `check_fact` accepted that as backing, so "kept=9 dropped=0" hides a hole in this ticket's checks. The fix goes in Ticket 9b. The 5 feed labels fit the items they cite, one of them loosely, and no statement tripped the private-term check. The largest category in that run was 'other', which is why Ticket 7b maps more apps.
