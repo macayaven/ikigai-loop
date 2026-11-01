@@ -229,6 +229,23 @@ to 279 and 57. Evidence in
 [docs/sessions/009d-pr-count.md](docs/sessions/009d-pr-count.md).
 
 Prompt and review by Claude Code. Implementation by muse-spark-1.3, in Muse Code, in a headless session Claude Code started.
+## Ticket 17a — verify_claims (2026-11-01)
+
+Built on branch `t17a-verify-claims` per [docs/plans/017a-verify-claims.md](docs/plans/017a-verify-claims.md):
+`framework/verify/`, a public `verify_claims` API and `verify-claims` CLI over
+plain JSON that reuse the gate's checks, with a parity test against the gate's
+own cases; a general `repair_loop`; a static page at `docs/verify/` that runs
+the same Python in the visitor's browser through Pyodide; a worked example in
+`examples/verify/`; an adapter recipe in `docs/ADAPTER.md`, whose `adapter.py`
+and `test_adapter.py` are the output of one live Muse Code run with only
+`ruff format` after it; a `Check your own agent` section in the README; and
+packaging with pydantic as the only runtime dependency. Claude Code ran the
+browser passes and the live recipe outside the implementation sessions, on
+synthetic data.
+
+Evidence in [docs/sessions/017a-verify-claims.md](docs/sessions/017a-verify-claims.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
 ## AI assistance outside the Muse family
 

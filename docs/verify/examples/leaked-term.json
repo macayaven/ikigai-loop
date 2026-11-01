@@ -1,0 +1,27 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "metric_refs": [
+        {
+          "metric_id": "deploys.nov",
+          "value": 5
+        }
+      ],
+      "text": "Deploys reached 5 in November and the Harborlight Ledger note is attached"
+    }
+  ],
+  "deny_terms": [
+    "harborlight ledger"
+  ],
+  "facts": {},
+  "labels": {
+    "deploys.nov": [
+      "deploys",
+      "november"
+    ]
+  },
+  "metrics": {
+    "deploys.nov": 5
+  }
+}

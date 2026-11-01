@@ -1,0 +1,48 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "metric_refs": [
+        {
+          "metric_id": "deploys.oct",
+          "value": 5
+        },
+        {
+          "metric_id": "deploys.nov",
+          "value": 9
+        }
+      ],
+      "text": "Deploys rose from 5 in October to 9 in November"
+    },
+    {
+      "fact_ids": [
+        "t1"
+      ],
+      "id": "c2",
+      "text": "The support queue note is filed under the ticket log"
+    }
+  ],
+  "facts": {
+    "t1": "Support queue note filed on Monday"
+  },
+  "labels": {
+    "deploys.nov": [
+      "deploys",
+      "november"
+    ],
+    "deploys.oct": [
+      "deploys",
+      "october"
+    ]
+  },
+  "metrics": {
+    "deploys.nov": 9,
+    "deploys.oct": 5
+  },
+  "order": [
+    [
+      "deploys.oct",
+      "deploys.nov"
+    ]
+  ]
+}

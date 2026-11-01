@@ -1,0 +1,25 @@
+{
+  "report": {
+    "statements": [
+      {
+        "figures": [
+          {
+            "field": "november_deploys",
+            "figure": 12
+          }
+        ],
+        "note_refs": [],
+        "sentence": "November deploys hit 12 with the queue steady",
+        "sid": "s1"
+      },
+      {
+        "figures": [],
+        "note_refs": [
+          "n1"
+        ],
+        "sentence": "The support queue note is filed",
+        "sid": "s2"
+      }
+    ]
+  }
+}

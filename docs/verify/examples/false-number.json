@@ -1,0 +1,24 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "metric_refs": [
+        {
+          "metric_id": "deploys.nov",
+          "value": 9
+        }
+      ],
+      "text": "Deploys reached 9 in November"
+    }
+  ],
+  "facts": {},
+  "labels": {
+    "deploys.nov": [
+      "deploys",
+      "november"
+    ]
+  },
+  "metrics": {
+    "deploys.nov": 5
+  }
+}
