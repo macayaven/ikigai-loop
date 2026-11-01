@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from framework.briefing.context import (
     GateContext,
@@ -14,7 +14,7 @@ from framework.briefing.schemas import Briefing, Commitment
 from framework.glimmer.checks import private_free_text_values
 from framework.glimmer.facts import ALLOWED_TYPES, FactResult, LLMClient, extract_facts
 from framework.glimmer.labels import INTERNAL_ONLY_LABELS, apply_labels
-from framework.glimmer.metrics import WINDOW, fixed_offset
+from framework.glimmer.metrics import fixed_offset, window_bounds
 from framework.proposal.core import ModelParams, ProposalResult, WonderClient, propose
 from framework.proposal.hour import (
     allowed_windows,
@@ -29,6 +29,15 @@ from framework.store.proposal_store import ProposalStore
 from framework.store.store import EventStore
 
 LABEL_TYPES = frozenset({"calendar.label"})
+CALENDAR_TYPES = frozenset(
+    {
+        "calendar.event.created",
+        "calendar.event.updated",
+        "calendar.event.cancelled",
+    }
+)
+_SENTINEL_START = datetime.min.replace(tzinfo=UTC)
+_SENTINEL_END = datetime.max.replace(tzinfo=UTC)
 
 
 def run_cycle(
@@ -43,16 +52,21 @@ def run_cycle(
 ) -> tuple[FactResult, int]:
     """Load the window, extract facts, record the cycle, return ``(result, run)``."""
     as_of = fixed_offset(as_of)
+    window_start, _ = window_bounds(as_of)
     label_rows = [
         row
         for row in store.events_between(
-            subject_id, as_of - WINDOW, as_of, types=LABEL_TYPES
+            subject_id, _SENTINEL_START, _SENTINEL_END, types=LABEL_TYPES
         )
         if row.collected_at <= as_of
     ]
-    events = store.events_between(
-        subject_id, as_of - WINDOW, as_of, types=ALLOWED_TYPES
+    calendar_rows = store.events_between(
+        subject_id, _SENTINEL_START, _SENTINEL_END, types=CALENDAR_TYPES
     )
+    other_rows = store.events_between(
+        subject_id, window_start, as_of, types=ALLOWED_TYPES - CALENDAR_TYPES
+    )
+    events = [*calendar_rows, *other_rows]
     result = extract_facts(
         as_of,
         subject_id,

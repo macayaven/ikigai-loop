@@ -10,6 +10,7 @@ import pytest
 
 from framework.collectors import GitHubEventsCollector
 from framework.collectors.common import CollectorError, HttpResponse
+from framework.glimmer.metrics import build_metric_snapshot
 from framework.schemas import Event
 from framework.store import EventStore, run_collector
 
@@ -226,3 +227,253 @@ def test_github_poll_writes_nothing_on_network_error(
         run_collector(store, collector)
     assert store._conn.execute("SELECT COUNT(*) FROM events").fetchone()[0] == 0
     assert store.get_cursor("github") is None
+
+
+PAGE1_URL = f"https://api.github.com/users/{GITHUB_USER}/events?per_page=100"
+PAGE2_URL = PAGE1_URL + "&page=2"
+PAGE3_URL = PAGE1_URL + "&page=3"
+
+
+def link_next(url: str) -> str:
+    return f'<{url}>; rel="next"'
+
+
+def json_response(
+    entries: Any,
+    *,
+    etag: str | None = None,
+    link: str | None = None,
+    status: int = 200,
+) -> HttpResponse:
+    headers: dict[str, str] = {}
+    if etag is not None:
+        headers["etag"] = etag
+    if link is not None:
+        headers["link"] = link
+    body = entries if isinstance(entries, bytes) else json.dumps(entries).encode()
+    return HttpResponse(status=status, headers=headers, body=body)
+
+
+def make_paged_http_get(
+    routes: dict[str, HttpResponse], seen: dict[str, Any] | None = None
+) -> Any:
+    def fake(url: str, headers: dict[str, str]) -> HttpResponse:
+        if seen is not None:
+            seen.setdefault("urls", []).append(url)
+            seen.setdefault("headers", []).append(dict(headers))
+        assert url in routes, f"unexpected request, nothing is sent there: {url}"
+        return routes[url]
+
+    return fake
+
+
+def poll_paged(
+    monkeypatch: pytest.MonkeyPatch,
+    routes: dict[str, HttpResponse],
+    seen: dict[str, Any],
+    cursor: Any = None,
+) -> tuple[list[Event], Any]:
+    monkeypatch.setenv("GITHUB_USER", GITHUB_USER)
+    monkeypatch.setenv("GITHUB_TOKEN", TOKEN)
+    monkeypatch.delenv("IKIGAI_SUBJECT_ID", raising=False)
+    collector = GitHubEventsCollector(
+        http_get=make_paged_http_get(routes, seen), now_fn=lambda: NOW
+    )
+    return collector.poll(cursor)
+
+
+def test_github_follows_pages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    page1 = [
+        entry("9001", "PushEvent", "synthetic/push-repo", {}),
+        entry("9002", "PushEvent", "synthetic/push-repo", {"size": 1}),
+    ]
+    page2 = [
+        entry("9002", "PushEvent", "synthetic/push-repo", {"size": 1}),
+        entry(
+            "9003",
+            "PullRequestEvent",
+            "synthetic/pr-repo",
+            {"action": "opened", "pull_request": {"merged": False}},
+        ),
+    ]
+    page3 = [
+        entry("9004", "IssuesEvent", "synthetic/issue-repo", {"action": "opened"}),
+    ]
+    routes = {
+        PAGE1_URL: json_response(
+            page1,
+            etag='"page1-etag"',
+            link=f'{link_next(PAGE2_URL)}, <{PAGE3_URL}>; rel="last"',
+        ),
+        PAGE2_URL: json_response(
+            page2, etag='"page2-etag-ignored"', link=link_next(PAGE3_URL)
+        ),
+        PAGE3_URL: json_response(page3, etag='"page3-etag-ignored"'),
+    }
+    seen: dict[str, Any] = {}
+    events, cursor = poll_paged(monkeypatch, routes, seen, {"etag": '"old-etag"'})
+    assert [e.source_id for e in events] == ["9001", "9002", "9003", "9004"]
+    assert seen["urls"] == [PAGE1_URL, PAGE2_URL, PAGE3_URL]
+    assert seen["headers"][0].get("If-None-Match") == '"old-etag"'
+    assert "If-None-Match" not in seen["headers"][1]
+    assert "If-None-Match" not in seen["headers"][2]
+    for request_headers in seen["headers"]:
+        assert request_headers["Authorization"] == f"Bearer {TOKEN}"
+    assert cursor == {"etag": '"page1-etag"'}
+    by_id = {e.source_id: e for e in events}
+    assert by_id["9001"].data.counts == {"commits": 0}  # type: ignore[attr-defined]
+    snapshot = build_metric_snapshot(
+        datetime.fromisoformat("2026-10-30T12:00:00+00:00"), [by_id["9001"]]
+    )
+    assert snapshot.values["github.push.count"] == 1.0
+
+
+def test_github_pager_stops_when_no_link_header(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    routes = {
+        PAGE1_URL: json_response(
+            [entry("9101", "PushEvent", "synthetic/push-repo", {"size": 1})],
+            etag='"e1"',
+        )
+    }
+    seen: dict[str, Any] = {}
+    events, cursor = poll_paged(monkeypatch, routes, seen)
+    assert [e.source_id for e in events] == ["9101"]
+    assert seen["urls"] == [PAGE1_URL]
+    assert cursor == {"etag": '"e1"'}
+
+
+def test_github_pager_stops_when_link_has_no_next(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    routes = {
+        PAGE1_URL: json_response(
+            [entry("9102", "PushEvent", "synthetic/push-repo", {"size": 1})],
+            etag='"e1"',
+            link=f'<{PAGE2_URL}>; rel="last"',
+        )
+    }
+    seen: dict[str, Any] = {}
+    events, cursor = poll_paged(monkeypatch, routes, seen)
+    assert [e.source_id for e in events] == ["9102"]
+    assert seen["urls"] == [PAGE1_URL]
+    assert cursor == {"etag": '"e1"'}
+
+
+def test_github_pager_stops_after_three_pages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    routes = {
+        PAGE1_URL: json_response(
+            [entry("9201", "PushEvent", "synthetic/push-repo", {"size": 1})],
+            etag='"page1-etag"',
+            link=link_next(PAGE2_URL),
+        ),
+        PAGE2_URL: json_response(
+            [entry("9202", "PushEvent", "synthetic/push-repo", {"size": 1})],
+            etag='"page2-etag-ignored"',
+            link=link_next(PAGE3_URL),
+        ),
+        PAGE3_URL: json_response(
+            [entry("9203", "PushEvent", "synthetic/push-repo", {"size": 1})],
+            etag='"page3-etag-ignored"',
+            link=link_next(PAGE3_URL + "&page=4"),
+        ),
+    }
+    seen: dict[str, Any] = {}
+    events, cursor = poll_paged(monkeypatch, routes, seen)
+    assert [e.source_id for e in events] == ["9201", "9202", "9203"]
+    assert seen["urls"] == [PAGE1_URL, PAGE2_URL, PAGE3_URL]
+    assert cursor == {"etag": '"page1-etag"'}
+
+
+@pytest.mark.parametrize(
+    "page2",
+    [
+        json_response(
+            [entry("9302", "PushEvent", "synthetic/x", {"size": 1})], status=500
+        ),
+        HttpResponse(status=200, headers={}, body=b"\xff\xfe{{{not json"),
+        HttpResponse(status=200, headers={}, body=b'{"events": []}'),
+    ],
+    ids=["non-200", "undecodable", "not-a-list"],
+)
+def test_github_pager_later_page_failure_leaves_cursor(
+    monkeypatch: pytest.MonkeyPatch, store: EventStore, page2: HttpResponse
+) -> None:
+    routes = {
+        PAGE1_URL: json_response(
+            [entry("9301", "PushEvent", "synthetic/push-repo", {"size": 1})],
+            etag='"e1"',
+            link=link_next(PAGE2_URL),
+        ),
+        PAGE2_URL: page2,
+    }
+    seen: dict[str, Any] = {}
+    monkeypatch.setenv("GITHUB_USER", GITHUB_USER)
+    monkeypatch.setenv("GITHUB_TOKEN", TOKEN)
+    monkeypatch.delenv("IKIGAI_SUBJECT_ID", raising=False)
+    collector = GitHubEventsCollector(
+        http_get=make_paged_http_get(routes, seen), now_fn=lambda: NOW
+    )
+    with pytest.raises(CollectorError):
+        run_collector(store, collector)
+    assert store.get_cursor("github") is None
+    assert store._conn.execute("SELECT COUNT(*) FROM events").fetchone()[0] == 0
+
+
+def test_github_pager_off_origin_next_raises(
+    monkeypatch: pytest.MonkeyPatch, store: EventStore
+) -> None:
+    evil = "https://evil.example.com/users/synthetic-user/events?page=2"
+    routes = {
+        PAGE1_URL: json_response(
+            [entry("9401", "PushEvent", "synthetic/push-repo", {"size": 1})],
+            etag='"e1"',
+            link=link_next(evil),
+        ),
+    }
+    seen: dict[str, Any] = {}
+    monkeypatch.setenv("GITHUB_USER", GITHUB_USER)
+    monkeypatch.setenv("GITHUB_TOKEN", TOKEN)
+    monkeypatch.delenv("IKIGAI_SUBJECT_ID", raising=False)
+    collector = GitHubEventsCollector(
+        http_get=make_paged_http_get(routes, seen), now_fn=lambda: NOW
+    )
+    with pytest.raises(CollectorError):
+        run_collector(store, collector)
+    assert seen["urls"] == [PAGE1_URL]
+    assert store.get_cursor("github") is None
+    assert store._conn.execute("SELECT COUNT(*) FROM events").fetchone()[0] == 0
+
+
+def test_github_pager_http_next_same_host_is_off_origin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plain = "http://api.github.com/users/synthetic-user/events?per_page=100&page=2"
+    routes = {
+        PAGE1_URL: json_response(
+            [entry("9501", "PushEvent", "synthetic/push-repo", {"size": 1})],
+            etag='"e1"',
+            link=link_next(plain),
+        ),
+    }
+    seen: dict[str, Any] = {}
+    with pytest.raises(CollectorError):
+        poll_paged(monkeypatch, routes, seen)
+    assert seen["urls"] == [PAGE1_URL]
+
+
+def test_github_pager_304_first_page_returns_early(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    routes = {PAGE1_URL: HttpResponse(status=304, headers={}, body=b"")}
+    seen: dict[str, Any] = {}
+    events, cursor = poll_paged(monkeypatch, routes, seen, {"etag": '"old-etag"'})
+    assert events == []
+    assert cursor == {"etag": '"old-etag"'}
+    assert seen["urls"] == [PAGE1_URL]
+    assert seen["headers"][0].get("If-None-Match") == '"old-etag"'

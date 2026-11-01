@@ -430,7 +430,7 @@ def test_blank_topic_takes_repair_retry() -> None:
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [item], llm)
     assert [f.statement for f in result.facts] == [
-        "1 feed items about neural pruning tools"
+        "1 feed item about neural pruning tools"
     ]
     _, feed = result.passes
     assert feed.attempts == 2
@@ -457,7 +457,7 @@ def test_topic_internal_whitespace_collapses_to_one_line() -> None:
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [item], llm)
     assert [f.statement for f in result.facts] == [
-        "1 feed items about neural pruning tools"
+        "1 feed item about neural pruning tools"
     ]
 
 
@@ -654,7 +654,7 @@ def test_topic_citing_one_item_twice_counts_one() -> None:
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [item], llm)
     assert [f.statement for f in result.facts] == [
-        "1 feed items about neural pruning tools"
+        "1 feed item about neural pruning tools"
     ]
 
 

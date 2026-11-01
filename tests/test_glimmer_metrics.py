@@ -232,7 +232,7 @@ def test_same_invite_on_two_calendars_counts_once(tmp_path: Path) -> None:
     )
     snapshot = _winners_snapshot(events)
     assert snapshot.values["calendar.busy_hours"] == 1.0
-    assert snapshot.values.get("tag_hours.iki-a") is None
+    assert snapshot.values["tag_hours.iki-a"] == 1.0
     assert snapshot.values["tag_hours.iki-b"] == 1.0
 
 

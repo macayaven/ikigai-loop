@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 import pytest
 
@@ -243,26 +243,37 @@ def test_statement_text_in_neither_stream(
 def test_run_cycle_asks_for_absolute_72h_window(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from datetime import datetime, timedelta
+    from datetime import UTC, datetime, timedelta
     from zoneinfo import ZoneInfo
 
     from evals.glimmer_cases import RecordingLLM
-    from framework.cycle import run_cycle
+    from framework.cycle import CALENDAR_TYPES, LABEL_TYPES, run_cycle
+    from framework.glimmer.facts import ALLOWED_TYPES
 
-    seen: dict[str, object] = {}
+    class _Call(TypedDict):
+        subject_id: str
+        start: datetime
+        end: datetime
+        types: object
+
+    calls: list[_Call] = []
 
     class _SpyStore:
         def events_between(
             self,
             subject_id: str,
-            start: object,
-            end: object,
+            start: datetime,
+            end: datetime,
             types: object = None,
         ) -> list:
-            seen["subject_id"] = subject_id
-            seen["start"] = start
-            seen["end"] = end
-            seen["types"] = types
+            calls.append(
+                {
+                    "subject_id": subject_id,
+                    "start": start,
+                    "end": end,
+                    "types": types,
+                }
+            )
             return []
 
     as_of = datetime(2026, 10, 26, 12, tzinfo=ZoneInfo("Europe/Madrid"))
@@ -272,17 +283,26 @@ def test_run_cycle_asks_for_absolute_72h_window(
         result, _ = run_cycle(as_of, SUBJECT_ID, spy, store, RecordingLLM())
     finally:
         store.close()
-    from framework.glimmer.facts import ALLOWED_TYPES
 
+    # Derived by hand from D4: three loads in order — label rows and calendar
+    # rows over the sentinel bounds, then every other allowed type over the
+    # 72 absolute-hour window ending at the whole-hour as_of.
     assert result.is_noop is True
-    assert seen["subject_id"] == SUBJECT_ID
-    assert seen["types"] == ALLOWED_TYPES
-    from datetime import UTC
-
-    start = seen["start"]
-    end = seen["end"]
-    span = end.astimezone(UTC) - start.astimezone(UTC)  # type: ignore[attr-defined, operator]
-    assert span == timedelta(hours=72)
+    assert len(calls) == 3
+    assert all(call["subject_id"] == SUBJECT_ID for call in calls)
+    assert calls[0]["types"] == LABEL_TYPES
+    assert calls[1]["types"] == CALENDAR_TYPES
+    assert calls[2]["types"] == ALLOWED_TYPES - CALENDAR_TYPES
+    assert calls[0]["start"] == datetime.min.replace(tzinfo=UTC)
+    assert calls[0]["end"] == datetime.max.replace(tzinfo=UTC)
+    assert calls[1]["start"] == datetime.min.replace(tzinfo=UTC)
+    assert calls[1]["end"] == datetime.max.replace(tzinfo=UTC)
+    # Absolute arithmetic: Oct 25 crosses the Madrid DST fallback, so a wall
+    # subtraction would land an hour off; the window measures absolute time.
+    assert calls[2]["start"].astimezone(UTC) == as_of.astimezone(UTC) - timedelta(
+        hours=72
+    )
+    assert calls[2]["end"] == as_of
 
 
 def test_missing_llm_env_creates_no_database_file(

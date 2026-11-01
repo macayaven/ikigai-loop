@@ -3,6 +3,7 @@
 import json
 import os
 import urllib.error
+import urllib.parse
 from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
@@ -38,6 +39,59 @@ def _parse_time(value: Any) -> datetime | None:
     return parsed
 
 
+_MAX_PAGES = 3
+
+
+def _parse_next_link(link: str | None) -> str | None:
+    """Return the URL of the `rel="next"` link header entry, if any."""
+    if not link:
+        return None
+    for part in link.split(","):
+        segments = part.split(";")
+        if len(segments) < 2:
+            continue
+        target = segments[0].strip()
+        if not (target.startswith("<") and target.endswith(">")):
+            continue
+        for param in segments[1:]:
+            name, _, value = param.partition("=")
+            if name.strip().lower() != "rel":
+                continue
+            tokens = value.strip().strip("\"'").split()
+            if "next" in [token.lower() for token in tokens]:
+                url = target[1:-1].strip()
+                return url or None
+    return None
+
+
+def _is_same_origin(base_url: str, candidate: str) -> bool:
+    """True when the candidate shares the base URL's scheme, host, and port."""
+    try:
+        base = urllib.parse.urlparse(base_url)
+        other = urllib.parse.urlparse(candidate)
+        if other.scheme not in ("http", "https"):
+            return False
+        if not other.hostname:
+            return False
+        return (
+            other.scheme == base.scheme
+            and other.hostname.lower() == (base.hostname or "").lower()
+            and other.port == base.port
+        )
+    except ValueError:
+        return False
+
+
+def _upstream_id(item: Any) -> str | None:
+    entry = as_dict(item)
+    if entry is None:
+        return None
+    raw_id = entry.get("id")
+    if raw_id is None:
+        return None
+    return str(raw_id)
+
+
 class GitHubEventsCollector:
     """Poll GET /users/{user}/events; ETag in the cursor."""
 
@@ -65,38 +119,62 @@ class GitHubEventsCollector:
             raw_etag = cursor_dict.get("etag")
             if isinstance(raw_etag, str):
                 previous_etag = raw_etag
-        headers = {
+        first_headers = {
             "Accept": "application/vnd.github+json",
             "User-Agent": "ikigai-loop",
         }
         if previous_etag is not None:
-            headers["If-None-Match"] = previous_etag
+            first_headers["If-None-Match"] = previous_etag
         if token:
-            headers["Authorization"] = f"Bearer {token}"
-        try:
-            response = self._http_get(url, headers)
-        except CollectorError:
-            raise CollectorError("github: network error") from None
-        except (urllib.error.URLError, OSError, TimeoutError):
-            raise CollectorError("github: network error") from None
-        if response.status == 304:
-            return [], cursor
-        if response.status != 200:
-            raise CollectorError(f"github: fetch failed (status {response.status})")
-        try:
-            body = json.loads(response.body.decode("utf-8"))
-        except (ValueError, UnicodeDecodeError):
-            raise CollectorError("github: invalid response") from None
-        entries = as_list(body)
-        if entries is None:
-            raise CollectorError("github: invalid response") from None
-        new_etag = response.headers.get("etag", previous_etag)
+            first_headers["Authorization"] = f"Bearer {token}"
+        page_headers = {
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "ikigai-loop",
+        }
+        if token:
+            page_headers["Authorization"] = f"Bearer {token}"
 
+        new_etag: str | None = previous_etag
         events: list[Event] = []
-        for raw_item in entries:
-            event = self._map_entry(raw_item, subject_id, now)
-            if event is not None:
-                events.append(event)
+        seen_ids: set[str] = set()
+        next_url = url
+        for page in range(_MAX_PAGES):
+            try:
+                response = self._http_get(
+                    next_url, first_headers if page == 0 else page_headers
+                )
+            except CollectorError:
+                raise CollectorError("github: network error") from None
+            except (urllib.error.URLError, OSError, TimeoutError):
+                raise CollectorError("github: network error") from None
+            if page == 0 and response.status == 304:
+                return [], cursor
+            if response.status != 200:
+                raise CollectorError(f"github: fetch failed (status {response.status})")
+            try:
+                body = json.loads(response.body.decode("utf-8"))
+            except (ValueError, UnicodeDecodeError):
+                raise CollectorError("github: invalid response") from None
+            entries = as_list(body)
+            if entries is None:
+                raise CollectorError("github: invalid response") from None
+            if page == 0:
+                new_etag = response.headers.get("etag", previous_etag)
+            for raw_item in entries:
+                upstream_id = _upstream_id(raw_item)
+                if upstream_id is not None:
+                    if upstream_id in seen_ids:
+                        continue
+                    seen_ids.add(upstream_id)
+                event = self._map_entry(raw_item, subject_id, now)
+                if event is not None:
+                    events.append(event)
+            candidate = _parse_next_link(response.headers.get("link"))
+            if candidate is None or page == _MAX_PAGES - 1:
+                break
+            if not _is_same_origin(url, candidate):
+                raise CollectorError("github: unexpected next page")
+            next_url = candidate
         return events, {"etag": new_etag}
 
     def _map_entry(self, item: Any, subject_id: str, now: datetime) -> Event | None:

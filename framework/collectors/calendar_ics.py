@@ -54,6 +54,62 @@ def _decoded(component: icalendar.Event, name: str) -> Any | None:
         return None
 
 
+def _content_equal(current: dict[str, Any], stored: dict[str, Any]) -> bool:
+    """Compare snapshot content as values, never as stored strings.
+
+    `start`/`end` compare as instants so the same moment under a different
+    offset is equal; a stored value that will not parse counts as changed
+    and never raises.
+    """
+    try:
+        for field in ("start", "end"):
+            if datetime.fromisoformat(str(current[field])) != (
+                datetime.fromisoformat(str(stored[field]))
+            ):
+                return False
+        if list(current["tags"]) != list(stored["tags"]):
+            return False
+        for field in ("busy", "is_new", "cancelled"):
+            if bool(current[field]) != bool(stored.get(field, False)):
+                return False
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return False
+    return True
+
+
+def _normalize_cursor_entry(raw: Any) -> dict[str, Any] | None:
+    """Read one cursor entry in the v2 shape, filling v1 defaults.
+
+    Today's on-disk shape carries only `source_id`, `start`, `end`,
+    `busy`, `tags`, `is_new`: `cancelled` defaults to False, `rev` to 0,
+    and `stamp` is derived from the stored `source_id` after the last `@`
+    (UIDs may contain `@`, so only the trailing segment is the stamp).
+    Anything that is not a dict reads as absent; nothing here raises.
+    """
+    stored = as_dict(raw)
+    if stored is None:
+        return None
+    source_id = str(stored.get("source_id", ""))
+    try:
+        rev = int(stored.get("rev", 0))
+    except (ValueError, TypeError):
+        rev = 0
+    stamp = stored.get("stamp")
+    if not isinstance(stamp, str) or not stamp:
+        stamp = source_id.rsplit("@", 1)[-1] if "@" in source_id else ""
+    return {
+        "source_id": source_id,
+        "start": stored.get("start"),
+        "end": stored.get("end"),
+        "busy": stored.get("busy"),
+        "tags": stored.get("tags"),
+        "is_new": stored.get("is_new"),
+        "cancelled": bool(stored.get("cancelled", False)),
+        "rev": rev,
+        "stamp": stamp,
+    }
+
+
 class CalendarIcsCollector:
     """Poll one secret iCal feed; titles derive tags, then are dropped."""
 
@@ -107,7 +163,7 @@ class CalendarIcsCollector:
         for component in expanded:
             snapshot = self._snapshot_instance(component, window_start, window_end)
             if snapshot is not None:
-                current[str(snapshot["key"])] = as_dict(snapshot["data"]) or {}
+                current[str(snapshot["key"])] = snapshot
 
         prev: dict[str, Any] = {}
         cursor_dict = as_dict(cursor)
@@ -116,45 +172,155 @@ class CalendarIcsCollector:
             if instances is not None:
                 prev = instances
 
+        if not cal.walk("VEVENT") and any(  # pyright: ignore[reportUnknownMemberType]
+            (entry := as_dict(raw)) is not None and not entry.get("cancelled", False)
+            for raw in prev.values()
+        ):
+            return [], cursor
+
         events: list[Event] = []
-        for key, data in current.items():
-            previous = as_dict(prev.get(key))
-            if previous is None:
-                events.append(
-                    self._build_event(
-                        "calendar.event.created",
-                        CalendarEventCreatedData,
-                        subject_id,
-                        data,
-                        now,
+        next_instances: dict[str, dict[str, Any]] = {}
+        for key, snapshot in current.items():
+            content = snapshot["content"]
+            stamp = str(snapshot["stamp"])
+            cancelled_now = bool(snapshot["cancelled"])
+            entry = _normalize_cursor_entry(prev.get(key))
+            if entry is None:
+                source_id = f"{key}@{stamp}"
+                next_instances[key] = {
+                    **content,
+                    "source_id": source_id,
+                    "cancelled": cancelled_now,
+                    "rev": 0,
+                    "stamp": stamp,
+                }
+                if cancelled_now:
+                    events.append(
+                        self._build_cancelled(
+                            subject_id, content, source_id + "#cancelled", now
+                        )
                     )
+                else:
+                    events.append(
+                        self._build_event(
+                            "calendar.event.created",
+                            CalendarEventCreatedData,
+                            subject_id,
+                            {**content, "source_id": source_id},
+                            now,
+                        )
+                    )
+                continue
+            if entry["cancelled"]:
+                if cancelled_now:
+                    next_instances[key] = {
+                        **content,
+                        "source_id": entry["source_id"],
+                        "cancelled": True,
+                        "rev": entry["rev"],
+                        "stamp": stamp,
+                    }
+                else:
+                    rev = int(entry["rev"]) + 1
+                    source_id = f"{key}@{stamp}#r{rev}"
+                    next_instances[key] = {
+                        **content,
+                        "source_id": source_id,
+                        "cancelled": False,
+                        "rev": rev,
+                        "stamp": stamp,
+                    }
+                    events.append(
+                        self._build_event(
+                            "calendar.event.updated",
+                            CalendarEventUpdatedData,
+                            subject_id,
+                            {**content, "source_id": source_id},
+                            now,
+                        )
+                    )
+                continue
+            if cancelled_now:
+                source_id = str(entry["source_id"]) + "#cancelled"
+                next_instances[key] = {
+                    **content,
+                    "source_id": str(entry["source_id"]),
+                    "cancelled": True,
+                    "rev": entry["rev"],
+                    "stamp": stamp,
+                }
+                events.append(
+                    self._build_cancelled(subject_id, content, source_id, now)
                 )
-            elif previous.get("source_id") != data["source_id"]:
+            elif _content_equal(content, entry) and stamp == str(entry["stamp"]):
+                next_instances[key] = entry
+            else:
+                rev = int(entry["rev"]) + 1
+                source_id = f"{key}@{stamp}#r{rev}"
+                next_instances[key] = {
+                    **content,
+                    "source_id": source_id,
+                    "cancelled": False,
+                    "rev": rev,
+                    "stamp": stamp,
+                }
                 events.append(
                     self._build_event(
                         "calendar.event.updated",
                         CalendarEventUpdatedData,
                         subject_id,
-                        data,
+                        {**content, "source_id": source_id},
                         now,
                     )
                 )
-        for key, stored in prev.items():
+        for key, stored_raw in prev.items():
             if key in current:
                 continue
-            stored_dict = as_dict(stored)
-            if stored_dict is None:
+            stored = as_dict(stored_raw)
+            if stored is None:
                 continue
             try:
-                stored_start = datetime.fromisoformat(str(stored_dict["start"]))
+                stored_start = datetime.fromisoformat(str(stored["start"]))
             except (ValueError, KeyError, TypeError):
                 continue
-            if stored_start < window_start:
+            try:
+                too_old = stored_start < window_start
+            except TypeError:
                 continue
-            events.append(self._build_cancelled(subject_id, stored_dict, now))
+            if too_old:
+                continue
+            entry = _normalize_cursor_entry(stored)
+            if entry is None:
+                continue
+            if entry["cancelled"]:
+                next_instances[key] = entry
+                continue
+            source_id = str(entry["source_id"]) + "#cancelled"
+            next_instances[key] = {
+                "source_id": str(entry["source_id"]),
+                "start": entry["start"],
+                "end": entry["end"],
+                "busy": entry["busy"],
+                "tags": entry["tags"],
+                "is_new": entry["is_new"],
+                "cancelled": True,
+                "rev": entry["rev"],
+                "stamp": entry["stamp"],
+            }
+            events.append(self._build_cancelled(subject_id, entry, source_id, now))
+
+        if self.title_sink is not None:
+            for key, snapshot in current.items():
+                if bool(snapshot["cancelled"]):
+                    continue
+                summary = str(snapshot["summary"])
+                if not summary.strip():
+                    continue
+                final_source_id = str(next_instances[key]["source_id"])
+                self.title_sink[event_id(self.name, final_source_id)] = summary
 
         events.sort(key=lambda e: (e.time, e.source_id))
-        return events, {"instances": current}
+        return events, {"instances": next_instances}
 
     def _snapshot_instance(
         self, component: icalendar.Event, window_start: datetime, window_end: datetime
@@ -207,25 +373,26 @@ class CalendarIcsCollector:
                     last_modified = "seq0"
             else:
                 last_modified = "seq0"
-        source_id = f"{key}@{last_modified}"
 
         raw_summary = component.get("SUMMARY")
         summary = str(raw_summary) if raw_summary is not None else ""
         tags = list(dict.fromkeys(TAG_PATTERN.findall(summary)))
-        if self.title_sink is not None and summary.strip():
-            self.title_sink[event_id(self.name, source_id)] = summary
         is_new = summary.strip().startswith("new:")
         raw_transp = component.get("TRANSP", "OPAQUE")
         busy = str(raw_transp).upper() != "TRANSPARENT"
+        cancelled = str(component.get("STATUS", "") or "").upper() == "CANCELLED"
         return {
             "key": key,
-            "data": {
-                "source_id": source_id,
+            "stamp": last_modified,
+            "cancelled": cancelled,
+            "summary": summary,
+            "content": {
                 "start": start.isoformat(),
                 "end": end.isoformat(),
                 "busy": busy,
                 "tags": tags,
                 "is_new": is_new,
+                "cancelled": cancelled,
             },
         }
 
@@ -262,19 +429,27 @@ class CalendarIcsCollector:
         )
 
     def _build_cancelled(
-        self, subject_id: str, stored: dict[str, Any], now: datetime
+        self, subject_id: str, fields: dict[str, Any], source_id: str, now: datetime
     ) -> Event:
-        start = datetime.fromisoformat(str(stored["start"]))
-        end = datetime.fromisoformat(str(stored["end"]))
+        start = datetime.fromisoformat(str(fields["start"]))
+        try:
+            end = datetime.fromisoformat(str(fields["end"]))
+        except (ValueError, KeyError, TypeError):
+            end = start
+        raw_tags: Any = fields.get("tags")
+        tag_list: list[str] = (
+            [str(tag) for tag in cast("list[Any]", raw_tags)]
+            if isinstance(raw_tags, list)
+            else []
+        )
         payload = CalendarEventCancelledData(
             start=start,
             end=end,
-            busy=bool(stored["busy"]),
+            busy=bool(fields.get("busy", False)),
             category=self.label,
-            tags=list(stored["tags"]),
-            is_new=bool(stored["is_new"]),
+            tags=tag_list,
+            is_new=bool(fields.get("is_new", False)),
         )
-        source_id = str(stored["source_id"]) + "#cancelled"
         return Event(
             id=event_id(self.name, source_id),
             subject_id=subject_id,

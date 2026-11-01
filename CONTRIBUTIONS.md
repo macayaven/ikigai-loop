@@ -276,6 +276,27 @@ Two outside reviewers, GPT Sol 6.1 through Codex and Gemini 4 Argon, read the se
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+## Ticket 9e — facts match the clock (2026-11-01)
+
+Built on branch `t9e-clock` per [docs/plans/009e-facts-match-the-clock.md](docs/plans/009e-facts-match-the-clock.md):
+eleven clock fixes across the Glimmer fact layer and its collectors, so each
+number means what its sentence says. Whole-hour cuts at `floor_hour(as_of)`
+with the open hour counted on the next card and its zero dropped from facts
+and the snapshot; busy and tag hours as unions of clipped intervals;
+per-calendar reconcile with cross-calendar combine and the moved-block rule;
+content-or-stamp calendar diff with revision identities and the empty-feed
+guard; three-page GitHub paging; the `system` screen check arm with the
+one-item grammar fix in code; and by-order period binding. New
+`tests/test_glimmer_clock.py` plus cases in the calendar, checks and GitHub
+suites, with the affected expectations re-derived by hand. Evidence in
+[docs/sessions/009e-facts-match-the-clock.md](docs/sessions/009e-facts-match-the-clock.md).
+
+These findings came from independent reviews by GPT Sol 6.1, run through Codex, and by Muse Wonder Full (items 8, 9, 10; items 1 to 4 were found by both), reproduced by Claude Code, and implemented by Muse Code.
+
+Item 11, the moved block, was found by Claude Code during plan review and reproduced the same way.
+
+Prompts and review by Claude Code. Plan: muse-wonder-full-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started. The commit step, the move onto main and the final text fixes ran on muse-spark-1.3 at effort low.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
