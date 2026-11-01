@@ -1,0 +1,62 @@
+{
+  "slot": "2026-11-03T15:30:00+01:00",
+  "hour": {"start": "2026-11-03T15:30:00+01:00", "end": "2026-11-03T16:30:00+01:00"},
+  "commitments": [
+    {"id": "b-ship", "profile": "builder", "title": "Ship one small change to my side project", "kind": "build", "dimension": "good_at", "evidence": "github_push"},
+    {"id": "b-read", "profile": "builder", "title": "Read one paper on agent evaluation", "kind": "read", "dimension": "love", "evidence": "tap"},
+    {"id": "b-write", "profile": "builder", "title": "Write up what I built this week", "kind": "write", "dimension": "world_needs", "evidence": "tap"},
+    {"id": "b-apply", "profile": "builder", "title": "Send one tailored application", "kind": "apply", "dimension": "paid_for", "evidence": "tap"},
+    {"id": "d-family", "profile": "disconnect", "title": "Call my family", "kind": "social", "dimension": "world_needs", "evidence": "tap"},
+    {"id": "d-screens", "profile": "disconnect", "title": "One hour with screens off", "kind": "rest", "dimension": "love", "evidence": "no_screen"},
+    {"id": "d-music", "profile": "disconnect", "title": "Music with the screens off", "kind": "music", "dimension": "love", "evidence": "no_screen"},
+    {"id": "d-date", "profile": "disconnect", "title": "Do something new with my partner", "kind": "social", "dimension": "love", "evidence": "tap"}
+  ],
+  "facts": [
+    {"id": "f1", "statement": "Pushes were 2 in earlier, 2 in prior and 2 in last."},
+    {"id": "f2", "statement": "Programming screen hours were 4 in earlier, 4 in prior and 4 in last."},
+    {"id": "f3", "statement": "Video screen hours were 1 in earlier, 1 in prior and 1 in last."},
+    {"id": "f4", "statement": "Chat screen hours were 1 in earlier, 1 in prior and 1 in last."},
+    {"id": "f5", "statement": "iki-family calendar hours were 1 in earlier, 1 in prior and 1 in last."},
+    {"id": "f6", "statement": "6 feed items about agent evaluation"}
+  ],
+  "metrics": {
+    "period.earlier.pushes": 2,
+    "period.prior.pushes": 2,
+    "period.last.pushes": 2,
+    "period.earlier.screen_hours.Work/Programming": 4,
+    "period.prior.screen_hours.Work/Programming": 4,
+    "period.last.screen_hours.Work/Programming": 4,
+    "period.earlier.screen_hours.Media/Video": 1,
+    "period.prior.screen_hours.Media/Video": 1,
+    "period.last.screen_hours.Media/Video": 1,
+    "period.earlier.screen_hours.Comms/Chat": 1,
+    "period.prior.screen_hours.Comms/Chat": 1,
+    "period.last.screen_hours.Comms/Chat": 1,
+    "period.earlier.tag_hours.iki-family": 1,
+    "period.prior.tag_hours.iki-family": 1,
+    "period.last.tag_hours.iki-family": 1,
+    "feed.item.count": 6
+  },
+  "pairs": [
+    {"id": "D1", "kind": "directional", "profile": "builder", "perturb": [{"op": "set_fact", "id": "f1", "statement": "Pushes fell from 2 in prior to 0 in last."}, {"op": "set_metric", "id": "period.last.pushes", "value": 0}], "expect_pick": "b-ship", "expect_avoid": null},
+    {"id": "D2", "kind": "directional", "profile": "builder", "perturb": [{"op": "set_fact", "id": "f2", "statement": "Programming screen hours fell from 4 in prior to 0.5 in last."}, {"op": "set_metric", "id": "period.last.screen_hours.Work/Programming", "value": 0.5}], "expect_pick": "b-ship", "expect_avoid": null},
+    {"id": "D3", "kind": "directional", "profile": "builder", "perturb": [{"op": "add_fact", "id": "f7", "statement": "Cancelled iki-deep blocks rose from 0 in prior to 1 in last."}, {"op": "add_metric", "id": "period.prior.cancelled.iki-deep", "value": 0}, {"op": "add_metric", "id": "period.last.cancelled.iki-deep", "value": 1}], "expect_pick": "b-ship", "expect_avoid": null},
+    {"id": "D4", "kind": "directional", "profile": "builder", "perturb": [{"op": "set_fact", "id": "f6", "statement": "25 feed items about agent evaluation"}, {"op": "set_metric", "id": "feed.item.count", "value": 25}], "expect_pick": "b-read", "expect_avoid": null},
+    {"id": "D5", "kind": "directional", "profile": "builder", "perturb": [{"op": "set_fact", "id": "f2", "statement": "Programming screen hours rose from 4 in prior to 10 in last."}, {"op": "set_metric", "id": "period.last.screen_hours.Work/Programming", "value": 10}, {"op": "set_fact", "id": "f1", "statement": "Pushes rose from 2 in prior to 8 in last."}, {"op": "set_metric", "id": "period.last.pushes", "value": 8}], "expect_pick": null, "expect_avoid": "b-ship"},
+    {"id": "D6", "kind": "directional", "profile": "disconnect", "perturb": [{"op": "set_fact", "id": "f3", "statement": "Video screen hours rose from 1 in prior to 5 in last."}, {"op": "set_metric", "id": "period.last.screen_hours.Media/Video", "value": 5}], "expect_pick": "d-screens", "expect_avoid": null},
+    {"id": "D7", "kind": "directional", "profile": "disconnect", "perturb": [{"op": "set_fact", "id": "f2", "statement": "Programming screen hours rose from 4 in prior to 10 in last."}, {"op": "set_metric", "id": "period.last.screen_hours.Work/Programming", "value": 10}, {"op": "set_fact", "id": "f1", "statement": "Pushes rose from 2 in prior to 8 in last."}, {"op": "set_metric", "id": "period.last.pushes", "value": 8}], "expect_pick": "d-screens", "expect_avoid": null},
+    {"id": "D8", "kind": "directional", "profile": "disconnect", "perturb": [{"op": "set_fact", "id": "f5", "statement": "iki-family calendar hours fell from 1 in prior to 0 in last."}, {"op": "set_metric", "id": "period.last.tag_hours.iki-family", "value": 0}], "expect_pick": "d-family", "expect_avoid": null},
+    {"id": "D9", "kind": "directional", "profile": "disconnect", "perturb": [{"op": "add_fact", "id": "f7", "statement": "Cancelled iki-family blocks rose from 0 in prior to 1 in last."}, {"op": "add_metric", "id": "period.prior.cancelled.iki-family", "value": 0}, {"op": "add_metric", "id": "period.last.cancelled.iki-family", "value": 1}], "expect_pick": "d-family", "expect_avoid": null},
+    {"id": "D10", "kind": "directional", "profile": "disconnect", "perturb": [{"op": "add_fact", "id": "f7", "statement": "iki-date calendar hours rose from 0 in prior to 2 in last."}, {"op": "add_metric", "id": "period.prior.tag_hours.iki-date", "value": 0}, {"op": "add_metric", "id": "period.last.tag_hours.iki-date", "value": 2}], "expect_pick": null, "expect_avoid": "d-date"},
+    {"id": "I1", "kind": "invariance", "profile": "builder", "perturb": [{"op": "set_fact", "id": "f3", "statement": "Video screen hours rose from 1 in prior to 5 in last."}, {"op": "set_metric", "id": "period.last.screen_hours.Media/Video", "value": 5}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I2", "kind": "invariance", "profile": "disconnect", "perturb": [{"op": "set_fact", "id": "f1", "statement": "Pushes fell from 2 in prior to 0 in last."}, {"op": "set_metric", "id": "period.last.pushes", "value": 0}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I3", "kind": "invariance", "profile": "builder", "perturb": [{"op": "reverse_facts"}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I4", "kind": "invariance", "profile": "disconnect", "perturb": [{"op": "reverse_facts"}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I5", "kind": "invariance", "profile": "builder", "perturb": [{"op": "rename_facts", "prefix": "pre-"}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I6", "kind": "invariance", "profile": "disconnect", "perturb": [{"op": "reverse_commitments"}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I7", "kind": "invariance", "profile": "builder", "perturb": [{"op": "add_fact", "id": "f7", "statement": "2 feed items about medieval manuscripts"}, {"op": "add_metric", "id": "feed.item.count.medieval", "value": 2}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I8", "kind": "invariance", "profile": "disconnect", "perturb": [{"op": "slot_in_utc"}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I9", "kind": "invariance", "profile": "builder", "perturb": [{"op": "set_fact", "id": "f4", "statement": "Chat screen hours rose from 1 in prior to 1.1 in last."}, {"op": "set_metric", "id": "period.last.screen_hours.Comms/Chat", "value": 1.1}], "expect_pick": null, "expect_avoid": null},
+    {"id": "I10", "kind": "invariance", "profile": "disconnect", "perturb": [{"op": "set_fact", "id": "f6", "statement": "9 feed items about agent evaluation"}, {"op": "set_metric", "id": "feed.item.count", "value": 9}], "expect_pick": null, "expect_avoid": null}
+  ]
+}
