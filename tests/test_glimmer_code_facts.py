@@ -1430,3 +1430,66 @@ def test_ai_template_duplicate_and_system_model_fact() -> None:
     assert [f.statement for f in result.facts] == [
         "system screen hours rose from 0 in prior to 1 in last."
     ]
+
+
+def test_pr_fact_evidence_holds_only_opened_rows() -> None:
+    opened = pr_event(eid="evt_pr9d_eo", time=_dt(30, 14))
+    merged = pr_event(eid="evt_pr9d_em", time=_dt(30, 15), counts={"merged": 1})
+    (fact,) = [f for f in _code(events=[opened, merged]) if f.family == "prs"]
+    assert fact.statement == "Pull requests rose from 0 in prior to 1 in last."
+    assert fact.evidence == (opened.id,)
+    assert (fact.from_value, fact.to_value) == (0.0, 1.0)
+
+
+def test_opened_prior_merged_last_pr_fact_falls_to_zero() -> None:
+    opened = pr_event(eid="evt_pr9d_fo", time=_dt(29, 14))
+    merged = pr_event(eid="evt_pr9d_fm", time=_dt(30, 15), counts={"merged": 1})
+    (fact,) = [f for f in _code(events=[opened, merged]) if f.family == "prs"]
+    assert fact.statement == "Pull requests fell from 1 in prior to 0 in last."
+    assert fact.evidence == (opened.id,)
+
+
+def test_merged_only_rows_yield_no_pr_code_fact() -> None:
+    merged = pr_event(eid="evt_pr9d_nm", time=_dt(30, 15), counts={"merged": 1})
+    assert [f for f in _code(events=[merged]) if f.family == "prs"] == []
+    snapshot = build_metric_snapshot(AS_OF, [merged])
+    assert "github.pr.count" not in snapshot.values
+
+
+def test_closed_reopened_and_zero_opened_yield_no_pr_code_fact() -> None:
+    rows = [
+        pr_event(eid="evt_pr9d_nc", time=_dt(30, 14), counts={"closed": 1}),
+        pr_event(eid="evt_pr9d_nr", time=_dt(30, 14), counts={"reopened": 1}),
+        pr_event(eid="evt_pr9d_nz", time=_dt(30, 14), counts={"opened": 0}),
+    ]
+    assert [f for f in _code(events=rows) if f.family == "prs"] == []
+
+
+def test_pr_opened_fact_passes_briefing_gate_both_citation_forms() -> None:
+    from framework.briefing.gate import evaluate_briefing
+
+    opened = pr_event(eid="evt_pr9d_go", time=_dt(30, 14))
+    merged = pr_event(eid="evt_pr9d_gm", time=_dt(30, 15), counts={"merged": 1})
+    events = [opened, merged]
+    (fact,) = [f for f in _code(events=events) if f.family == "prs"]
+    llm = RecordingLLM(personal=(personal_batch(),), feed=(feed_batch(),))
+    result = extract_facts(AS_OF, SUBJECT_ID, events, llm)
+    by_id = {f.id: f for f in result.facts}
+    refs = [
+        (metric_id, result.snapshot.values[metric_id]) for metric_id in fact.metric_ids
+    ]
+    briefing, context = _gate_briefing(
+        fact.statement, [], refs, {}, dict(result.snapshot.values)
+    )
+    passed = evaluate_briefing(briefing, context)
+    assert passed.violations == (), (fact.statement, passed.violations)
+    kept = next(f for f in result.facts if f.statement == fact.statement)
+    briefing, context = _gate_briefing(
+        fact.statement,
+        [kept.id],
+        refs,
+        {kept.id: by_id[kept.id]},
+        dict(result.snapshot.values),
+    )
+    passed = evaluate_briefing(briefing, context)
+    assert passed.violations == (), (fact.statement, passed.violations)

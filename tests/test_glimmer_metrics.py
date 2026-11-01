@@ -512,3 +512,42 @@ def test_zero_keys_written_in_sorted_order() -> None:
     # Hand-derived: ten zero keys, Cat/a first and Cat/j last in sort order.
     assert screen_keys[0] == "period.prior.screen_hours.Cat/a"
     assert screen_keys[-1] == "period.prior.screen_hours.Cat/j"
+
+
+def test_opened_and_merged_rows_of_one_pr_count_once() -> None:
+    opened = pr_event(eid="evt_pr9d_open", time=_dt(30, 14))
+    merged = pr_event(eid="evt_pr9d_merged", time=_dt(30, 15), counts={"merged": 1})
+    rollup = build_period_rollup(AS_OF, [opened, merged])
+    assert rollup["last"]["prs"] == 1
+    snapshot = build_metric_snapshot(AS_OF, [opened, merged])
+    assert snapshot.values["github.pr.count"] == 1.0
+    assert snapshot.values["period.last.prs"] == 1.0
+
+
+def test_opened_prior_merged_last_counts_open_period_only() -> None:
+    opened = pr_event(eid="evt_pr9d_po", time=_dt(29, 14))
+    merged = pr_event(eid="evt_pr9d_ml", time=_dt(30, 15), counts={"merged": 1})
+    rollup = build_period_rollup(AS_OF, [opened, merged])
+    assert rollup["prior"]["prs"] == 1
+    assert rollup["last"]["prs"] == 0
+
+
+def test_only_merged_rows_count_nothing_and_hold_no_window_key() -> None:
+    merged = pr_event(eid="evt_pr9d_mo", time=_dt(30, 15), counts={"merged": 1})
+    rollup = build_period_rollup(AS_OF, [merged])
+    assert rollup["last"]["prs"] == 0
+    snapshot = build_metric_snapshot(AS_OF, [merged])
+    assert "github.pr.count" not in snapshot.values
+
+
+def test_non_opened_actions_and_zero_opened_count_nothing() -> None:
+    rows = [
+        pr_event(eid="evt_pr9d_closed", time=_dt(30, 14), counts={"closed": 1}),
+        pr_event(eid="evt_pr9d_reopened", time=_dt(30, 14), counts={"reopened": 1}),
+        pr_event(eid="evt_pr9d_sync", time=_dt(30, 14), counts={"synchronize": 1}),
+        pr_event(eid="evt_pr9d_zero", time=_dt(30, 14), counts={"opened": 0}),
+    ]
+    rollup = build_period_rollup(AS_OF, rows)
+    assert rollup["last"]["prs"] == 0
+    snapshot = build_metric_snapshot(AS_OF, rows)
+    assert "github.pr.count" not in snapshot.values

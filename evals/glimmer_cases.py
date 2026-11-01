@@ -148,14 +148,16 @@ def push_event(
     )
 
 
-def pr_event(*, eid: str, time: datetime) -> Event:
+def pr_event(
+    *, eid: str, time: datetime, counts: dict[str, int] | None = None
+) -> Event:
     return make_event(
         eid=eid,
         source="github",
         source_id=f"pr-{eid}",
         type="github.pr",
         time=time,
-        data={"repo": "synthetic/repo", "counts": {"prs": 1}},
+        data={"repo": "synthetic/repo", "counts": counts or {"opened": 1}},
     )
 
 

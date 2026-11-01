@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 
 from framework.briefing.context import MetricSnapshot
-from framework.schemas.events import Event
+from framework.schemas.events import Event, GitHubPrData
 
 PERIOD_NAMES: tuple[str, str, str] = ("earlier", "prior", "last")
 WINDOW = timedelta(hours=72)
@@ -44,6 +44,21 @@ def _logical_key(event: Event) -> tuple[str, ...]:
         )
         return ("feed", sid)
     return ("event", event.id)
+
+
+def is_opened_pr(event: Event) -> bool:
+    """True when a ``github.pr`` row opens a pull request.
+
+    One pull request emits one row per action, so it counts once, on its
+    opened row. Any other action (``merged``, ``closed``, ``reopened``,
+    ...) or an ``opened`` count of 0 counts nothing.
+    """
+    if event.type != "github.pr":
+        return False
+    data = event.data
+    if not isinstance(data, GitHubPrData):
+        return False
+    return data.counts.get("opened", 0) > 0
 
 
 def select_winners(events: Sequence[Event]) -> tuple[Event, ...]:
@@ -120,7 +135,7 @@ def build_period_rollup(
                 rollup[name]["pushes"] += 1
         elif event.type == "github.pr":
             name = _period_name_for(event.time, bounds)
-            if name is not None:
+            if name is not None and is_opened_pr(event):
                 rollup[name]["prs"] += 1
         elif event.type.startswith("calendar.event."):
             if event.type == "calendar.event.cancelled":
@@ -153,7 +168,8 @@ def build_metric_snapshot(as_of: datetime, winners: Sequence[Event]) -> MetricSn
         elif event.type == "github.push":
             values["github.push.count"] = values.get("github.push.count", 0.0) + 1.0
         elif event.type == "github.pr":
-            values["github.pr.count"] = values.get("github.pr.count", 0.0) + 1.0
+            if is_opened_pr(event):
+                values["github.pr.count"] = values.get("github.pr.count", 0.0) + 1.0
         elif event.type == "feed.item":
             values["feed.item.count"] += 1.0
             key = f"feed.item.count.{data.source}"

@@ -17,7 +17,7 @@ from typing import Any, Literal, cast
 from framework.briefing.labels import metric_label_binding
 from framework.briefing.numbers import extract_number_tokens
 from framework.glimmer.checks import highest_tier
-from framework.glimmer.metrics import PERIOD_NAMES, period_bounds
+from framework.glimmer.metrics import PERIOD_NAMES, is_opened_pr, period_bounds
 from framework.schemas.base import Tier
 from framework.schemas.events import Event
 
@@ -180,7 +180,11 @@ def _pool(
             if event.type == "github.push" and _in_period(event.time, start, end):
                 rows.append(event)
         elif family == "prs":
-            if event.type == "github.pr" and _in_period(event.time, start, end):
+            if (
+                event.type == "github.pr"
+                and is_opened_pr(event)
+                and _in_period(event.time, start, end)
+            ):
                 rows.append(event)
         elif family == "tag_hours":
             if (
