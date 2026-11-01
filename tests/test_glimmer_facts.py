@@ -1082,3 +1082,121 @@ def test_feed_prompt_has_no_code_block() -> None:
     extract_facts(AS_OF, SUBJECT_ID, [item], llm)
     (prompt,) = llm.feed_prompts
     assert "CODE FACTS" not in prompt
+
+
+def test_internal_label_statement_dropped_with_new_code() -> None:
+    from evals.glimmer_cases import _dt as dt
+    from evals.glimmer_cases import cal_event, personal_aliases, personal_batch
+
+    row = cal_event(
+        eid="evt_internal_stmt",
+        key="synth-internal-stmt@20261030T140000",
+        lm="seq1",
+        time=dt(30, 14),
+        end=dt(30, 15),
+        tags=("iki-care",),
+    )
+    aliases = personal_aliases((row,))
+    llm = RecordingLLM(
+        personal=(
+            personal_batch(
+                {
+                    "statement": "Quiet iki-care hours continued in the last period",
+                    "evidence": [aliases[row.id]],
+                },
+            ),
+        )
+    )
+    result = extract_facts(AS_OF, SUBJECT_ID, [row], llm)
+    assert [d.code for d in result.dropped] == ["FACT_INTERNAL_LABEL"]
+    assert result.facts == ()
+
+
+def test_hand_care_stripped_before_prompt_and_snapshot() -> None:
+    from evals.glimmer_cases import _dt as dt
+    from evals.glimmer_cases import cal_event, personal_batch
+
+    tagged = cal_event(
+        eid="evt_hand_care",
+        key="synth-hand-care@20261030T140000",
+        lm="seq1",
+        time=dt(30, 14),
+        end=dt(30, 15),
+        tags=("iki-care",),
+    )
+    plain = cal_event(
+        eid="evt_hand_care",
+        key="synth-hand-care@20261030T140000",
+        lm="seq1",
+        time=dt(30, 14),
+        end=dt(30, 15),
+        tags=(),
+    )
+    llm_tagged = RecordingLLM(personal=(personal_batch(),))
+    result_tagged = extract_facts(AS_OF, SUBJECT_ID, [tagged], llm_tagged)
+    llm_plain = RecordingLLM(personal=(personal_batch(),))
+    result_plain = extract_facts(AS_OF, SUBJECT_ID, [plain], llm_plain)
+    assert llm_tagged.prompts == llm_plain.prompts
+    assert result_tagged.snapshot.values == result_plain.snapshot.values
+    assert result_tagged.snapshot.values["calendar.busy_hours"] == 1.0
+    assert not any("iki-care" in key for key in result_tagged.snapshot.values)
+    for prompt in llm_tagged.prompts:
+        assert "iki-care" not in prompt
+
+
+def test_code_facts_never_name_internal_label() -> None:
+    from evals.glimmer_cases import _dt as dt
+    from evals.glimmer_cases import cal_event, personal_batch
+
+    care = cal_event(
+        eid="evt_fix4_care",
+        key="synth-fix4-care@20261029T150000",
+        lm="seq1",
+        time=dt(29, 15),
+        end=dt(29, 20),
+        tags=("iki-care",),
+    )
+    family = cal_event(
+        eid="evt_fix4_family",
+        key="synth-fix4-family@20261030T150000",
+        lm="seq1",
+        time=dt(30, 15),
+        end=dt(30, 17),
+        tags=("iki-family",),
+    )
+    cancel_a = cal_event(
+        eid="evt_fix4_cancel_a",
+        key="synth-fix4-cancel-a@20261029T140000",
+        lm="seq1",
+        time=dt(29, 14),
+        end=dt(29, 15),
+        tags=("iki-care",),
+        cancelled=True,
+    )
+    cancel_b = cal_event(
+        eid="evt_fix4_cancel_b",
+        key="synth-fix4-cancel-b@20261029T160000",
+        lm="seq1",
+        time=dt(29, 16),
+        end=dt(29, 17),
+        tags=("iki-care",),
+        cancelled=True,
+    )
+    cancel_deep = cal_event(
+        eid="evt_fix4_cancel_deep",
+        key="synth-fix4-cancel-deep@20261029T180000",
+        lm="seq1",
+        time=dt(29, 18),
+        end=dt(29, 19),
+        tags=("iki-deep",),
+        cancelled=True,
+    )
+    llm = RecordingLLM(personal=(personal_batch(),))
+    result = extract_facts(
+        AS_OF, SUBJECT_ID, [care, family, cancel_a, cancel_b, cancel_deep], llm
+    )
+    statements = [f.statement for f in result.facts]
+    assert "iki-family calendar hours rose from 0 in prior to 2 in last." in statements
+    assert "Cancelled iki-deep blocks fell from 1 in prior to 0 in last." in statements
+    assert all("iki-care" not in s.casefold() for s in statements)
+    assert all("INTERNAL_LABEL" not in d.code for d in result.dropped)

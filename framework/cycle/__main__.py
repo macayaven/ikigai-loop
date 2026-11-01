@@ -5,20 +5,26 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from datetime import datetime
+import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from framework.briefing import load_commitments
 from framework.briefing.context import ProfileLimits, load_private_terms
+from framework.collectors.common import event_id
 from framework.cycle import (
     UnknownCycleError,
     forbidden_literals_for,
     run_cycle,
     run_proposals,
 )
+from framework.cycle.labels import CALENDAR_TYPES, STORED_LABEL_TYPES, run_label_sweep
 from framework.glimmer.facts import FactResult, LLMClient, LLMResponse
+from framework.glimmer.label_step import LabelStepResult, build_label_client
+from framework.glimmer.labels import CalendarLabelData, effective_label
 from framework.glimmer.llm import OpenAICompatibleClient, load_llm_config
+from framework.glimmer.metrics import select_winners
 from framework.proposal.client import (
     ContributorModelRefused,
     MetaClient,
@@ -29,6 +35,7 @@ from framework.proposal.client import (
 from framework.proposal.core import ModelParams, ProposalResult
 from framework.proposal.defaults import DEFAULT_EFFORT, DEFAULT_MODEL
 from framework.proposal.muse_client import MuseExecClient, resolve_muse_bin
+from framework.schemas.events import Event
 from framework.store.fact_store import FactStore
 from framework.store.proposal_store import ProposalStore
 from framework.store.store import EventStore
@@ -255,6 +262,123 @@ def _run_propose(args: argparse.Namespace) -> int:
     return 0
 
 
+def _merge_results(results: list[LabelStepResult]) -> LabelStepResult:
+    errors: dict[str, int] = {}
+    merged = LabelStepResult()
+    for result in results:
+        for name, count in result.errors_by_type.items():
+            errors[name] = errors.get(name, 0) + count
+        merged = LabelStepResult(
+            called=merged.called + result.called,
+            valid=merged.valid + result.valid,
+            invalid=merged.invalid + result.invalid,
+            deduped=merged.deduped + result.deduped,
+            conflicts=merged.conflicts + result.conflicts,
+            unavailable=merged.unavailable + result.unavailable,
+            errors_by_type=errors,
+            skipped_hand_tagged=merged.skipped_hand_tagged + result.skipped_hand_tagged,
+            skipped_already_labelled=merged.skipped_already_labelled
+            + result.skipped_already_labelled,
+            skipped_no_title=merged.skipped_no_title + result.skipped_no_title,
+            skipped_not_busy=merged.skipped_not_busy + result.skipped_not_busy,
+            skipped_cancelled=merged.skipped_cancelled + result.skipped_cancelled,
+        )
+    return merged
+
+
+def _format_labels_line(result: LabelStepResult, cover: str) -> str:
+    errors = (
+        ",".join(
+            f"{name}:{result.errors_by_type[name]}"
+            for name in sorted(result.errors_by_type)
+        )
+        or "-"
+    )
+    return (
+        "labels=done"
+        f" called={result.called} valid={result.valid} invalid={result.invalid}"
+        f" deduped={result.deduped} conflicts={result.conflicts}"
+        f" unavailable={result.unavailable} errors={errors}"
+        f" skipped_hand={result.skipped_hand_tagged}"
+        f" skipped_labelled={result.skipped_already_labelled}"
+        f" skipped_no_title={result.skipped_no_title}"
+        f" skipped_not_busy={result.skipped_not_busy}"
+        f" skipped_cancelled={result.skipped_cancelled}"
+        f" cover={cover}"
+    )
+
+
+def _coverage(store: EventStore, subject_id: str, as_of: datetime) -> str:
+    """Count winners by label provenance; counts and codes only."""
+    window_start = as_of - timedelta(days=2)
+    window_end = as_of + timedelta(days=14)
+    winners = select_winners(
+        store.events_between(subject_id, window_start, window_end, types=CALENDAR_TYPES)
+    )
+    rows = store.events_between(
+        subject_id, window_start, window_end, types=STORED_LABEL_TYPES
+    )
+    by_target: dict[str, Event] = {}
+    for row in rows:
+        if isinstance(row.data, CalendarLabelData):
+            current = by_target.get(row.data.target_event_id)
+            if current is None or row.collected_at > current.collected_at:
+                by_target[row.data.target_event_id] = row
+    counts = {"hand": 0, "local_model": 0, "none": 0}
+    for event in winners:
+        target_id = event.id
+        if event.type == "calendar.event.cancelled":
+            target_id = event_id(
+                event.source, event.source_id.removesuffix("#cancelled")
+            )
+        view = effective_label(event, by_target.get(target_id))
+        counts[view.source] += 1
+    return f"hand:{counts['hand']}/model:{counts['local_model']}/none:{counts['none']}"
+
+
+def _run_labels(args: argparse.Namespace) -> int:
+    if os.environ.get("IKIGAI_LABEL_CALENDAR_TITLES") != "1":
+        print("labels=disabled")
+        return 0
+    subject_id = os.environ.get("IKIGAI_SUBJECT_ID", "")
+    if not subject_id:
+        print(
+            "error: set IKIGAI_SUBJECT_ID",
+            file=sys.stderr,
+        )
+        return 2
+    db_path = Path(args.db) if args.db else None
+    as_of = datetime.now(UTC)
+    budget_s = float(args.budget_s)
+    try:
+        llm = build_label_client(os.environ)
+        store = EventStore(db_path=db_path)
+        try:
+            started = time.monotonic()
+            results: list[LabelStepResult] = []
+            for label in args.label:
+                remaining = budget_s - (time.monotonic() - started)
+                results.append(
+                    run_label_sweep(
+                        store,
+                        subject_id,
+                        [label],
+                        llm,
+                        as_of=as_of,
+                        budget_s=max(0.0, remaining),
+                        monotonic=time.monotonic,
+                    )
+                )
+            cover = _coverage(store, subject_id, as_of)
+        finally:
+            store.close()
+    except Exception as exc:  # noqa: BLE001 -- the CLI maps every failure to one line
+        print(f"error: {type(exc).__name__}", file=sys.stderr)
+        return 1
+    print(_format_labels_line(_merge_results(results), cover))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m framework.cycle")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -280,7 +404,15 @@ def main(argv: list[str] | None = None) -> int:
     propose.add_argument("--allowed-start", default="13:00")
     propose.add_argument("--allowed-end", default="23:30")
     propose.add_argument("--stale-cycle-hours", default="12.0")
+    labels = sub.add_parser("labels")
+    labels.add_argument("--label", action="append", default=None)
+    labels.add_argument("--db", default=None)
+    labels.add_argument("--budget-s", type=float, default=240)
     args = parser.parse_args(argv)
+    if args.command == "labels":
+        if args.label is None:
+            args.label = ["personal"]
+        return _run_labels(args)
     if args.command == "propose":
         if args.profile is None:
             args.profile = ["builder", "disconnect"]

@@ -262,6 +262,18 @@ Built on branch `t11-wonder-proposal` per [docs/plans/011-wonder-proposal.md](do
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started; the last sessions ran in Contributor mode, on this public repo and made-up data only. Claude Code ran the live measurements outside those sessions, on made-up data.
 
+## Ticket 9c — Glimmer calendar labels (2026-11-01)
+
+Built on branch `t9c-glimmer-labels` per [docs/plans/009c-glimmer-labels.md](docs/plans/009c-glimmer-labels.md): the closed 8-label set defined once in `framework/schemas/events.py` with `CalendarLabelData` as a new `calendar.label` event type; the in-memory tag overlay in `framework/glimmer/labels.py` with `iki-care` kept out of every prompt, snapshot, rollup, and fact; the pinned prompt, strict two-shape parser, private-endpoint guard, and per-title queue in `framework/glimmer/label_step.py`; the collector tag boundary fix plus the in-memory title sink; the label sweep in `framework/cycle/labels.py` behind the off-by-default `labels` subcommand; the frozen keyword baseline in `evals/r10_keywords.py`; the gated R10 runner in `evals/r10.py`; five new test files plus additions to three existing ones, all on synthetic titles with fakes instead of any network; and the docs (the calendar section of `docs/PRIVACY.md`, the README Status line, the profile lines, this entry). Evidence in [docs/sessions/009c-glimmer-labels.md](docs/sessions/009c-glimmer-labels.md).
+
+R10 on the frozen set, one pass: `model correct: 77/80 strict: 77/80`, `keywords correct: 51/80 strict: 50/80`, `decision: eligible`. Claude Code started the run, and the switch stays off in this repo.
+
+On Ticket 11's main, `forbidden_literals_for` in `framework/cycle/__init__.py` also returns the internal-only labels, so the outbound scan is a second check behind the strip in `extract_facts`.
+
+`evals/r10_cases.json` isn't Muse Code's: a separate agent wrote those 80 invented titles and froze them by hash before the plan was written, so no session writing the prompt, the list or the rule could see them. `evals/r10_results/` is the runner's output, with `seconds` rounded in one file as the session note says.
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

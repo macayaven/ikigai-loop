@@ -465,7 +465,7 @@ def test_seam_shared_hour_and_sensitive_withheld(tmp_path: Path) -> None:
             noop_reason=None,
         )
         fact_store.record_cycle(result)
-        assert forbidden_literals_for(store, SUBJECT_ID, AS_OF) == ()
+        assert forbidden_literals_for(store, SUBJECT_ID, AS_OF) == ("iki-care",)
         bad = json.dumps(
             {
                 "commitment_id": "cm-builder-parser",
@@ -519,6 +519,81 @@ def test_seam_shared_hour_and_sensitive_withheld(tmp_path: Path) -> None:
         assert len(client.requests) == 2
         assert "hidden session finished" not in client.requests[0].prompt.lower()
         assert disconnect.kind == "noop"
+    finally:
+        proposal_store.close()
+        fact_store.close()
+        store.close()
+
+
+def test_internal_only_label_blocks_the_outbound_prompt(tmp_path: Path) -> None:
+    from datetime import time
+
+    from framework.briefing.context import ProfileLimits
+    from framework.cycle import forbidden_literals_for, run_proposals
+    from framework.proposal.core import ModelParams
+
+    db = tmp_path / "internal-label.db"
+    store = EventStore(db_path=db)
+    fact_store = FactStore(db_path=db)
+    proposal_store = ProposalStore(db_path=db)
+    try:
+        labelled = BASE_FACTS[1].model_copy(
+            update={
+                "id": "fact:synthetic-8",
+                "statement": "Synthetic walk before IKI-CARE time",
+            }
+        )
+        result = FactResult(
+            facts=(labelled,),
+            code_fact_ids=(),
+            snapshot=MetricSnapshot(values=dict(BASE_SNAPSHOT)),
+            passes=(_pass("personal"), _pass("feed")),
+            responses=(),
+            cycle_id="cycle-1",
+            subject_id=SUBJECT_ID,
+            as_of=AS_OF,
+            window_start=AS_OF - timedelta(hours=72),
+            prompt_hash="hash",
+            dropped=(),
+            is_noop=False,
+            noop_reason=None,
+        )
+        fact_store.record_cycle(result)
+        assert forbidden_literals_for(store, SUBJECT_ID, AS_OF) == ("iki-care",)
+        client = ScriptedWonderClient((text_entry(GOOD_DRAFT),))
+        from framework.briefing.context import PrivateTerms
+
+        results = run_proposals(
+            as_of=AS_OF,
+            slot=datetime.fromisoformat(SLOT_ISO),
+            subject_id=SUBJECT_ID,
+            profiles=("builder",),
+            store=store,
+            fact_store=fact_store,
+            proposal_store=proposal_store,
+            client=client,
+            private_terms=PrivateTerms(terms=(), available=True),
+            eligible_by_profile={"builder": tuple(BASE_ELIGIBLE)},
+            limits=ProfileLimits(
+                timezone="Europe/Madrid",
+                allowed_start=time(13, 0),
+                allowed_end=time(23, 30),
+                max_actions=3,
+            ),
+            models=ModelParams(
+                first_model="muse-wonder-1.0",
+                first_effort="high",
+                retry_model="muse-wonder-1.0",
+                retry_effort="high",
+            ),
+            stale_after_s=43200.0,
+        )
+        assert len(results) == 1
+        assert results[0].kind == "noop"
+        assert results[0].reason_codes == ("NOOP_OUTBOUND_BLOCKED",)
+        assert results[0].attempts[0].blocked is True
+        assert ("L1_RAW_VALUE", "prompt") in results[0].attempts[0].codes
+        assert client.calls == 0
     finally:
         proposal_store.close()
         fact_store.close()

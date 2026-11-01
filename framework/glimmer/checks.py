@@ -11,6 +11,7 @@ from typing import Any
 
 from framework.briefing.context import MetricSnapshot
 from framework.briefing.numbers import extract_number_tokens
+from framework.glimmer.labels import INTERNAL_ONLY_LABELS
 from framework.glimmer.metrics import PERIOD_NAMES, period_bounds
 from framework.schemas.events import Event
 
@@ -265,6 +266,10 @@ def check_fact(
             return "FACT_EVIDENCE_OUT_OF_WINDOW"
     if _ALIAS_RE.search(statement):
         return "FACT_ALIAS_IN_STATEMENT"
+    collapsed_statement = statement.casefold()
+    for internal in INTERNAL_ONLY_LABELS:
+        if internal.casefold() in collapsed_statement:
+            return "FACT_INTERNAL_LABEL"
     known_ids: set[str] = set(evidence_ids)
     for event in cited:
         if event.type.startswith("github."):

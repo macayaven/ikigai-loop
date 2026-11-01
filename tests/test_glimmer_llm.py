@@ -474,3 +474,134 @@ def test_opener_refuses_redirects_without_stock_handler() -> None:
     handlers = list(opener.handlers)  # type: ignore[attr-defined]
     assert any(isinstance(h, llm_module.NoRedirectHandler) for h in handlers)
     assert not any(type(h) is urllib.request.HTTPRedirectHandler for h in handlers)
+
+
+def test_opener_holds_no_proxy_handler(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import urllib.request
+
+    monkeypatch.setenv("https_proxy", "http://proxy.invalid:9")
+    monkeypatch.setenv("http_proxy", "http://proxy.invalid:9")
+    opener = llm_module._OPENER
+    registries = (
+        getattr(opener, "handle_open", {}),
+        getattr(opener, "handle_error", {}),
+        getattr(opener, "process_response", {}),
+        getattr(opener, "process_request", {}),
+    )
+    assert registries[0] != {}
+    for registry in registries:
+        for kind, handlers in registry.items():
+            assert not any(
+                isinstance(h, urllib.request.ProxyHandler) for h in handlers
+            ), kind
+    # Positive control: a default opener routes http through a ProxyHandler,
+    # so the scan above is capable of finding one.
+    default_open = getattr(urllib.request.build_opener(), "handle_open", {})
+    default_http = default_open.get("http", [])
+    assert any(isinstance(h, urllib.request.ProxyHandler) for h in default_http)
+
+
+def test_redirect_30x_surfaces_as_unavailable_with_single_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+
+    def fake_urlopen(request: object, timeout: object = None) -> _FakeResponse:
+        nonlocal calls
+        calls += 1
+        raise urllib.error.HTTPError(
+            url="https://example.invalid/v1/chat/completions",
+            code=302,
+            msg="Found",
+            hdrs=None,  # type: ignore[arg-type]
+            fp=None,  # type: ignore[arg-type]
+        )
+
+    monkeypatch.setattr(llm_module, "urlopen", fake_urlopen)
+    with pytest.raises(LLMUnavailableError) as excinfo:
+        _client().complete(PROMPT)
+    assert "302" in str(excinfo.value)
+    assert KEY not in str(excinfo.value)
+    assert calls == 1
+
+
+def test_proxy_env_ignored_in_fresh_interpreter() -> None:
+    """Proxy variables set before import still reach no local request.
+
+    The module-level ``_OPENER`` is built with ``ProxyHandler({})``, which
+    the stdlib registers nowhere, so a process started with
+    ``http_proxy``/``https_proxy`` pointing at an unused loopback port must
+    hold no proxy on the local opener. Runs in a subprocess so the import
+    happens with the variables already set, and opens no socket: it only
+    inspects handler state. A default opener built in the same process is
+    the positive control: it must show the injected proxy, proving the
+    scan is capable of finding one.
+    """
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    env = dict(os.environ)
+    env["http_proxy"] = "http://127.0.0.1:9/"
+    env["https_proxy"] = "http://127.0.0.1:9/"
+    env["PYTHONPATH"] = str(root)
+    script = (
+        "import json, urllib.request;"
+        "import framework.glimmer.llm as m;"
+        "seen = [h.proxies for reg in"
+        " ('handle_open', 'handle_error', 'process_response',"
+        " 'process_request')"
+        " for handlers in getattr(m._OPENER, reg).values()"
+        " for h in handlers"
+        " if isinstance(h, urllib.request.ProxyHandler)];"
+        "default = urllib.request.build_opener();"
+        "control = [h.proxies for handlers in"
+        " default.handle_open.values() for h in handlers"
+        " if isinstance(h, urllib.request.ProxyHandler)];"
+        "print(json.dumps({'seen': seen, 'control': control}))"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        env=env,
+        cwd=str(root),
+        timeout=120,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    import json as _json
+
+    payload = _json.loads(completed.stdout.strip().splitlines()[-1])
+    assert payload["seen"] == []
+    assert len(payload["control"]) >= 1
+    assert all(entry != {} for entry in payload["control"])
+
+
+def test_request_body_gains_response_format_only_on_label_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen = _body(monkeypatch, _content("ok"))
+    _client().complete(PROMPT)
+    sent = json.loads(seen["request"].data.decode())
+    assert "response_format" not in sent
+
+    from framework.glimmer.label_step import LABEL_RESPONSE_FORMAT
+
+    labelled = OpenAICompatibleClient(
+        base_url="https://example.invalid/v1",
+        model="requested-model",
+        api_key=KEY,
+        response_format=LABEL_RESPONSE_FORMAT,
+    )
+    seen_labelled = _body(monkeypatch, _content('{"label": "iki-deep"}'))
+    labelled.complete(PROMPT)
+    sent_labelled = json.loads(seen_labelled["request"].data.decode())
+    assert sent_labelled["response_format"] == LABEL_RESPONSE_FORMAT
+    assert sent_labelled["model"] == "requested-model"
+    assert sent_labelled["temperature"] == 0
+    assert sent_labelled["max_tokens"] == 32768

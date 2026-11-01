@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "label": {
+      "enum": [
+        "iki-deep",
+        "iki-meeting",
+        "iki-family",
+        "iki-social",
+        "iki-care",
+        "iki-rest",
+        "iki-admin",
+        "iki-unknown"
+      ],
+      "title": "Label",
+      "type": "string"
+    },
+    "label_source": {
+      "const": "local_model",
+      "default": "local_model",
+      "title": "Label Source",
+      "type": "string"
+    },
+    "model_id": {
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "target_event_id": {
+      "minLength": 1,
+      "title": "Target Event Id",
+      "type": "string"
+    },
+    "type": {
+      "const": "calendar.label",
+      "default": "calendar.label",
+      "title": "Type",
+      "type": "string"
+    },
+    "valid": {
+      "title": "Valid",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "target_event_id",
+    "label",
+    "model_id",
+    "valid"
+  ],
+  "title": "CalendarLabelData",
+  "type": "object"
+}

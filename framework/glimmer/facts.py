@@ -26,6 +26,7 @@ from framework.glimmer.code_facts import (
 from framework.glimmer.code_facts import (
     code_facts as _build_code_facts,
 )
+from framework.glimmer.labels import strip_internal_tags
 from framework.glimmer.metrics import (
     WINDOW,
     build_metric_snapshot,
@@ -285,6 +286,7 @@ def extract_facts(
     A pass flag that is False skips that model pass entirely: no prompt
     is built and the model is never called for it.
     """
+    events = strip_internal_tags(events)
     as_of = fixed_offset(as_of)
     window_start = as_of - WINDOW
     filtered = [

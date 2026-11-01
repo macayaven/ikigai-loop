@@ -42,7 +42,7 @@
 - **Private categories** from the interview never appear in any public output (repo, app, demo, public logs). The list lives outside the repo in `HIDDEN_CRITERIA_DIR`; the L1 scan fails the build on any hit.
 - **Evenings with my partner, 20:00–22:30:** until 2026-11-04 (Europe/Madrid) this window has no restriction. From 2026-11-05 the original limit returns: the window is not negotiable; the app may still notify me then (I can mute and ignore), but only low-priority items, unless it is a declared *spike*: something that lasts ≤ 1 month and clearly moves me towards my purpose. The hackathon until Nov 4 is a spike.
 - **Quiet hours:** no notifications outside 13:00–23:30 until Nov 18, then outside 08:00–21:00.
-- **Calendar** reaches the model only as busy intervals and `iki-*` tags; titles are dropped.
+- **Calendar** reaches Meta only as busy intervals and `iki-*` tags; titles never leave my machine — a local model reads them only when I turn local labels on ([docs/PRIVACY.md](docs/PRIVACY.md)).
 - **Feeds (X, Perplexity, Reddit):** at most 30 min per night, and never after 23:30.
 - **Never read:** LinkedIn, Gmail, and any work data from HP or the speech-therapy startup.
 - **Never target this repo:** no proposal is about `ikigai-loop` itself.
@@ -52,7 +52,7 @@
 | Statement it shows | Source | May read | Must never read | Status |
 |---|---|---|---|---|
 | I build 4–5 days a week; good day = commit or PR | GitHub, public events | Commits, PRs, issues on my public repos, including this repo as build evidence; no proposal targets it | Private repos | easy |
-| Schedule, partner window, calls | Google Calendar | Busy intervals and `iki-*` tags | Titles | needs setup |
+| Schedule, partner window, calls | Google Calendar | Busy intervals and `iki-*` tags | Titles (local model only, when I switch labels on — see docs/PRIVACY.md) | needs setup |
 | Time on projects vs. feed | ActivityWatch on the Mac | App categories and durations | Window titles, URLs | needs setup |
 | Visibility | Medium public post pages, once a day | Claps per post | Anything behind login | could (fragile) |
 | What others are building | HF daily papers, HN, new GitHub repos | Titles, abstracts, READMEs | — | easy |
