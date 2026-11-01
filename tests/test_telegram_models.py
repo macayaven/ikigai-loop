@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from telegram_fake import no_sockets  # noqa: F401  (autouse fixture)
 
 from framework.telegram.models import (
+    LABEL_WRONG,
     Card,
     ChartData,
     ChartSeries,
@@ -375,22 +376,16 @@ def test_keyboard_two_proposals() -> None:
     rows: Any = keyboard["inline_keyboard"]
     assert [b["text"] for b in rows[0]] == ["Take A"]
     assert [b["text"] for b in rows[1]] == ["Take B"]
-    assert [b["text"] for b in rows[2]] == [
-        "Neither now",
-        "Something's wrong",
-        "Why?",
-    ]
+    assert [b["text"] for b in rows[2]] == ["Neither now", "Why?"]
+    assert [b["text"] for b in rows[3]] == ["Something's wrong"]
 
 
 def test_keyboard_one_proposal() -> None:
     keyboard = build_keyboard(card(proposals=[proposal("B", "proposal")]))
     rows: Any = keyboard["inline_keyboard"]
     assert [b["text"] for b in rows[0]] == ["Take B"]
-    assert [b["text"] for b in rows[1]] == [
-        "Neither now",
-        "Something's wrong",
-        "Why?",
-    ]
+    assert [b["text"] for b in rows[1]] == ["Neither now", "Why?"]
+    assert [b["text"] for b in rows[2]] == ["Something's wrong"]
 
 
 def test_ruled_keyboard_keeps_callback() -> None:
@@ -399,7 +394,23 @@ def test_ruled_keyboard_keeps_callback() -> None:
     rows: Any = keyboard["inline_keyboard"]
     assert [b["text"] for b in rows[0]] == ["\u2713 Take A"]
     assert rows[0][0]["callback_data"] == f"{card_id}:A"
-    assert [b["text"] for b in rows[1]] == ["Something's wrong", "Why?"]
+    assert [b["text"] for b in rows[1]] == ["Something's wrong"]
+    assert [b["text"] for b in rows[2]] == ["Why?"]
+
+
+def test_wrong_button_has_own_row() -> None:
+    two = card()
+    one = card(proposals=[proposal("B", "proposal")])
+    for candidate in (two, one):
+        rows: Any = build_keyboard(candidate)["inline_keyboard"]
+        wrong_rows = [row for row in rows if LABEL_WRONG in [b["text"] for b in row]]
+        assert len(wrong_rows) == 1
+        assert len(wrong_rows[0]) == 1
+    for target in ("A", "B", "neither"):
+        ruled: Any = build_ruled_keyboard(two.card_id, target)["inline_keyboard"]
+        wrong_rows = [row for row in ruled if LABEL_WRONG in [b["text"] for b in row]]
+        assert len(wrong_rows) == 1
+        assert len(wrong_rows[0]) == 1
 
 
 def test_utf16_len_counts_astral_as_two() -> None:

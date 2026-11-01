@@ -215,6 +215,8 @@ sample card labelled synthetic. Evidence in
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+Follow-up: I gave `Something's wrong` its own row in both keyboards; prompts and review by Claude Code, implementation: muse-spark-1.3 (effort medium), in Muse Code, in a headless session Claude Code started.
+
 ## Ticket 9d — pull request counted once (2026-11-01)
 
 Built on branch `t9d-pr-count`: one `github.pr` row exists per action, so an

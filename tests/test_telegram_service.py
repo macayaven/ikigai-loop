@@ -316,11 +316,8 @@ def test_buttons_on_two_proposal_card(harness: Harness) -> None:
     rows = markup["inline_keyboard"]
     assert [b["text"] for b in rows[0]] == ["Take A"]
     assert [b["text"] for b in rows[1]] == ["Take B"]
-    assert [b["text"] for b in rows[2]] == [
-        "Neither now",
-        "Something's wrong",
-        "Why?",
-    ]
+    assert [b["text"] for b in rows[2]] == ["Neither now", "Why?"]
+    assert [b["text"] for b in rows[3]] == ["Something's wrong"]
     for row in rows:
         for button in row:
             assert len(button["callback_data"].encode()) <= 64
@@ -333,18 +330,17 @@ def test_buttons_on_one_proposal_cards(harness: Harness) -> None:
     send_card(only_a, chart_data(), db_path=db, client=client)
     rows_a = _last_markup(fake)["inline_keyboard"]
     assert [b["text"] for b in rows_a[0]] == ["Take A"]
-    assert len(rows_a) == 2
+    assert [b["text"] for b in rows_a[1]] == ["Neither now", "Why?"]
+    assert [b["text"] for b in rows_a[2]] == ["Something's wrong"]
+    assert len(rows_a) == 3
     only_b = make_card(
         proposals=[proposal("B", "proposal", profile="Disconnect", title="Family call")]
     )
     send_card(only_b, chart_data(), db_path=db, client=client)
     rows_b = _last_markup(fake)["inline_keyboard"]
     assert [b["text"] for b in rows_b[0]] == ["Take B"]
-    assert [b["text"] for b in rows_b[1]] == [
-        "Neither now",
-        "Something's wrong",
-        "Why?",
-    ]
+    assert [b["text"] for b in rows_b[1]] == ["Neither now", "Why?"]
+    assert [b["text"] for b in rows_b[2]] == ["Something's wrong"]
 
 
 # -- AT8: foreign, unhandled, odd shapes ----------------------------------

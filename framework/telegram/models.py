@@ -246,11 +246,15 @@ def build_keyboard(card: Card) -> dict[str, object]:
                 "text": LABEL_NEITHER,
                 "callback_data": build_callback(card.card_id, "neither"),
             },
+            {"text": LABEL_WHY, "callback_data": build_callback(card.card_id, "why")},
+        ]
+    )
+    rows.append(
+        [
             {
                 "text": LABEL_WRONG,
                 "callback_data": build_callback(card.card_id, "wrong"),
             },
-            {"text": LABEL_WHY, "callback_data": build_callback(card.card_id, "why")},
         ]
     )
     return {"inline_keyboard": rows}
@@ -270,6 +274,8 @@ def build_ruled_keyboard(card_id: str, target: str) -> dict[str, object]:
                     "text": LABEL_WRONG,
                     "callback_data": build_callback(card_id, "wrong"),
                 },
+            ],
+            [
                 {"text": LABEL_WHY, "callback_data": build_callback(card_id, "why")},
             ],
         ]

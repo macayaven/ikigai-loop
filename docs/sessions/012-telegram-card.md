@@ -111,3 +111,5 @@ I ran a case-insensitive grep of the banned-word list and a grep of `/Users/` ov
 - Nothing schedules cards yet, and no model has generated one. No real card or ruling has gone through this code.
 - The cause of the one `poll_errors=1` in the live window, as above.
 - The chart and these tests have only run on macOS so far. The CI run on Linux will be the first run there.
+
+Follow-up: on my real iPhone on Nov 1, `Something's wrong` read `Somethin...` in the three-button row before a ruling and `Something's wro...` in the two-button row after one, so I gave it its own row.
