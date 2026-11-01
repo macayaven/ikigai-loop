@@ -46,7 +46,7 @@ Built and merged:
 - Glimmer fact layer (`framework/glimmer/`, `framework/store/fact_store.py`, `framework/cycle/`): filters events to an allowlist, computes metrics and three 24-hour periods with no model, asks Muse Glimmer in two isolated passes, and drops any fact that fails its deterministic checks; 279 tests in `tests/test_glimmer_*.py`, `tests/test_fact_store.py` and `tests/test_cycle_cli.py`, passing.
 - Glimmer code facts (`framework/glimmer/code_facts.py`): a rule reports the largest change in each of five families (screen hours, pushes, PRs, calendar tag hours, cancelled blocks), so a cycle still has facts when the local model fails, and `--no-personal-pass`/`--no-feed-pass` skip the model passes; 57 tests in `tests/test_glimmer_code_facts.py`, counted in the line above, passing. One live cycle ran on synthetic rows; it has not run on my real store yet.
 - Learner core (`framework/learner/`): Beta posteriors per time bucket over which of my two goals I take, commitment ranking, scoring each prediction before the ruling it predicts, byte-identical replay, and a known-preference test on simulated rulings; 146 tests in `tests/test_learner_*.py`, passing. Nothing calls it yet, and no real ruling has gone through it.
-- Pre-registration ([docs/PREREG.md](docs/PREREG.md)): the Nov 2-4 live run's predictions and rules, committed before the first card, with the R3 steering pairs as data (`evals/r3_pairs.json`).
+- Pre-registration ([docs/PREREG.md](docs/PREREG.md)): the Nov 2-4 live run's predictions and rules, committed before the first card, with the R3 steering pairs as data (`evals/r3_pairs.json`). Nov 1 deviations, made before any card, are logged at its end.
 - Telegram card (`framework/telegram/`): one photo message with a chart and buttons, taps stored as `app.tap`, long polling with no public endpoint; 160 tests in `tests/test_telegram_*.py`, passing. Nothing schedules it yet, and no real card or ruling has gone through it.
 
 Not built yet:
@@ -79,3 +79,4 @@ The four-circle ikigai diagram comes from Marc Winn's 2014 blog post, adapted fr
 
 - The two goals: [profiles/](profiles/)
 - Design record and past plans: [docs/](docs/)
+- What the literature supports and doesn't: [docs/LITERATURE.md](docs/LITERATURE.md)

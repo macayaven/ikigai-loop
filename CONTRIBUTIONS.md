@@ -249,6 +249,12 @@ Evidence in [docs/sessions/017a-verify-claims.md](docs/sessions/017a-verify-clai
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started. I asked for a second follow-up so the page opens with a labelled made-up example already run; prompts and review by Claude Code, implementation: muse-spark-1.3 (effort medium), in Muse Code, in a headless session Claude Code started.
 
+## Docs 2 — literature check and deviations (2026-11-01)
+
+[docs/LITERATURE.md](docs/LITERATURE.md), dated Deviations in [docs/PREREG.md](docs/PREREG.md), a note at SPEC §5.1 and two README lines.
+
+GPT Sol 6.1, through Codex, checked every citation and proposed the deviations. Claude Code re-read 15 sources and drafted the text. Muse Code placed it. Implementation: muse-spark-1.3 (effort medium), in a headless session Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
@@ -256,3 +262,4 @@ Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implemen
   and ran feasibility checks on Oct 27 outside this repo (one call each to Muse Glimmer,
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
 - It wrote no code in this repository. All code here was written by Muse Code, as summarised in `docs/sessions/`, and the branch commits are Muse Code's. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
+- **GPT Sol 6.1 and GPT Astra 6 (OpenAI), through Codex,** reviewed this project read-only on Nov 1: literature, code, demo plan, failure modes and launch plan. They wrote nothing in this repository. Findings that changed something are credited in the ticket that used them.
