@@ -190,6 +190,8 @@ Attention rule (start values): `attention = 0.4·novelty + 0.4·dissatisfaction 
 
 ### 5.1 Principles and where they come from
 
+> Superseded with the rest of this spec. An independent check on Nov 1, 2026 found several rows below over-read their sources: [docs/LITERATURE.md](LITERATURE.md).
+
 | Principle | Basis |
 |---|---|
 | The automated evaluator is the bottleneck of any self-improving loop; build it first | AlphaEvolve (Novikov et al., 2025) and Darwin Gödel Machine (Zhang et al., 2025): both rely on automatic evaluators to accept or reject self-generated changes |
