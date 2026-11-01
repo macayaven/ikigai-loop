@@ -57,8 +57,10 @@ class _Response:
         self.headers = headers or {}
         self._body = body
 
-    def read(self) -> bytes:
-        return self._body
+    def read(self, size: int | None = None) -> bytes:
+        if size is None or size < 0:
+            return self._body
+        return self._body[:size]
 
     def __enter__(self) -> Self:
         return self
@@ -68,7 +70,7 @@ class _Response:
 
 
 class _BoomReader(_Response):
-    def read(self) -> bytes:
+    def read(self, size: int | None = None) -> bytes:
         raise TimeoutError("timed out during read")
 
 
@@ -136,6 +138,9 @@ class FakeTelegram:
         self.markups: dict[tuple[int, int], object] = {}
         self.message_seq = 1000
         self.expired_queries: set[str] = set()
+        self.files: dict[str, tuple[str, bytes]] = {}
+        self.download_errors: dict[str, int] = {}
+        self.default_audio = b"synthetic-audio-bytes"
 
     # -- update builders (refuse string ids so tests cannot pass on strings) --
 
@@ -252,6 +257,9 @@ class FakeTelegram:
         assert raw_data is None or isinstance(raw_data, bytes)
         body = raw_data if raw_data is not None else b""
         headers = {key.lower(): value for key, value in request.header_items()}
+        file_prefix = f"{self.api_base}/file/bot"
+        if url.startswith(file_prefix):
+            return self._download(url, dict(headers), timeout)
         prefix = f"{self.api_base}/bot"
         assert url.startswith(prefix), f"unexpected url {url!r}"
         token_seg, _, method = url[len(prefix) :].partition("/")
@@ -266,12 +274,51 @@ class FakeTelegram:
             "sendMessage",
             "editMessageReplyMarkup",
             "answerCallbackQuery",
+            "getFile",
         ):
             raise _http_error(url, 404, "Not Found")
         pending = self.scripts.get(method, [])
         if pending:
             return self._scripted(url, method, dict(headers), body, pending.pop(0))
         return self._route(url, method, dict(headers), body)
+
+    def _download(
+        self, url: str, headers: dict[str, str], timeout: float | None
+    ) -> _Response:
+        segment = url[len(f"{self.api_base}/file/bot") :]
+        token_seg, _, file_path = segment.partition("/")
+        if token_seg != self.bot_value:
+            raise _http_error(url, 401, "Unauthorized")
+        pending = self.scripts.get("download", [])
+        if pending:
+            outcome = pending.pop(0)
+            if isinstance(outcome, tuple) and outcome[0] in ("400", "404"):
+                code = int(outcome[0])
+                raise _http_error(
+                    url,
+                    code,
+                    "Not Found" if code == 404 else ("Bad Request: file unavailable"),
+                )
+            return self._scripted(url, "download", headers, b"", outcome)
+        code = self.download_errors.get(file_path)
+        if code is not None:
+            raise _http_error(
+                url,
+                code,
+                "Not Found" if code == 404 else ("Bad Request: file unavailable"),
+            )
+        for path, content in self.files.values():
+            if path == file_path:
+                self.requests.append(
+                    ("download", "download", headers, content, timeout)
+                )
+                return _Response(200, {}, content)
+        if file_path == "voice/missing.oga":
+            raise _http_error(url, 404, "Not Found")
+        self.requests.append(
+            ("download", "download", headers, self.default_audio, timeout)
+        )
+        return _Response(200, {}, self.default_audio)
 
     def _scripted(
         self,
@@ -357,6 +404,10 @@ class FakeTelegram:
             raise _http_error(url, 409, CONFLICT_DESCRIPTION)
         if kind == "401":
             raise _http_error(url, 401, "Unauthorized")
+        if kind == "400":
+            raise _http_error(url, 400, "Bad Request: file unavailable")
+        if kind == "404":
+            raise _http_error(url, 404, "Not Found")
         if kind == "500":
             raise _http_error(url, 500, "Internal Server Error")
         raise AssertionError(f"unknown scripted outcome {outcome!r}")
@@ -370,6 +421,8 @@ class FakeTelegram:
             return self._send_photo(headers, body)
         payload = json.loads(body.decode("utf-8"))
         assert isinstance(payload, dict)
+        if method == "getFile":
+            return self._get_file(url, payload)
         if method == "sendMessage":
             return self._send_message(payload)
         if method == "editMessageReplyMarkup":
@@ -378,6 +431,15 @@ class FakeTelegram:
 
     def _ok(self, result: object) -> _Response:
         return _Response(200, {}, json.dumps({"ok": True, "result": result}).encode())
+
+    def _get_file(self, url: str, payload: dict[str, object]) -> _Response:
+        file_id = payload.get("file_id")
+        assert isinstance(file_id, str)
+        if file_id == "gone":
+            raise _http_error(url, 404, "Not Found")
+        if file_id in self.files:
+            return self._ok({"file_id": file_id, "file_path": self.files[file_id][0]})
+        return self._ok({"file_id": file_id, "file_path": f"voice/{file_id}.oga"})
 
     def _get_updates(self, body: bytes) -> _Response:
         payload = json.loads(body.decode("utf-8"))

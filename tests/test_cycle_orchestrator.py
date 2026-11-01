@@ -598,6 +598,7 @@ class _Telegram:
         caption: str,
         markup: dict[str, Any],
         timeout_s: float = 60.0,
+        disable_notification: bool = False,
     ) -> dict[str, Any]:
         self.calls.append(
             {
@@ -605,6 +606,7 @@ class _Telegram:
                 "photo_len": len(photo),
                 "caption": caption,
                 "timeout_s": timeout_s,
+                "disable_notification": disable_notification,
             }
         )
         if self.fail_all is not None:
@@ -5866,3 +5868,373 @@ def test_card_bytes_match_stale_or_fresh(
     ) == stale_ledger.load_card_payload(
         stale_ledger.latest_card_id(slot)  # type: ignore[arg-type]
     )
+
+
+# -- voice seam: regular slots honour corrections --
+
+
+def _correction_event(
+    eid: str,
+    commitment_id: str,
+    operation: str,
+    until: str | None,
+    said: datetime,
+    slot: datetime,
+    message_id: int,
+) -> Event:
+    moment = said.isoformat()
+    return Event.model_validate(
+        {
+            "id": eid,
+            "subject_id": SUBJECT,
+            "source": "telegram",
+            "type": "app.correction",
+            "time": moment,
+            "source_id": f"voice:{message_id}",
+            "data": {
+                "type": "app.correction",
+                "commitment_id": commitment_id,
+                "operation": operation,
+                "until": until,
+                "slot": slot.isoformat(),
+                "said_at": said.isoformat(),
+                "message_id": message_id,
+                "reported_by": "user",
+            },
+            "tier": "private",
+            "collected_at": moment,
+            "collector_version": "synthetic@0.1.0",
+        }
+    )
+
+
+def _fact_dispute_event(eid: str, said: datetime, message_id: int) -> Event:
+    moment = said.isoformat()
+    return Event.model_validate(
+        {
+            "id": eid,
+            "subject_id": SUBJECT,
+            "source": "telegram",
+            "type": "app.fact_dispute",
+            "time": moment,
+            "source_id": f"voice:{message_id}:dispute",
+            "data": {
+                "type": "app.fact_dispute",
+                "fact_id": "fact:synthetic-1",
+                "card_id": "card-synthetic-old",
+                "message_id": message_id,
+                "reported_by": "user",
+            },
+            "tier": "private",
+            "collected_at": moment,
+            "collector_version": "synthetic@0.1.0",
+        }
+    )
+
+
+def _voice_state(commitment_id: str, operation: str, until: str | None) -> Any:
+    from framework.voice.state import fold_corrections
+
+    said = datetime(2026, 11, 2, 10, 0, tzinfo=MADRID)
+    return fold_corrections(
+        [
+            _correction_event(
+                "evt-voice-1",
+                commitment_id,
+                operation,
+                until,
+                said,
+                slot_at("15:30"),
+                7,
+            ),
+        ]
+    )
+
+
+def test_voice_skip_today_hides_commitment_today_not_tomorrow() -> None:
+    entries = _voice_state("b-1", "skip", "today")
+    rows = (commitment("b-1", "builder"), commitment("b-2", "builder"))
+    today = eligible_commitments(
+        rows,
+        profile_id="builder",
+        slot_local=slot_at("15:30"),
+        state=EligibilityState(
+            disconnect_sent_today=0,
+            now_local=slot_at("15:30"),
+            hour_start_local=None,
+            entries=entries,
+        ),
+    )
+    assert [item.id for item in today] == ["b-2"]
+    tomorrow = eligible_commitments(
+        rows,
+        profile_id="builder",
+        slot_local=slot_at("15:30", day=3),
+        state=EligibilityState(
+            disconnect_sent_today=0,
+            now_local=slot_at("15:30", day=3),
+            hour_start_local=None,
+            entries=entries,
+        ),
+    )
+    assert [item.id for item in tomorrow] == ["b-1", "b-2"]
+
+
+def test_eligibility_skip_hides_disconnect_daytime_and_rest_at_night() -> None:
+    rows = (commitment("d-1", "disconnect"), commitment("d-2", "disconnect"))
+    day = eligible_commitments(
+        rows,
+        profile_id="disconnect",
+        slot_local=slot_at("15:30"),
+        state=EligibilityState(
+            disconnect_sent_today=0,
+            now_local=slot_at("15:30"),
+            hour_start_local=None,
+            entries=_voice_state("d-1", "skip", "today"),
+        ),
+    )
+    assert [item.id for item in day] == ["d-2"]
+    night_rows = (
+        commitment("d-2", "disconnect", "music"),
+        commitment("d-3", "disconnect", "rest"),
+    )
+    night = eligible_commitments(
+        night_rows,
+        profile_id="disconnect",
+        slot_local=slot_at("22:30"),
+        state=EligibilityState(
+            disconnect_sent_today=0,
+            now_local=slot_at("22:30"),
+            hour_start_local=None,
+            entries=_voice_state("d-3", "skip", "today"),
+        ),
+    )
+    assert [item.id for item in night] == ["d-2"]
+
+
+def test_voice_keep_brings_back_skipped_commitment() -> None:
+    from framework.voice.state import fold_corrections
+
+    said = datetime(2026, 11, 2, 10, 0, tzinfo=MADRID)
+    entries = fold_corrections(
+        [
+            _correction_event(
+                "evt-voice-1",
+                "b-1",
+                "skip",
+                "today",
+                said,
+                slot_at("15:30"),
+                7,
+            ),
+            _correction_event(
+                "evt-voice-2",
+                "b-1",
+                "keep",
+                None,
+                said + timedelta(hours=1),
+                slot_at("15:30"),
+                8,
+            ),
+        ]
+    )
+    rows = (commitment("b-1", "builder"), commitment("b-2", "builder"))
+    got = eligible_commitments(
+        rows,
+        profile_id="builder",
+        slot_local=slot_at("15:30"),
+        state=EligibilityState(
+            disconnect_sent_today=0,
+            now_local=slot_at("15:30"),
+            hour_start_local=None,
+            entries=entries,
+        ),
+    )
+    assert [item.id for item in got] == ["b-1", "b-2"]
+
+
+def test_run_slot_reads_voice_state_once_for_eligible_and_disputed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from framework.cycle import orchestrator as orchestrator_module
+
+    _env(monkeypatch, tmp_path)
+    slot = slot_at("15:30")
+    harness = _harness(tmp_path, slot)
+    harness.clock.now = slot - timedelta(minutes=25)
+    said = datetime(2026, 11, 2, 10, 0, tzinfo=MADRID)
+    store = EventStore(db_path=harness.db)
+    try:
+        store.append_events(
+            [
+                _correction_event("evt-voice-1", "b-1", "skip", "today", said, slot, 7),
+                _fact_dispute_event("evt-voice-2", said, 8),
+            ]
+        )
+    finally:
+        store.close()
+    real_proposals = orchestrator_module.run_proposals
+    seen: list[dict[str, Any]] = []
+
+    def _spy(**kwargs: Any) -> Any:
+        seen.append(
+            {
+                "eligible": kwargs.get("eligible_by_profile"),
+                "disputed": kwargs.get("disputed"),
+            }
+        )
+        return real_proposals(**kwargs)
+
+    monkeypatch.setattr(orchestrator_module, "run_proposals", _spy)
+    code, out, _ = _run(slot, harness, capsys)
+    assert code == 0, out
+    assert len(seen) == 2
+    for call in seen:
+        assert call["disputed"] is not None
+        assert "fact:synthetic-1" in call["disputed"].fact_ids
+    assert seen[0]["disputed"] is seen[1]["disputed"]
+    builder_call = next(call for call in seen if "builder" in call["eligible"])
+    assert [item.id for item in builder_call["eligible"]["builder"]] == ["b-2"]
+
+
+def test_run_slot_honours_correction_stored_during_facts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A correction stored while the facts step runs is honoured by that run.
+
+    The voice read sits past the facts step, so a note sent during that
+    long wait is not missed.
+    """
+    import dataclasses
+
+    from framework.cycle import orchestrator as orchestrator_module
+
+    _env(monkeypatch, tmp_path)
+    slot = slot_at("15:30")
+    harness = _harness(tmp_path, slot)
+    harness.clock.now = slot - timedelta(minutes=25)
+    said = datetime(2026, 11, 2, 10, 0, tzinfo=MADRID)
+    real_proposals = orchestrator_module.run_proposals
+    seen: list[dict[str, Any]] = []
+
+    def _spy(**kwargs: Any) -> Any:
+        seen.append(
+            {
+                "eligible": kwargs.get("eligible_by_profile"),
+                "disputed": kwargs.get("disputed"),
+            }
+        )
+        return real_proposals(**kwargs)
+
+    monkeypatch.setattr(orchestrator_module, "run_proposals", _spy)
+
+    def _facts(**kwargs: Any) -> Any:
+        store = EventStore(db_path=harness.db)
+        try:
+            store.append_events(
+                [
+                    _correction_event(
+                        "evt-voice-1", "b-1", "skip", "today", said, slot, 7
+                    ),
+                ]
+            )
+        finally:
+            store.close()
+        return _down_result()
+
+    harness.seams = dataclasses.replace(harness.seams, facts=_facts)
+    code, out, _ = _run(slot, harness, capsys)
+    assert code == 0, out
+    assert len(seen) == 2
+    builder_call = next(call for call in seen if "builder" in call["eligible"])
+    assert [item.id for item in builder_call["eligible"]["builder"]] == ["b-2"]
+
+
+def test_run_slot_voice_state_store_failure_records_step_and_sends_nothing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A store failure on the voice read records its step and sends nothing."""
+    import sqlite3
+
+    from framework.cycle import orchestrator as orchestrator_module
+
+    _env(monkeypatch, tmp_path)
+    slot = slot_at("15:30")
+    harness = _harness(tmp_path, slot)
+    harness.clock.now = slot - timedelta(minutes=25)
+
+    def _boom(*args: Any, **kwargs: Any) -> Any:
+        raise sqlite3.Error("synthetic voice state failure")
+
+    monkeypatch.setattr(orchestrator_module, "load_voice_state", _boom)
+    code, out, _ = _run(slot, harness, capsys)
+    assert code == 1, out
+    assert "code=Error" in out
+    rows = SlotLedger(harness.db).rows_for_slot(slot)
+    assert any(row.step == "voice_state" for row in rows)
+    assert harness.telegram.calls == []
+
+
+# -- voice seam: a chain of cards counts once --
+
+
+def test_rebuild_chain_tap_old_then_new_counts_new_once() -> None:
+    slot = slot_at("18:00")
+    moment = slot + timedelta(minutes=5)
+    rows = card_rows("card-old", slot) + card_rows("card-new", slot)
+    taps = (
+        tap("t1", "card-old", "A", moment),
+        tap("t2", "card-new", "B", moment + timedelta(seconds=1)),
+    )
+    rebuilt, skipped = rebuild_state(taps, rows, {"card-new": "card-old"})
+    assert skipped == 0
+    assert rebuilt.rulings_seen == 1
+    assert set(rebuilt.cards) == {"card-new"}
+
+
+def test_rebuild_chain_tap_only_old_counts_once() -> None:
+    slot = slot_at("18:00")
+    moment = slot + timedelta(minutes=5)
+    rows = card_rows("card-old", slot) + card_rows("card-new", slot)
+    rebuilt, skipped = rebuild_state(
+        (tap("t1", "card-old", "A", moment),),
+        rows,
+        {"card-new": "card-old"},
+    )
+    assert skipped == 0
+    assert rebuilt.rulings_seen == 1
+    assert set(rebuilt.cards) == {"card-old"}
+
+
+def test_rebuild_chain_late_old_tap_loses_to_new() -> None:
+    slot = slot_at("18:00")
+    moment = slot + timedelta(minutes=5)
+    rows = card_rows("card-old", slot) + card_rows("card-new", slot)
+    taps = (
+        tap("t1", "card-new", "B", moment),
+        tap("t2", "card-old", "A", moment + timedelta(seconds=1)),
+    )
+    rebuilt, skipped = rebuild_state(taps, rows, {"card-new": "card-old"})
+    assert skipped == 0
+    assert rebuilt.rulings_seen == 1
+    assert set(rebuilt.cards) == {"card-new"}
+
+
+def test_rebuild_chain_wrong_and_why_stay_per_card() -> None:
+    slot = slot_at("18:00")
+    moment = slot + timedelta(minutes=5)
+    rows = card_rows("card-old", slot) + card_rows("card-new", slot)
+    taps = (
+        tap("t1", "card-old", "wrong", moment),
+        tap("t2", "card-new", "A", moment + timedelta(seconds=1)),
+    )
+    rebuilt, skipped = rebuild_state(taps, rows, {"card-new": "card-old"})
+    assert skipped == 0
+    assert rebuilt.rulings_seen == 2
+    assert rebuilt.buckets["evening"].wrong == 1

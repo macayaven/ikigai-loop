@@ -181,6 +181,66 @@ class AppJournalData(SchemaModel):
     text: NonEmptyStr
 
 
+class AppCorrectionData(SchemaModel):
+    type: Literal["app.correction"] = "app.correction"
+    commitment_id: NonEmptyStr | None
+    operation: Literal[
+        "skip", "defer", "drop", "done", "keep", "fact_correction", "none"
+    ]
+    until: Literal["slot", "today", "tomorrow", "this_week", "open"] | None
+    slot: AwareDatetime
+    said_at: AwareDatetime
+    message_id: NonNegativeInt
+    reported_by: Literal["user"]
+
+
+class AppFactDisputeData(SchemaModel):
+    type: Literal["app.fact_dispute"] = "app.fact_dispute"
+    fact_id: NonEmptyStr | None = None
+    metric_id: NonEmptyStr | None = None
+    metric_value: float | None = None
+    cycle_id: NonEmptyStr | None = None
+    card_id: NonEmptyStr
+    message_id: NonNegativeInt
+    reported_by: Literal["user"]
+
+    @model_validator(mode="after")
+    def _exactly_one_side(self) -> "AppFactDisputeData":
+        fact = self.fact_id is not None
+        metric = self.metric_id is not None
+        if fact == metric:
+            raise ValueError("exactly one of fact_id or metric_id must be set")
+        if metric:
+            if self.metric_value is None or self.cycle_id is None:
+                raise ValueError("a metric dispute needs its value and cycle")
+        elif (
+            self.metric_value is not None
+            or self.cycle_id is not None
+            or self.metric_id is not None
+        ):
+            raise ValueError("a fact dispute carries no metric fields")
+        return self
+
+
+class AppVoiceNoteData(SchemaModel):
+    type: Literal["app.voice_note"] = "app.voice_note"
+    message_id: NonNegativeInt
+    outcome: NonEmptyStr
+    operation: str | None = None
+    commitment_id: NonEmptyStr | None = None
+    until: str | None = None
+    old_card_id: NonEmptyStr | None = None
+    new_card_id: NonEmptyStr | None = None
+    step_seconds: dict[str, NonNegativeFloat] = Field(default_factory=dict)
+    total_s: NonNegativeFloat = 0.0
+    compile_model: str | None = None
+    compile_effort: str | None = None
+    muse_version: str | None = None
+    rules_file_present: bool | None = None
+    validation_codes: tuple[str, ...] = ()
+    reported_by: Literal["user"]
+
+
 EventData = Annotated[
     CalendarEventCreatedData
     | CalendarEventUpdatedData
@@ -203,7 +263,10 @@ EventData = Annotated[
     | AppApproveData
     | AppRejectData
     | AppCheckinData
-    | AppJournalData,
+    | AppJournalData
+    | AppCorrectionData
+    | AppFactDisputeData
+    | AppVoiceNoteData,
     Field(discriminator="type"),
 ]
 
@@ -230,6 +293,9 @@ EventType = Literal[
     "app.reject",
     "app.checkin",
     "app.journal",
+    "app.correction",
+    "app.fact_dispute",
+    "app.voice_note",
 ]
 
 SENSITIVE_TYPES: frozenset[str] = frozenset({"health.daily", "app.journal"})

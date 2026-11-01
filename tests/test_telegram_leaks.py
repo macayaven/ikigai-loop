@@ -345,3 +345,45 @@ def test_malformed_chat_value_never_leaves(
     assert_scrubbed(info.value, bad_chat)
     assert fake.requests == []
     assert bad_chat not in caplog.text
+
+
+def test_voice_file_failures_scrub_value_and_tables(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from framework.telegram.client import TelegramFileUnreadable
+
+    db_path = tmp_path / "ikigai.db"
+    prime_tables(db_path)
+    fake = FakeTelegram()
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", FAKE_BOT_VALUE)
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
+    monkeypatch.setattr(client_module, "_open_url", fake)
+    client = TelegramClient()
+    with caplog.at_level("DEBUG"):
+        with pytest.raises(TelegramFileUnreadable) as missing_info:
+            client.download_file("voice/missing.oga", max_bytes=5_000_000)
+        with pytest.raises(TelegramFileUnreadable) as gone_info:
+            client.get_file_path("gone")
+    assert_scrubbed(missing_info.value, FAKE_BOT_VALUE)
+    assert_scrubbed(gone_info.value, FAKE_BOT_VALUE)
+    out, err = capsys.readouterr()
+    assert FAKE_BOT_VALUE not in out + err
+    assert FAKE_BOT_VALUE not in caplog.text
+    ledger = CardLedger(db_path)
+    from framework.telegram.models import VoiceNote
+
+    assert ledger.record_voice_note(
+        VoiceNote(
+            message_id=77,
+            date=1790985600,
+            file_id="synthetic-file-id",
+            file_unique_id="synthetic-unique-id",
+            duration_s=12,
+        ),
+        9,
+        "2026-11-02T18:00:00+00:00",
+    )
+    assert_tables_clean(db_path, FAKE_BOT_VALUE)

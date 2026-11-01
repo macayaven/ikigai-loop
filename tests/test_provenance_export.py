@@ -1962,6 +1962,7 @@ def test_real_writer_slot_roundtrip(
             caption: str,
             markup: dict[str, Any],
             timeout_s: float = 60.0,
+            disable_notification: bool = False,
         ) -> dict[str, Any]:
             self.calls.append({"chat_id": chat_id, "photo_len": len(photo)})
             return {"message_id": 11}

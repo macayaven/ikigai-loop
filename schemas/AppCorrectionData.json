@@ -1,0 +1,85 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "commitment_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Commitment Id"
+    },
+    "message_id": {
+      "minimum": 0,
+      "title": "Message Id",
+      "type": "integer"
+    },
+    "operation": {
+      "enum": [
+        "skip",
+        "defer",
+        "drop",
+        "done",
+        "keep",
+        "fact_correction",
+        "none"
+      ],
+      "title": "Operation",
+      "type": "string"
+    },
+    "reported_by": {
+      "const": "user",
+      "title": "Reported By",
+      "type": "string"
+    },
+    "said_at": {
+      "format": "date-time",
+      "title": "Said At",
+      "type": "string"
+    },
+    "slot": {
+      "format": "date-time",
+      "title": "Slot",
+      "type": "string"
+    },
+    "type": {
+      "const": "app.correction",
+      "default": "app.correction",
+      "title": "Type",
+      "type": "string"
+    },
+    "until": {
+      "anyOf": [
+        {
+          "enum": [
+            "slot",
+            "today",
+            "tomorrow",
+            "this_week",
+            "open"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Until"
+    }
+  },
+  "required": [
+    "commitment_id",
+    "operation",
+    "until",
+    "slot",
+    "said_at",
+    "message_id",
+    "reported_by"
+  ],
+  "title": "AppCorrectionData",
+  "type": "object"
+}

@@ -35,6 +35,7 @@ from framework.telegram.models import (
     TallyItem,
     first_rulings,
 )
+from framework.voice.state import standing_chain_ruling
 
 CATEGORIES = ("code", "ai", "comms", "feed", "browse", "media")
 
@@ -147,26 +148,81 @@ def since_line(
     return f"Since {head}: {', '.join(pieces)}."
 
 
+def chain_groups(
+    card_ids: Sequence[str], replaces: Mapping[str, str | None]
+) -> dict[str, tuple[str, ...]]:
+    """Group card ids into replaced-card chains, oldest first.
+
+    ``replaces`` maps a card id to the card it replaces. A parent outside
+    the known ids ends that chain; a missing or self link is no link.
+    """
+    known = set(card_ids)
+
+    def _root(card_id: str) -> str:
+        seen: set[str] = set()
+        while True:
+            parent = replaces.get(card_id)
+            if not parent or parent not in known or parent in seen or parent == card_id:
+                return card_id
+            seen.add(card_id)
+            card_id = parent
+
+    def _depth(card_id: str) -> int:
+        depth = 0
+        seen: set[str] = set()
+        while True:
+            parent = replaces.get(card_id)
+            if not parent or parent not in known or parent in seen or parent == card_id:
+                return depth
+            seen.add(card_id)
+            card_id = parent
+            depth += 1
+
+    groups: dict[str, list[str]] = {}
+    for card_id in card_ids:
+        groups.setdefault(_root(card_id), []).append(card_id)
+    return {
+        root: tuple(sorted(members, key=lambda item: (_depth(item), item)))
+        for root, members in groups.items()
+    }
+
+
 def build_tally(
-    taps: Sequence[Event], card_rows: Sequence[SlotCardRow]
+    taps: Sequence[Event],
+    card_rows: Sequence[SlotCardRow],
+    replaces: Mapping[str, str | None] | None = None,
 ) -> tuple[TallyItem, ...]:
     """Standing rulings keyed by profile, never by letter.
 
     A lone Disconnect card carries label A, so the letter alone would
-    misread it. Cards with no stored row stay out.
+    misread it. Cards with no stored row stay out. With ``replaces``,
+    chained cards share one standing ruling, so a chain counts once.
     """
     letters: dict[str, dict[str, str]] = {}
     for row in sorted(card_rows, key=lambda item: (item.card_id, item.letter)):
         letters.setdefault(row.card_id, {})[row.letter] = row.profile_id
     counts = {"Builder": 0, "Disconnect": 0, "Neither": 0}
-    for card_id, target in first_rulings(taps).items():
+
+    def _count(card_id: str, target: str) -> None:
         mapping = letters.get(card_id)
         if mapping is None:
-            continue
+            return
         if target == "neither":
             counts["Neither"] += 1
         elif target in mapping:
             counts[_display_name(mapping[target])] += 1
+
+    if replaces:
+        for members in chain_groups(
+            list(dict.fromkeys(row.card_id for row in card_rows)), replaces
+        ).values():
+            standing = standing_chain_ruling(taps, members)
+            if standing is None:
+                continue
+            _count(*standing)
+    else:
+        for card_id, target in first_rulings(taps).items():
+            _count(card_id, target)
     return tuple(
         TallyItem(label=name, count=counts[name])
         for name in ("Builder", "Disconnect", "Neither")

@@ -642,6 +642,18 @@ def test_voice_raising_handler_counts_and_advances(harness: Harness) -> None:
     assert stats.voice_errors == 1
     assert stats.stored == 1
     assert cursor(db) == {"foreign_total": 0, "offset": 142}
+    # The note is not lost: the durable row was written before the handler ran.
+    conn = sqlite3.connect(db)
+    try:
+        row = conn.execute(
+            "SELECT status, update_id, file_id FROM voice_notes WHERE message_id = 57"
+        ).fetchone()
+    finally:
+        conn.close()
+    assert row is not None
+    assert row[0] == "pending"
+    assert row[1] == 140
+    assert row[2] == "synthetic-file-id"
 
 
 # -- AT10: why, wrong, unknown card, invalid letter -------------------------
@@ -1489,3 +1501,187 @@ def test_send_card_without_message_id_is_delivery_unknown(
         send_card(card, chart_data(), db_path=db, client=quiet)
     assert load_card(card.card_id, db_path=db) is not None
     assert len([r for r in fake.requests if r[0] == "sendPhoto"]) == 1
+
+
+# -- Ticket 14 Step 3: persist-first voice, message map, chart rows --------
+
+
+def _voice_row(db: Path, message_id: int) -> Any:
+    conn = sqlite3.connect(db)
+    try:
+        return conn.execute(
+            "SELECT message_id, update_id, file_id, status FROM voice_notes"
+            " WHERE message_id = ?",
+            (message_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def test_voice_handler_sees_durable_row_first(harness: Harness) -> None:
+    fake, client, db = harness
+    send_two_sided(harness)
+    seen: list[tuple[int, Any]] = []
+
+    def wake(note: VoiceNote) -> None:
+        seen.append((note.message_id, _voice_row(db, note.message_id)))
+
+    fake.queue(fake.voice_update(300, message_id=301))
+    stats = poll_once(db_path=db, client=client, now_fn=Clock([T0]), on_voice=wake)
+    assert stats.voice == 1
+    assert stats.voice_errors == 0
+    ((message_id, row),) = seen
+    assert message_id == 301
+    assert row is not None
+    assert row[0] == 301 and row[1] == 300 and row[3] == "pending"
+    assert row[2] == "synthetic-file-id"
+    assert cursor(db) == {"foreign_total": 0, "offset": 301}
+
+
+def test_voice_durable_write_failure_holds_cursor(
+    harness: Harness, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake, client, db = harness
+    send_two_sided(harness)
+    called: list[VoiceNote] = []
+
+    def boom(self: object, note: VoiceNote, update_id: int, received_at: str) -> bool:
+        raise sqlite3.Error("synthetic disk failure")
+
+    monkeypatch.setattr(CardLedger, "record_voice_note", boom)
+    fake.queue(fake.voice_update(310, message_id=311))
+    fake.queue(fake.voice_update(312, message_id=313))
+    stats = poll_once(
+        db_path=db, client=client, now_fn=Clock([T0]), on_voice=called.append
+    )
+    assert stats.store_errors == 1
+    assert stats.voice == 0
+    assert called == []
+    assert cursor(db) is None
+    assert _voice_row(db, 311) is None
+
+
+def test_voice_redelivery_adds_no_row(harness: Harness) -> None:
+    fake, client, db = harness
+    send_two_sided(harness)
+    seen: list[int] = []
+    fake.queue(fake.voice_update(320, message_id=321))
+    fake.queue(fake.voice_update(322, message_id=321))
+    stats = poll_once(
+        db_path=db,
+        client=client,
+        now_fn=Clock([T0, T0 + timedelta(seconds=1)]),
+        on_voice=lambda note: seen.append(note.message_id),
+    )
+    assert stats.voice == 2
+    assert seen == [321, 321]
+    conn = sqlite3.connect(db)
+    try:
+        count = conn.execute(
+            "SELECT COUNT(*) FROM voice_notes WHERE message_id = 321"
+        ).fetchone()[0]
+        first_update = conn.execute(
+            "SELECT update_id FROM voice_notes WHERE message_id = 321"
+        ).fetchone()[0]
+    finally:
+        conn.close()
+    assert count == 1
+    assert first_update == 320
+    assert cursor(db) == {"foreign_total": 0, "offset": 323}
+
+
+def test_send_card_writes_message_map_and_chart(harness: Harness) -> None:
+    _fake, _client, db = harness
+    sent = send_two_sided(harness)
+    ledger = CardLedger(db)
+    assert ledger.load_card_message(sent.message_id) == sent.card_id
+    assert ledger.load_chart(sent.card_id) == chart_data()
+    assert ledger.load_card_message(999999) is None
+    assert ledger.load_chart("card-" + "f" * 16) is None
+
+
+def test_sample_card_writes_no_map_or_chart(harness: Harness) -> None:
+    from framework.telegram.sample import SAMPLE_CARD, SAMPLE_CHART
+
+    _fake, client, db = harness
+    sent = send_card(SAMPLE_CARD, SAMPLE_CHART, db_path=db, client=client)
+    ledger = CardLedger(db)
+    assert ledger.load_card_message(sent.message_id) is None
+    assert ledger.load_chart(SAMPLE_CARD.card_id) is None
+
+
+def test_wrong_records_voice_request_message(harness: Harness) -> None:
+    fake, client, db = harness
+    sent = send_two_sided(harness)
+    before = fake.message_seq
+    fake.queue(fake.callback_update(330, "q1", f"{sent.card_id}:wrong"))
+    stats = poll_once(db_path=db, client=client, now_fn=Clock([T0]))
+    assert stats.stored == 1
+    ledger = CardLedger(db)
+    assert ledger.load_card_message(before + 1) == sent.card_id
+
+
+def test_wrong_map_write_failure_still_advances(
+    harness: Harness, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake, client, db = harness
+    sent = send_two_sided(harness)
+
+    def boom(self: object, message_id: int, card_id: str, sent_at: Any = None) -> None:
+        raise sqlite3.Error("synthetic disk failure")
+
+    monkeypatch.setattr(CardLedger, "save_card_message", boom)
+    fake.queue(fake.callback_update(340, "q1", f"{sent.card_id}:wrong"))
+    stats = poll_once(db_path=db, client=client, now_fn=Clock([T0]))
+    assert stats.stored == 1
+    assert stats.side_effect_errors == 0
+    assert cursor(db) == {"foreign_total": 0, "offset": 341}
+
+
+def test_send_card_silent_disables_notification(harness: Harness) -> None:
+    fake, client, db = harness
+    before = len(fake.requests)
+    send_card(make_card(), chart_data(), db_path=db, client=client, silent=True)
+    assert len(fake.requests) == before + 1
+    _name, _tail, _headers, body, _timeout = fake.requests[-1]
+    assert b'name="disable_notification"\r\n\r\ntrue' in body
+    send_card(make_card(), chart_data(), db_path=db, client=client)
+    _name, _tail, _headers, default_body, _timeout = fake.requests[-1]
+    assert b'name="disable_notification"\r\n\r\nfalse' in default_body
+
+
+def test_send_card_survives_message_map_store_failure(
+    harness: tuple[FakeTelegram, TelegramClient, Path],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _fake, client, db = harness
+
+    def _boom(*args: Any, **kwargs: Any) -> None:
+        raise sqlite3.Error("synthetic store lock")
+
+    monkeypatch.setattr(CardLedger, "save_card_message", _boom)
+    sent = send_card(make_card(), chart_data(), db_path=db, client=client)
+    assert isinstance(sent.message_id, int)
+    assert load_card(sent.card_id, db_path=db) is not None
+
+
+def test_service_imports_no_voice() -> None:
+    import subprocess
+    import sys
+
+    code = (
+        "import sys, framework.telegram.service;"
+        " sys.exit(0 if 'framework.voice' not in sys.modules else 3)"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    import pathlib
+
+    source = pathlib.Path(service.__file__ or "").read_text(encoding="utf-8")
+    assert "framework.voice" not in source

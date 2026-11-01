@@ -133,10 +133,13 @@ def send_card(
     *,
     db_path: Path | None = None,
     client: TelegramClient | None = None,
+    silent: bool = False,
 ) -> SentCard:
     """Ledger first, then one photo message; no half-sent card."""
+    ledger = CardLedger(db_path)
     if card.card_id != SAMPLE_CARD.card_id:
-        CardLedger(db_path).save_card(card)
+        ledger.save_card(card)
+        ledger.save_chart(card.card_id, chart)
     chat = _allowed_chat_id()
     if chat is None:
         raise TelegramConfigError("TELEGRAM_CHAT_ID is not set or is malformed")
@@ -147,10 +150,16 @@ def send_card(
         render_card_text(card),
         build_keyboard(card),
         timeout_s=60.0,
+        disable_notification=silent,
     )
     message_id: Any = message.get("message_id")
     if not _is_int(message_id):
         raise TelegramDeliveryUnknown("sendPhoto invalid response")
+    if card.card_id != SAMPLE_CARD.card_id:
+        try:
+            ledger.save_card_message(message_id, card.card_id)
+        except sqlite3.Error:
+            pass
     return SentCard(card_id=card.card_id, message_id=message_id)
 
 
@@ -277,9 +286,9 @@ class _Poller:
         except TelegramError:
             self.stats = _bump(self.stats, "side_effect_errors")
 
-    def _send_text(self, chat_id: int, message_id: int, text: str) -> None:
+    def _send_text(self, chat_id: int, message_id: int, text: str) -> int | None:
         try:
-            self.client.call(
+            result: Any = self.client.call(
                 "sendMessage",
                 {
                     "chat_id": chat_id,
@@ -296,6 +305,13 @@ class _Poller:
             )
         except TelegramError:
             self.stats = _bump(self.stats, "side_effect_errors")
+            return None
+        message = as_dict(result)
+        if message is not None:
+            sent_id: Any = message.get("message_id")
+            if _is_int(sent_id):
+                return sent_id
+        return None
 
     def _advance(
         self, update_id: int, query_id: str | None = None, silent: bool = False
@@ -479,7 +495,9 @@ class _Poller:
                 inserted,
             )
         if target == "wrong":
-            return self._wrong(update_id, query_id, chat_id, message_id, inserted)
+            return self._wrong(
+                update_id, query_id, card_id, chat_id, message_id, inserted
+            )
         return self._why(update_id, query_id, card_id, chat_id, message_id)
 
     def _first_ruling(
@@ -523,13 +541,19 @@ class _Poller:
         self,
         update_id: int,
         query_id: str,
+        card_id: str,
         chat_id: int,
         message_id: int,
         inserted: bool,
     ) -> bool:
         if inserted:
             self._answer(query_id, TOAST_WRONG_NEW)
-            self._send_text(chat_id, message_id, VOICE_REQUEST_TEXT)
+            sent_id = self._send_text(chat_id, message_id, VOICE_REQUEST_TEXT)
+            if sent_id is not None:
+                try:
+                    self.ledger.save_card_message(sent_id, card_id)
+                except sqlite3.Error:
+                    pass
         else:
             self._answer(query_id, TOAST_WRONG_DUP)
         self._advance(update_id, query_id)
@@ -594,14 +618,25 @@ class _Poller:
                 self._advance(update_id)
                 return True
             handler = self.on_voice
-            try:
-                if handler is None:
+            if handler is None:
+                try:
                     received = self.now().isoformat()
                     self.ledger.record_voice_arrival(
                         note.message_id, received, note.duration_s
                     )
+                except Exception:  # noqa: BLE001 - D16 counts a raising handler
+                    self.stats = _bump(self.stats, "voice_errors")
                 else:
-                    handler(note)
+                    self.stats = _bump(self.stats, "voice")
+                self._advance(update_id)
+                return True
+            try:
+                received = self.now().isoformat()
+                self.ledger.record_voice_note(note, update_id, received)
+            except sqlite3.Error:
+                raise _StoreFailure(None, silent=True) from None
+            try:
+                handler(note)
             except Exception:  # noqa: BLE001 - D16 counts a raising handler
                 self.stats = _bump(self.stats, "voice_errors")
             else:

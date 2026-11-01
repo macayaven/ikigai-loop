@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from framework.cycle.orchestrator import Seams, rebuild_state, run_slot
+from framework.cycle.orchestrator import Seams, rebuild_state, replaces_map, run_slot
 from framework.cycle.slot_ledger import SlotLedger
 from framework.schemas.events import Event
 from framework.store.store import EventStore
@@ -203,7 +203,8 @@ def rehearse(
             reader.close()
         ruling = first_rulings(taps).get(card_id)
         if ruling in ("A", "B", "neither"):
-            rebuilt, _ = rebuild_state(taps, cards)
+            replaces = replaces_map(db, cards)
+            rebuilt, _ = rebuild_state(taps, cards, replaces)
             if rebuilt.rulings_seen >= 1:
                 print(f"code=RULING_SEEN ruling={ruling}")
                 print(f"card={card_id}")

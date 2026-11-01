@@ -1103,3 +1103,95 @@ def test_statements_cap_three_with_overall_first() -> None:
     pieces = build_statements([("A", "Builder", loaded)])
     assert pieces[0] == "A · Builder"
     assert pieces[1:] == (texts[2], texts[0], texts[4])
+
+
+# -- corrected-card chains count once --
+
+
+def _chain_rows(card_id: str, slot: datetime) -> tuple[SlotCardRow, ...]:
+    return (
+        SlotCardRow(
+            card_id=card_id,
+            letter="A",
+            slot=slot,
+            subject_id="subject-a",
+            as_of=slot,
+            bucket="evening",
+            profile_id="builder",
+            commitment_id="b-1",
+            kind="proposal",
+            policy_pick="b-1",
+            policy_alternative=None,
+        ),
+        SlotCardRow(
+            card_id=card_id,
+            letter="B",
+            slot=slot,
+            subject_id="subject-a",
+            as_of=slot,
+            bucket="evening",
+            profile_id="disconnect",
+            commitment_id="d-1",
+            kind="proposal",
+            policy_pick="d-1",
+            policy_alternative=None,
+        ),
+    )
+
+
+def _chain_counts(tally: object) -> dict[str, int]:
+    return {item.label: item.count for item in tally}  # type: ignore[union-attr]
+
+
+def test_tally_chain_tap_old_then_new_counts_new_once() -> None:
+    slot = slot_at("18:00")
+    moment = slot + timedelta(minutes=5)
+    rows = _chain_rows("card-old", slot) + _chain_rows("card-new", slot)
+    taps = (
+        tap("t1", "card-old", "A", moment),
+        tap("t2", "card-new", "B", moment + timedelta(seconds=1)),
+    )
+    tally = build_tally(taps, rows, {"card-new": "card-old"})
+    assert _chain_counts(tally) == {"Builder": 0, "Disconnect": 1, "Neither": 0}
+
+
+def test_tally_chain_tap_only_old_counts_once() -> None:
+    slot = slot_at("18:00")
+    moment = slot + timedelta(minutes=5)
+    rows = _chain_rows("card-old", slot) + _chain_rows("card-new", slot)
+    tally = build_tally(
+        (tap("t1", "card-old", "A", moment),), rows, {"card-new": "card-old"}
+    )
+    assert _chain_counts(tally) == {"Builder": 1, "Disconnect": 0, "Neither": 0}
+
+
+def test_tally_chain_late_old_tap_loses_to_new() -> None:
+    slot = slot_at("18:00")
+    moment = slot + timedelta(minutes=5)
+    rows = _chain_rows("card-old", slot) + _chain_rows("card-new", slot)
+    taps = (
+        tap("t1", "card-new", "B", moment),
+        tap("t2", "card-old", "A", moment + timedelta(seconds=1)),
+    )
+    tally = build_tally(taps, rows, {"card-new": "card-old"})
+    assert _chain_counts(tally) == {"Builder": 0, "Disconnect": 1, "Neither": 0}
+
+
+def test_chain_groups_is_shared_with_orchestrator_and_sees_each_id_once() -> None:
+    """One shared helper: the orchestrator reuses card_build's copy.
+
+    Side rows repeat each card id, so callers pass each id once and the
+    chain holds each member a single time.
+    """
+    from framework.cycle import card_build as card_build_module
+    from framework.cycle import orchestrator as orchestrator_module
+    from framework.cycle.card_build import chain_groups
+
+    assert orchestrator_module.chain_groups is chain_groups
+    assert not hasattr(card_build_module, "_chain_groups")
+    assert not hasattr(orchestrator_module, "_chain_groups")
+    grouped = chain_groups(
+        list(dict.fromkeys(["card-new", "card-old", "card-new", "card-old"])),
+        {"card-new": "card-old"},
+    )
+    assert grouped == {"card-old": ("card-old", "card-new")}

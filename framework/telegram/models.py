@@ -138,6 +138,8 @@ class Card(SchemaModel):
     since_line: str | None = None
     proposals: tuple[Proposal, ...] = Field(min_length=1, max_length=2)
     statements: tuple[str, ...] = ()
+    correction_line: str | None = None
+    replaces_card_id: str | None = None
 
     @model_validator(mode="after")
     def _check_card(self) -> "Card":
@@ -146,6 +148,12 @@ class Card(SchemaModel):
             raise ValueError("proposal letters must be unique")
         if letters == ["B", "A"]:
             raise ValueError("two proposals read A before B")
+        if self.correction_line is not None:
+            _single_line(self.correction_line, "correction_line")
+        if self.replaces_card_id is not None and not CALLBACK_RE.fullmatch(
+            self.replaces_card_id
+        ):
+            raise ValueError("replaces_card_id must be a shaped card id")
         for statement in self.statements:
             _non_blank(statement, "statement")
         has_proposal = any(side.kind == "proposal" for side in self.proposals)
@@ -186,6 +194,10 @@ def _canonical_card_json(card: Card) -> str:
         "slot": card.slot.astimezone(UTC).isoformat(),
         "statements": list(card.statements),
     }
+    if card.correction_line is not None:
+        payload["correction_line"] = card.correction_line
+    if card.replaces_card_id is not None:
+        payload["replaces_card_id"] = card.replaces_card_id
     return json.dumps(
         payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     )
@@ -200,6 +212,8 @@ def render_card_text(card: Card) -> str:
     has_proposal = any(side.kind == "proposal" for side in card.proposals)
     head = card.since_line if has_proposal else NO_FACTS_HEADLINE
     lines = [f"{_madrid_hm(card.slot)}  {head}", ""]
+    if card.correction_line is not None:
+        lines.insert(0, card.correction_line)
     for side in card.proposals:
         line = (
             f"{side.letter}  {side.profile} \u00b7 {side.title}, "

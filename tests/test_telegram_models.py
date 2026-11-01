@@ -560,3 +560,45 @@ def test_chart_data_missing_refuses_unknown_entry() -> None:
                 "missing": ["screen tomorrow"],
             }
         )
+
+
+PINNED_DEFAULT_CARD_ID = "card-323fb1d4cba46fa5"
+
+
+def test_voice_fields_absent_keep_pinned_card_id() -> None:
+    assert card().card_id == PINNED_DEFAULT_CARD_ID
+
+
+def test_voice_fields_present_change_card_id() -> None:
+    changed = card(
+        correction_line="Skipped: Write-up draft (today).",
+        replaces_card_id=PINNED_DEFAULT_CARD_ID,
+    )
+    assert changed.card_id != PINNED_DEFAULT_CARD_ID
+    assert changed.card_id.startswith("card-")
+    assert len(changed.card_id) == 21
+
+
+def test_correction_line_renders_first() -> None:
+    line = "Skipped: Write-up draft (today)."
+    text = render_card_text(card(correction_line=line))
+    assert text.splitlines()[0] == line
+
+
+def test_correction_line_rejects_blank_and_multiline() -> None:
+    with pytest.raises(ValidationError):
+        card(correction_line="   ")
+    with pytest.raises(ValidationError):
+        card(correction_line="first\nsecond")
+
+
+def test_replaces_card_id_rejects_bad_shape() -> None:
+    with pytest.raises(ValidationError):
+        card(replaces_card_id="not-a-card")
+    with pytest.raises(ValidationError):
+        card(replaces_card_id="card-short")
+
+
+def test_correction_line_counts_toward_caption_cap() -> None:
+    with pytest.raises(ValidationError):
+        card(correction_line="x" * 1024)

@@ -713,3 +713,143 @@ def test_other_methods_treat_3xx_as_refused(
         client.call("sendMessage", {"chat_id": FAKE_CHAT_ID, "text": "hi"})
     assert not isinstance(info.value, TelegramDeliveryUnknown)
     assert len(fake.requests) == 1
+
+
+# -- Ticket 14 Step 3: getFile and the file download ----------------------
+
+
+def test_get_file_returns_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeTelegram()
+    fake.files["clip-1"] = ("voice/clip-1.oga", b"synthetic-audio-bytes")
+    client = make_client(monkeypatch, fake)
+    assert client.get_file_path("clip-1") == "voice/clip-1.oga"
+    (method, _tail, _headers, body, _timeout) = fake.requests[-1]
+    assert method == "getFile"
+    assert json.loads(body.decode()) == {"file_id": "clip-1"}
+
+
+def test_get_file_404_and_400_are_unreadable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from framework.telegram.client import TelegramFileUnreadable
+
+    fake = FakeTelegram()
+    client = make_client(monkeypatch, fake)
+    with pytest.raises(TelegramFileUnreadable):
+        client.get_file_path("gone")
+    for outcome in (("404",), ("400",)):
+        fake.queue_script("getFile", outcome)
+        with pytest.raises(TelegramFileUnreadable):
+            client.get_file_path("clip-1")
+
+
+def test_get_file_bad_shape_is_transport(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeTelegram()
+    client = make_client(monkeypatch, fake)
+    fake.queue_script("getFile", "malformed", "malformed", "malformed", "malformed")
+    with pytest.raises(TelegramTransportError, match="invalid response"):
+        client.get_file_path("clip-1")
+
+
+def test_download_round_trip(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeTelegram()
+    fake.files["clip-1"] = ("voice/clip-1.oga", b"synthetic-audio-bytes")
+    client = make_client(monkeypatch, fake)
+    assert (
+        client.download_file("voice/clip-1.oga", max_bytes=5_000_000)
+        == b"synthetic-audio-bytes"
+    )
+    (method, _tail, _headers, _body, timeout) = fake.requests[-1]
+    assert method == "download"
+    assert timeout == 30.0
+
+
+def test_download_refused_path_sends_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from framework.telegram.client import TelegramFileUnreadable
+
+    fake = FakeTelegram()
+    client = make_client(monkeypatch, fake)
+    for bad in (
+        "",
+        "/voice/clip.oga",
+        "voice/../clip.oga",
+        "voice/..",
+        "voice/clip with space.oga",
+        "voice/clip?.oga",
+        "x" * 201,
+    ):
+        with pytest.raises(TelegramFileUnreadable):
+            client.download_file(bad, max_bytes=5_000_000)
+    assert fake.requests == []
+
+
+def test_download_404_and_400_are_unreadable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from framework.telegram.client import TelegramFileUnreadable
+
+    fake = FakeTelegram()
+    client = make_client(monkeypatch, fake)
+    with pytest.raises(TelegramFileUnreadable):
+        client.download_file("voice/missing.oga", max_bytes=5_000_000)
+    fake.download_errors["voice/bad.oga"] = 400
+    with pytest.raises(TelegramFileUnreadable):
+        client.download_file("voice/bad.oga", max_bytes=5_000_000)
+
+
+def test_download_over_cap_is_unreadable(monkeypatch: pytest.MonkeyPatch) -> None:
+    from framework.telegram.client import TelegramFileUnreadable
+
+    fake = FakeTelegram()
+    fake.files["clip-big"] = ("voice/big.oga", b"x" * 64)
+    client = make_client(monkeypatch, fake)
+    with pytest.raises(TelegramFileUnreadable):
+        client.download_file("voice/big.oga", max_bytes=8)
+    assert client.download_file("voice/big.oga", max_bytes=64) == b"x" * 64
+
+
+def test_download_retries_once_then_transport(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeTelegram()
+    client = make_client(monkeypatch, fake)
+    fake.queue_script("download", "timeout-urlopen", "timeout-urlopen")
+    sleeps: list[float] = []
+    client.sleep_fn = sleeps.append  # type: ignore[method-assign]
+    with pytest.raises(TelegramTransportError, match="network error"):
+        client.download_file("voice/clip.oga", max_bytes=5_000_000)
+    assert sleeps == [1.0]
+    fake.queue_script("download", "timeout-urlopen")
+    assert (
+        client.download_file("voice/clip.oga", max_bytes=5_000_000)
+        == b"synthetic-audio-bytes"
+    )
+    assert sleeps == [1.0, 1.0]
+
+
+def test_download_and_get_file_hide_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    from framework.telegram.client import TelegramFileUnreadable
+
+    fake = FakeTelegram()
+    client = make_client(monkeypatch, fake)
+    with pytest.raises(TelegramFileUnreadable) as download_info:
+        client.download_file("voice/missing.oga", max_bytes=5_000_000)
+    assert FAKE_BOT_VALUE not in str(download_info.value)
+    with pytest.raises(TelegramFileUnreadable) as get_info:
+        client.get_file_path("gone")
+    assert FAKE_BOT_VALUE not in str(get_info.value)
+    for _name, _tail, _headers, body, _timeout in fake.requests:
+        assert FAKE_BOT_VALUE.encode() not in body
+
+
+def test_send_photo_disable_notification(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeTelegram()
+    client = make_client(monkeypatch, fake)
+    client.send_photo(FAKE_CHAT_ID, PHOTO, "hi", {"inline_keyboard": []})
+    _n, _t, _h, default_body, _to = fake.requests[-1]
+    assert b'name="disable_notification"\r\n\r\nfalse' in default_body
+    client.send_photo(
+        FAKE_CHAT_ID, PHOTO, "hi", {"inline_keyboard": []}, disable_notification=True
+    )
+    _n, _t, _h, silent_body, _to = fake.requests[-1]
+    assert b'name="disable_notification"\r\n\r\ntrue' in silent_body
