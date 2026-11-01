@@ -51,7 +51,7 @@
 
 | Statement it shows | Source | May read | Must never read | Status |
 |---|---|---|---|---|
-| I build 4–5 days a week; good day = commit or PR | GitHub, public events | Commits, PRs, issues on my public repos, excluding `ikigai-loop` | Private repos other than the job tracker below | easy |
+| I build 4–5 days a week; good day = commit or PR | GitHub, public events | Commits, PRs, issues on my public repos, including this repo as build evidence; no proposal targets it | Private repos | easy |
 | Schedule, partner window, calls | Google Calendar | Busy intervals and `iki-*` tags | Titles | needs setup |
 | Time on projects vs. feed | ActivityWatch on the Mac | App categories and durations | Window titles, URLs | needs setup |
 | Visibility | Medium public post pages, once a day | Claps per post | Anything behind login | could (fragile) |

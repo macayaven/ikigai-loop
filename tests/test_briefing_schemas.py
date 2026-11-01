@@ -44,6 +44,7 @@ def test_section_claim_action_metric_ref_round_trip() -> None:
     assert Claim.model_validate(claim.model_dump(mode="json")) == claim
     action = Action(
         id="act-x",
+        commitment_id="cm-builder-parser",
         kind="build",
         text="Build the synthetic thing",
         dimension="good_at",
@@ -189,3 +190,17 @@ def test_gate_context_terms_unavailable_by_default() -> None:
         ),
     )
     assert context.private_terms_available is False
+
+
+def test_action_requires_commitment_id() -> None:
+    with pytest.raises(ValidationError):
+        Action.model_validate(
+            {
+                "id": "act-x",
+                "kind": "build",
+                "text": "Build the synthetic thing",
+                "dimension": "good_at",
+                "proposed_start": "2026-10-31T14:00:00+01:00",
+                "proposed_end": "2026-10-31T15:00:00+01:00",
+            }
+        )

@@ -1,0 +1,116 @@
+[
+  {
+    "id": "cm-builder-parser",
+    "profile_id": "builder",
+    "title": "Build the synthetic parser sketch",
+    "kind": "build",
+    "dimension": "good_at",
+    "evidence": "github_push"
+  },
+  {
+    "id": "cm-builder-notes",
+    "profile_id": "builder",
+    "title": "Write notes on the synthetic trial",
+    "kind": "write",
+    "dimension": "love",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-builder-week",
+    "profile_id": "builder",
+    "title": "Plan the synthetic week",
+    "kind": "plan",
+    "dimension": "love",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-builder-followup",
+    "profile_id": "builder",
+    "title": "Plan the synthetic follow-up",
+    "kind": "plan",
+    "dimension": "love",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-builder-appendix",
+    "profile_id": "builder",
+    "title": "Read the synthetic appendix",
+    "kind": "read",
+    "dimension": "world_needs",
+    "evidence": "no_screen"
+  },
+  {
+    "id": "cm-builder-review",
+    "profile_id": "builder",
+    "title": "Plan the synthetic evening review",
+    "kind": "plan",
+    "dimension": "good_at",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-builder-checkin",
+    "profile_id": "builder",
+    "title": "Log the synthetic evening checkin",
+    "kind": "checkin",
+    "dimension": "love",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-builder-reference",
+    "profile_id": "builder",
+    "title": "Read the synthetic reference notes",
+    "kind": "read",
+    "dimension": "world_needs",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-builder-call",
+    "profile_id": "builder",
+    "title": "Join the synthetic review call",
+    "kind": "social",
+    "dimension": "world_needs",
+    "evidence": "calendar_tag",
+    "tag": "iki-review"
+  },
+  {
+    "id": "cm-disconnect-walk",
+    "profile_id": "disconnect",
+    "title": "Walk the synthetic garden loop",
+    "kind": "walk",
+    "dimension": "love",
+    "evidence": "no_screen"
+  },
+  {
+    "id": "cm-disconnect-rest",
+    "profile_id": "disconnect",
+    "title": "Rest with quiet music",
+    "kind": "rest",
+    "dimension": "limit",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-disconnect-week",
+    "profile_id": "disconnect",
+    "title": "Plan the synthetic week",
+    "kind": "plan",
+    "dimension": "love",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-disconnect-record",
+    "profile_id": "disconnect",
+    "title": "Play the synthetic evening record",
+    "kind": "music",
+    "dimension": "love",
+    "evidence": "tap"
+  },
+  {
+    "id": "cm-disconnect-family",
+    "profile_id": "disconnect",
+    "title": "Call the synthetic family line",
+    "kind": "social",
+    "dimension": "love",
+    "evidence": "calendar_tag",
+    "tag": "iki-family"
+  }
+]

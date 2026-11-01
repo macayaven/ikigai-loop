@@ -39,7 +39,7 @@ def _parse_time(value: Any) -> datetime | None:
 
 
 class GitHubEventsCollector:
-    """Poll GET /users/{user}/events; ETag in the cursor, ikigai-loop excluded."""
+    """Poll GET /users/{user}/events; ETag in the cursor."""
 
     def __init__(
         self,
@@ -109,8 +109,6 @@ class GitHubEventsCollector:
             return None
         repo_name = repo.get("name")
         if not isinstance(repo_name, str) or not repo_name:
-            return None
-        if repo_name.rsplit("/", 1)[-1] == "ikigai-loop":
             return None
         kind = entry.get("type")
         payload = as_dict(entry.get("payload"))

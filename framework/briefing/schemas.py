@@ -8,6 +8,7 @@ need stable locations, so every claim carries one.
 from __future__ import annotations
 
 import math
+import re
 from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, Field, field_validator, model_validator
@@ -26,13 +27,17 @@ ActionKind = Literal[
     "apply",
     "outreach",
     "walk",
-    "exercise",
     "rest",
     "music",
     "social",
     "plan",
     "checkin",
 ]
+
+EvidenceKind = Literal["tap", "calendar_tag", "github_push", "no_screen"]
+
+COMMITMENT_TAG_PATTERN = r"iki-[a-z]+"
+_COMMITMENT_TAG_RE = re.compile(COMMITMENT_TAG_PATTERN)
 
 
 class MetricRef(SchemaModel):
@@ -58,10 +63,41 @@ class Claim(SchemaModel):
     metric_refs: Annotated[list[MetricRef], Field(default_factory=list)]
 
 
+class Commitment(SchemaModel):
+    """One user-written commitment an action may be scheduled from."""
+
+    id: NonEmptyStr
+    profile_id: NonEmptyStr
+    title: NonEmptyStr
+    kind: ActionKind
+    dimension: Dimension
+    evidence: EvidenceKind
+    tag: NonEmptyStr | None = None
+
+    @field_validator("title")
+    @classmethod
+    def _non_blank_title(cls, title: str) -> str:
+        if not title.strip():
+            raise ValueError("commitment title must not be blank")
+        return title
+
+    @model_validator(mode="after")
+    def _tag_exactly_for_calendar_tag(self) -> Commitment:
+        if self.evidence == "calendar_tag":
+            if self.tag is None:
+                raise ValueError("calendar_tag commitments require a tag")
+            if _COMMITMENT_TAG_RE.fullmatch(self.tag) is None:
+                raise ValueError("commitment tag must fullmatch iki-[a-z]+")
+        elif self.tag is not None:
+            raise ValueError("only calendar_tag commitments carry a tag")
+        return self
+
+
 class Action(SchemaModel):
     """One proposed item in the ``actions`` section."""
 
     id: NonEmptyStr
+    commitment_id: NonEmptyStr
     kind: ActionKind
     text: NonEmptyStr
     dimension: Dimension

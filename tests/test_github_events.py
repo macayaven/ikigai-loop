@@ -118,7 +118,17 @@ def test_push_pr_issue_release_mapping(
 ) -> None:
     events, cursor = poll_once(monkeypatch, make_http_get(ENTRIES))
     by_id = {e.source_id: e for e in events}
-    assert set(by_id) == {"1001", "1002", "1003", "1004", "1005", "1006", "1007"}
+    assert set(by_id) == {
+        "1001",
+        "1002",
+        "1003",
+        "1004",
+        "1005",
+        "1006",
+        "1007",
+        "2001",
+        "2002",
+    }
     assert by_id["1001"].type == "github.push"
     assert by_id["1001"].data.counts == {"commits": 3}  # type: ignore[attr-defined]
     assert by_id["1001"].data.repo == "synthetic/push-repo"  # type: ignore[attr-defined]
@@ -139,14 +149,15 @@ def test_push_pr_issue_release_mapping(
     assert cursor == {"etag": '"synthetic-etag-1"'}
 
 
-def test_ikigai_loop_and_unknown_types_excluded(
+def test_unknown_types_excluded_while_ikigai_loop_included(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     events, _ = poll_once(monkeypatch, make_http_get(ENTRIES))
     repos = [e.data.repo for e in events]  # type: ignore[attr-defined]
-    assert not any(r.rsplit("/", 1)[-1] == "ikigai-loop" for r in repos)
+    assert "someone/ikigai-loop" in repos
+    assert "ikigai-loop" in repos
     assert all(e.type != "WatchEvent" for e in events)
-    assert len(events) == 7
+    assert len(events) == 9
 
 
 def test_etag_second_poll_returns_no_events(
@@ -158,7 +169,7 @@ def test_etag_second_poll_returns_no_events(
     first = GitHubEventsCollector(
         http_get=make_http_get(ENTRIES, seen=seen), now_fn=lambda: NOW
     )
-    assert run_collector(store, first) == (7, 0)
+    assert run_collector(store, first) == (9, 0)
     cursor = store.get_cursor("github")
     assert cursor == {"etag": '"synthetic-etag-1"'}
 

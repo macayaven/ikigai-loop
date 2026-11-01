@@ -126,6 +126,12 @@ Built on branch `docs-reconcile`: `README.md` rewritten around the current entry
 
 Prompts and review by Claude Code. Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+## Ticket 10 — commitments and gate additions (2026-11-01)
+
+Built on branch `t10-commitments` per [docs/plans/010-commitments-gate.md](docs/plans/010-commitments-gate.md): a typed `Commitment` set loaded fail closed from `IKIGAI_COMMITMENTS_FILE` with a 14-entry synthetic example file as the only registry, actions bound to commitments by id with matching wording and `commitment_id` required on `Action`, an advice scan, wider number tokens, and claim-to-metric binding over label, period word and direction with nine new violation codes, plus this repo counted as build evidence with the no-target guard kept and the old Profile B id renamed to `disconnect` in code ids and fixtures. The pytest meta-eval now catches all 38 named mutants with their stable violation codes and passes all 20 known-good synthetic briefings. Evidence in [docs/sessions/010-commitments-gate.md](docs/sessions/010-commitments-gate.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

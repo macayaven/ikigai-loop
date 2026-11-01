@@ -1,4 +1,4 @@
-"""Ticket 8: meta-eval over ``evals/briefing_cases`` (16 mutants, 12 known-good)."""
+"""Ticket 10: meta-eval over ``evals/briefing_cases`` (38 mutants, 20 known-good)."""
 
 import pytest
 
@@ -7,8 +7,8 @@ from framework.briefing.gate import evaluate_briefing
 
 
 def test_case_counts() -> None:
-    assert len(MUTANTS) == 20
-    assert len(KNOWN_GOOD) == 12
+    assert len(MUTANTS) == 38
+    assert len(KNOWN_GOOD) == 20
 
 
 @pytest.mark.parametrize("case", MUTANTS, ids=[c.name for c in MUTANTS])
