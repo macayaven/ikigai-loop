@@ -935,7 +935,7 @@ def _f7_case() -> Case:
     )
     events = (push, item)
     feeds = feed_aliases(events)
-    stmt = "1 feed items about model compression methods"
+    stmt = "1 feed item about model compression methods"
     return Case(
         name="F7-invalid-twice",
         events=events,
@@ -1063,7 +1063,7 @@ def _f10a_case() -> Case:
     aliases = personal_aliases(events)
     feeds = feed_aliases(events)
     stmt_p = "Push activity continued in the last period"
-    stmt_f = "1 feed items about model compression methods"
+    stmt_f = "1 feed item about model compression methods"
     return Case(
         name="F10a-injection-isolation",
         events=events,
@@ -1461,7 +1461,7 @@ def _f14_case() -> Case:
     )
     events = (push, item)
     feeds = feed_aliases(events)
-    stmt = "1 feed items about model compression methods"
+    stmt = "1 feed item about model compression methods"
     return Case(
         name="F14-truncated",
         events=events,

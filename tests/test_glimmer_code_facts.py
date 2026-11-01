@@ -792,7 +792,7 @@ def test_evidence_time_tie_sorts_by_id() -> None:
         f for f in _code(events=[tie_a, tie_b, tie_z]) if f.family == "tag_hours"
     ]
     assert (
-        fact.statement == "iki-tie calendar hours fell from 26 in prior to 2 in last."
+        fact.statement == "iki-tie calendar hours fell from 24 in prior to 2 in last."
     )
     assert list(fact.evidence) == ["evt_tie_z", "evt_tie_b", "evt_tie_a"]
 
@@ -1427,9 +1427,8 @@ def test_ai_template_duplicate_and_system_model_fact() -> None:
         feed=(feed_batch(),),
     )
     result = extract_facts(AS_OF, SUBJECT_ID, [system_row], llm)
-    assert [f.statement for f in result.facts] == [
-        "system screen hours rose from 0 in prior to 1 in last."
-    ]
+    assert result.facts == ()
+    assert [d.code for d in result.dropped] == ["FACT_SCREEN_SYSTEM_CATEGORY"]
 
 
 def test_pr_fact_evidence_holds_only_opened_rows() -> None:

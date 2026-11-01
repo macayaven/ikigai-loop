@@ -12,13 +12,18 @@ import json
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Literal, Protocol, cast
+from typing import Any, Literal, Protocol, cast
 
 from pydantic import ValidationError
 
 from framework.briefing.context import MetricSnapshot
 from framework.briefing.numbers import extract_number_tokens
-from framework.glimmer.checks import check_fact, highest_tier, resolve_aliases
+from framework.glimmer.checks import (
+    check_fact,
+    event_touches_window,
+    highest_tier,
+    resolve_aliases,
+)
 from framework.glimmer.code_facts import (
     CodeFact,
     is_duplicate_of_code,
@@ -28,11 +33,12 @@ from framework.glimmer.code_facts import (
 )
 from framework.glimmer.labels import strip_internal_tags
 from framework.glimmer.metrics import (
-    WINDOW,
     build_metric_snapshot,
     build_period_rollup,
     fixed_offset,
+    is_opened_pr,
     select_winners,
+    window_bounds,
 )
 from framework.glimmer.prompt import (
     REPAIR_SUFFIX,
@@ -272,6 +278,36 @@ def _summarise(
     )
 
 
+def _open_families(
+    winners: Sequence[Event], open_start: datetime, open_end: datetime
+) -> frozenset[str]:
+    """Period families with activity in the open hour ``[window_end, as_of)``."""
+    families: set[str] = set()
+    for event in winners:
+        data: Any = event.data
+        if event.type == "github.push":
+            if open_start <= event.time < open_end:
+                families.add("pushes")
+        elif event.type == "github.pr":
+            if is_opened_pr(event) and open_start <= event.time < open_end:
+                families.add("prs")
+        elif event.type == "screen.hour":
+            if open_start <= event.time < open_end:
+                for category, minutes in data.minutes_by_category.items():
+                    if float(minutes) > 0:
+                        families.add(f"screen_hours.{category}")
+        elif event.type == "calendar.event.cancelled":
+            if open_start <= event.time < open_end:
+                for tag in data.tags:
+                    families.add(f"cancelled.{tag}")
+        elif event.type.startswith("calendar.event."):
+            start, end = max(data.start, open_start), min(data.end, open_end)
+            if (end - start).total_seconds() > 0:
+                for tag in data.tags:
+                    families.add(f"tag_hours.{tag}")
+    return frozenset(families)
+
+
 def extract_facts(
     as_of: datetime,
     subject_id: str,
@@ -288,23 +324,28 @@ def extract_facts(
     """
     events = strip_internal_tags(events)
     as_of = fixed_offset(as_of)
-    window_start = as_of - WINDOW
-    filtered = [
+    window_start, window_end = window_bounds(as_of)
+    reconcile = [
         e
         for e in events
         if e.subject_id == subject_id
-        and window_start <= e.time < as_of
         and e.collected_at <= as_of
         and e.type in ALLOWED_TYPES
     ]
-    winners = select_winners(filtered)
-    snapshot = build_metric_snapshot(as_of, winners)
+    combined = select_winners(reconcile)
+    open_families = _open_families(combined, window_end, as_of)
+    winners = tuple(
+        event
+        for event in combined
+        if event_touches_window(event, window_start, window_end)
+    )
+    snapshot = build_metric_snapshot(as_of, winners, open_families=open_families)
     rollup = build_period_rollup(as_of, winners)
-    known_by_id = {e.id: e for e in filtered}
-    winning_ids = frozenset(e.id for e in winners)
-    winners_list = list(winners)
+    known_by_id = {e.id: e for e in reconcile}
+    winning_ids = frozenset(e.id for e in combined)
+    winners_list = list(combined)
     feed_titles = [
-        cast(FeedItemData, e.data).title for e in filtered if e.type == "feed.item"
+        cast(FeedItemData, e.data).title for e in reconcile if e.type == "feed.item"
     ]
 
     kept: list[Fact] = []
@@ -325,7 +366,7 @@ def extract_facts(
             Fact(
                 id=fact_id,
                 subject_id=subject_id,
-                window=FactWindow(start=window_start, end=as_of),
+                window=FactWindow(start=window_start, end=window_end),
                 statement=statement,
                 evidence=list(evidence_ids),
                 tier=tier,
@@ -343,6 +384,7 @@ def extract_facts(
             feed_titles=feed_titles,
             as_of=as_of,
             window_start=window_start,
+            open_families=open_families,
         )
 
     # Code facts first: largest change per family, outside the model cap.
@@ -360,6 +402,7 @@ def extract_facts(
             feed_titles=(),
             as_of=as_of,
             window_start=window_start,
+            open_families=open_families,
         )
         if failure_code is not None:
             dropped.append(_drop(code_fact.statement, f"CODE_{failure_code}"))
@@ -373,7 +416,7 @@ def extract_facts(
             Fact(
                 id=fact_id,
                 subject_id=subject_id,
-                window=FactWindow(start=window_start, end=as_of),
+                window=FactWindow(start=window_start, end=window_end),
                 statement=code_fact.statement,
                 evidence=list(code_fact.evidence),
                 tier=code_fact.tier,
@@ -397,7 +440,7 @@ def extract_facts(
     else:
         aliased = [(f"e{i + 1}", e) for i, e in enumerate(prompt_rows)]
         personal_prompt = build_personal_prompt(
-            as_of,
+            window_end,
             window_start,
             snapshot,
             rollup,
@@ -469,7 +512,8 @@ def extract_facts(
                     dropped.append(_drop(topic.topic, "FACT_EVIDENCE_UNKNOWN"))
                     continue
                 distinct = sorted(set(resolved))
-                statement = f"{len(distinct)} feed items about {clean}"
+                noun = "item" if len(distinct) == 1 else "items"
+                statement = f"{len(distinct)} feed {noun} about {clean}"
                 code = _checked(statement, distinct)
                 if code is not None:
                     dropped.append(_drop(statement, code))

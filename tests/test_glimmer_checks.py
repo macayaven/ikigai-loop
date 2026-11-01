@@ -1093,3 +1093,272 @@ def test_snapshot_hours_still_back_a_bare_count() -> None:
         )
         is None
     )
+
+
+def test_model_skipped_screen_is_subset_of_code_skipped() -> None:
+    from framework.glimmer.checks import _MODEL_SKIPPED_SCREEN
+    from framework.glimmer.code_facts import SCREEN_SKIPPED_CATEGORIES
+
+    assert _MODEL_SKIPPED_SCREEN == frozenset({"system"})
+    assert _MODEL_SKIPPED_SCREEN <= SCREEN_SKIPPED_CATEGORIES
+
+
+def test_model_system_screen_fact_dropped() -> None:
+    prior = screen_event(
+        eid="evt_sys_prior", time=_dt(29, 18), minutes={"System": 60.0}
+    )
+    last = screen_event(eid="evt_sys_last", time=_dt(30, 18), minutes={"System": 120.0})
+    events = [prior, last]
+    assert (
+        _run(
+            "System screen hours rose from 1 in prior to 2 in last",
+            [prior.id, last.id],
+            events,
+        )
+        == "FACT_SCREEN_SYSTEM_CATEGORY"
+    )
+    code_only = screen_event(
+        eid="evt_sys_code", time=_dt(30, 18), minutes={"code": 60.0}
+    )
+    assert (
+        _run("System apps took over my screen", [code_only.id], [code_only])
+        == "FACT_SCREEN_SYSTEM_CATEGORY"
+    )
+    assert (
+        _run(
+            "Code screen hours rose in last while other categories fell",
+            [code_only.id],
+            [code_only],
+        )
+        is None
+    )
+    items = [
+        feed_event(
+            eid=f"evt_sysf_{i}",
+            item=f"item-sysf-{i}",
+            day="2026-10-30",
+            time=_dt(30, 9 + i),
+            title=title,
+        )
+        for i, title in enumerate(
+            (
+                "Synthetic transformer pruning benchmark results",
+                "Synthetic container scheduler release notes",
+                "Synthetic vector index library update",
+            )
+        )
+    ]
+    assert (
+        _run(
+            "3 feed items about operating system design",
+            [e.id for e in items],
+            items,
+        )
+        is None
+    )
+
+
+def _number_binding_pushes() -> tuple[Event, Event, Event]:
+    prior_push = push_event(eid="evt_nbp_prior", time=_dt(29, 14))
+    last_one = push_event(eid="evt_nbp_last1", time=_dt(30, 14))
+    last_two = push_event(eid="evt_nbp_last2", time=_dt(30, 15))
+    return prior_push, last_one, last_two
+
+
+def test_number_bound_to_named_period() -> None:
+    prior_push, last_one, last_two = _number_binding_pushes()
+    events = [prior_push, last_one, last_two]
+    last_ids = [last_one.id, last_two.id]
+    assert _run("Pushes were 0 in last", last_ids, events) == "FACT_NUMBER_UNBACKED"
+    assert _run("Pushes were 2 in earlier", last_ids, events) == "FACT_NUMBER_UNBACKED"
+    prior_screen = screen_event(
+        eid="evt_nbp_screen_prior",
+        time=_dt(29, 18),
+        minutes={"Programming": 405.0},
+    )
+    last_screen = screen_event(
+        eid="evt_nbp_screen_last",
+        time=_dt(30, 18),
+        minutes={"Programming": 120.0},
+    )
+    assert (
+        _run(
+            "Programming screen hours fell from 2 in prior to 6.75 in last",
+            [prior_screen.id, last_screen.id],
+            [prior_screen, last_screen],
+        )
+        == "FACT_NUMBER_UNBACKED"
+    )
+    all_ids = [prior_push.id, last_one.id, last_two.id]
+    assert _run("In prior pushes were 1, in last 2", all_ids, events) is None
+    assert (
+        _run("In prior pushes were 2, in last 2", all_ids, events)
+        == "FACT_NUMBER_UNBACKED"
+    )
+    assert _run("Earlier and last held 0 and 2 pushes", all_ids, events) is None
+    assert (
+        _run("Earlier and last held 2 and 0 pushes", all_ids, events)
+        == "FACT_NUMBER_UNBACKED"
+    )
+    assert _run("Pushes fell from 2 in last to 1 in prior", all_ids, events) is None
+    assert (
+        _run("Pushes were 2 in earlier and 2 in last", all_ids, events)
+        == "FACT_NUMBER_UNBACKED"
+    )
+    assert _run("Push count sits at 0 today", [last_one.id], events) is None
+    tagged = cal_event(
+        eid="evt_nbp_tagged",
+        key="nbp-iki-last@20261030T100000",
+        lm="seq1",
+        time=_dt(30, 10),
+        end=_dt(30, 12),
+        tags=("iki-last",),
+    )
+    assert _run("iki-last focus ran 2 hours", [tagged.id], [tagged]) is None
+    repo_pushes = [
+        push_event(
+            eid=f"evt_nbp_repo_{i}",
+            time=_dt(30, 14, i),
+            repo="synthetic/earlier",
+        )
+        for i in range(2)
+    ]
+    assert (
+        _run(
+            "In synthetic/earlier pushes were 2",
+            [e.id for e in repo_pushes],
+            repo_pushes,
+        )
+        is None
+    )
+
+
+def test_code_fact_template_shapes_still_pass() -> None:
+    from evals.glimmer_cases import personal_batch as _batch
+
+    scr_prior = screen_event(
+        eid="evt_tpl_screen_prior",
+        time=_dt(29, 18),
+        minutes={"Programming": 405.0},
+    )
+    scr_last = screen_event(
+        eid="evt_tpl_screen_last",
+        time=_dt(30, 18),
+        minutes={"Programming": 120.0},
+    )
+    push_one = push_event(eid="evt_tpl_push1", time=_dt(30, 14))
+    push_two = push_event(eid="evt_tpl_push2", time=_dt(30, 15))
+    opened = pr_event(eid="evt_tpl_pr", time=_dt(30, 16))
+    block = cal_event(
+        eid="evt_tpl_block",
+        key="tpl-focus@20261030T140000",
+        lm="seq1",
+        time=_dt(30, 14),
+        end=_dt(30, 16),
+        tags=("iki-focus",),
+    )
+    cancelled = cal_event(
+        eid="evt_tpl_cancelled",
+        key="tpl-x@20261029T150000",
+        lm="seq1",
+        time=_dt(29, 15),
+        end=_dt(29, 16),
+        tags=("iki-x",),
+        cancelled=True,
+    )
+    events = [scr_prior, scr_last, push_one, push_two, opened, block, cancelled]
+    expected = (
+        "Programming screen hours rose from 0 in earlier to 6.75 in prior.",
+        "Pushes rose from 0 in prior to 2 in last.",
+        "Pull requests rose from 0 in prior to 1 in last.",
+        "iki-focus calendar hours rose from 0 in prior to 2 in last.",
+        "Cancelled iki-x blocks fell from 1 in prior to 0 in last.",
+    )
+    llm = CaseLLM(personal=(_batch(),), feed=(feed_batch(),))
+    result = extract_facts(AS_OF, SUBJECT_ID, events, llm)
+    assert [d.code for d in result.dropped] == []
+    assert [f.statement for f in result.facts] == list(expected)
+    assert result.code_fact_ids == tuple(f.id for f in result.facts)
+
+
+def test_one_feed_item_singular() -> None:
+    from evals.glimmer_cases import feed_aliases as _feed_aliases
+    from evals.glimmer_cases import feed_batch as _feed_batch
+
+    item = feed_event(
+        eid="evt_sing_one",
+        item="item-sing-one",
+        day="2026-10-30",
+        time=_dt(30, 9),
+        title="Synthetic transformer pruning benchmark results",
+    )
+    feeds = _feed_aliases((item,))
+    llm = CaseLLM(
+        feed=(
+            _feed_batch(
+                {"evidence": [feeds[item.id]], "topic": "neural pruning tools"}
+            ),
+        )
+    )
+    result = extract_facts(AS_OF, SUBJECT_ID, [item], llm)
+    assert [f.statement for f in result.facts] == [
+        "1 feed item about neural pruning tools"
+    ]
+    second = feed_event(
+        eid="evt_sing_two",
+        item="item-sing-two",
+        day="2026-10-30",
+        time=_dt(30, 10),
+        title="Synthetic container scheduler release notes",
+    )
+    pair = (item, second)
+    pair_feeds = _feed_aliases(pair)
+    llm_pair = CaseLLM(
+        feed=(
+            _feed_batch(
+                {
+                    "evidence": [pair_feeds[e.id] for e in pair],
+                    "topic": "neural pruning tools",
+                }
+            ),
+        )
+    )
+    pair_result = extract_facts(AS_OF, SUBJECT_ID, list(pair), llm_pair)
+    assert [f.statement for f in pair_result.facts] == [
+        "2 feed items about neural pruning tools"
+    ]
+    llm_repeat = CaseLLM(
+        feed=(
+            _feed_batch(
+                {"evidence": [feeds[item.id]], "topic": "neural pruning tools"}
+            ),
+        )
+    )
+    repeat = extract_facts(AS_OF, SUBJECT_ID, [item], llm_repeat)
+    assert repeat.prompt_hash == result.prompt_hash
+    assert repeat.cycle_id == result.cycle_id
+
+
+def test_statement_naming_no_period_keeps_old_rule() -> None:
+    prior_push, last_one, last_two = _number_binding_pushes()
+    events = [prior_push, last_one, last_two]
+    last_ids = [last_one.id, last_two.id]
+    all_ids = [prior_push.id, last_one.id, last_two.id]
+    # Derived by hand: period.last.pushes is 2.0, period.prior.pushes is 1.0,
+    # github.push.count is 3.0. No period named, so the period keys stay
+    # eligible and the cited last rows back the 2; the whole-window count
+    # backs the 3; nothing backs a 7.
+    assert _run("Pushes were 2", last_ids, events) is None
+    assert _run("Pushes were 3", all_ids, events) is None
+    assert _run("Pushes were 7", last_ids, events) == "FACT_NUMBER_UNBACKED"
+
+
+def test_total_does_not_back_a_paired_number() -> None:
+    prior_push, last_one, last_two = _number_binding_pushes()
+    events = [prior_push, last_one, last_two]
+    last_ids = [last_one.id, last_two.id]
+    # Derived by hand: period.last.pushes is 2.0 and github.push.count is
+    # 3.0. The 3 pairs to last, which holds 2.0, and the whole-window
+    # total must not back a period-paired number.
+    assert _run("Pushes were 3 in last", last_ids, events) == "FACT_NUMBER_UNBACKED"
+    assert _run("Pushes were 2 in last", last_ids, events) is None

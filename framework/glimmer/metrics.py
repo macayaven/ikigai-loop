@@ -25,13 +25,34 @@ def fixed_offset(as_of: datetime) -> datetime:
     return as_of.astimezone(timezone(offset))
 
 
+def floor_hour(as_of: datetime) -> datetime:
+    """Floor an instant to the whole UTC hour, keeping its fixed offset.
+
+    The floor is taken in UTC, not on the pinned wall clock: screen buckets
+    are UTC hours, and in a half-hour zone a wall-clock replace would land
+    inside a bucket and split it.
+    """
+    pinned = fixed_offset(as_of)
+    return (
+        pinned.astimezone(UTC)
+        .replace(minute=0, second=0, microsecond=0)
+        .astimezone(pinned.tzinfo)
+    )
+
+
+def window_bounds(as_of: datetime) -> tuple[datetime, datetime]:
+    """Floored data window: (window_start, window_end)."""
+    end = floor_hour(as_of)
+    return (end - WINDOW, end)
+
+
 def _logical_key(event: Event) -> tuple[str, ...]:
     if event.type.startswith("calendar.event."):
         sid = event.source_id
         sid = sid.removesuffix("#cancelled")
         if "@" in sid:
             sid = sid.rsplit("@", 1)[0]
-        return ("calendar", sid)
+        return ("calendar", event.source, sid)
     if event.type == "screen.hour":
         device = getattr(event.data, "device", "")
         instant = event.time.astimezone(UTC).isoformat()
@@ -61,6 +82,86 @@ def is_opened_pr(event: Event) -> bool:
     return data.counts.get("opened", 0) > 0
 
 
+def _split_uid_rid(uid_rid: str) -> tuple[str, str]:
+    if "@" in uid_rid:
+        uid, _, rid = uid_rid.rpartition("@")
+        return (uid, rid)
+    return (uid_rid, "")
+
+
+def _drop_moved_cancellations(
+    events: Sequence[Event], best: dict[tuple[str, ...], Event]
+) -> list[Event]:
+    """Drop a cancelled winner that is one half of a same-poll move (D4 2a).
+
+    Within one source, a cancelled winner is a move — not a real
+    cancellation — only when the same source holds an appearance of the same
+    UID under a different rid with the same collected_at. An appearance is a
+    key's first row, or a row following a cancelled row for its key. The scan
+    reads all input rows, not only the winners, so a later stamp bump cannot
+    bring the cancellation back.
+    """
+    rows_by_key: dict[tuple[str, str], list[Event]] = {}
+    for event in events:
+        if not event.type.startswith("calendar.event."):
+            continue
+        key = _logical_key(event)
+        rows_by_key.setdefault((key[1], key[2]), []).append(event)
+    appearances: set[tuple[str, str, str, datetime]] = set()
+    for (source, uid_rid), rows in rows_by_key.items():
+        uid, rid = _split_uid_rid(uid_rid)
+        rows.sort(key=lambda e: (e.collected_at, e.id))
+        prev_cancelled = False
+        for index, row in enumerate(rows):
+            if row.type == "calendar.event.cancelled":
+                prev_cancelled = True
+                continue
+            if index == 0 or prev_cancelled:
+                appearances.add((source, uid, rid, row.collected_at))
+            prev_cancelled = False
+    kept: list[Event] = []
+    for key, winner in best.items():
+        if key[0] != "calendar" or winner.type != "calendar.event.cancelled":
+            kept.append(winner)
+            continue
+        uid, rid = _split_uid_rid(key[2])
+        if any(
+            source == key[1]
+            and other_uid == uid
+            and other_rid != rid
+            and collected == winner.collected_at
+            for source, other_uid, other_rid, collected in appearances
+        ):
+            continue
+        kept.append(winner)
+    return kept
+
+
+def _combine_calendars(winners: list[Event]) -> list[Event]:
+    """Combine winners across calendars by uid@rid (D4 step 3).
+
+    If any calendar's winner for the invitation is active, every cancelled
+    winner for it is dropped. If every winner is cancelled, exactly one
+    cancelled row is kept: greatest collected_at, then id.
+    """
+    groups: dict[str, list[Event]] = {}
+    others: list[Event] = []
+    for winner in winners:
+        key = _logical_key(winner)
+        if key[0] == "calendar":
+            groups.setdefault(key[2], []).append(winner)
+        else:
+            others.append(winner)
+    combined: list[Event] = list(others)
+    for rows in groups.values():
+        active = [row for row in rows if row.type != "calendar.event.cancelled"]
+        if active:
+            combined.extend(active)
+        else:
+            combined.append(max(rows, key=lambda e: (e.collected_at, e.id)))
+    return combined
+
+
 def select_winners(events: Sequence[Event]) -> tuple[Event, ...]:
     """One winner per logical key: greatest collected_at, then greatest id."""
     best: dict[tuple[str, ...], Event] = {}
@@ -72,18 +173,20 @@ def select_winners(events: Sequence[Event]) -> tuple[Event, ...]:
             current.id,
         ):
             best[key] = event
-    return tuple(sorted(best.values(), key=lambda e: (e.time, e.id)))
+    kept = _drop_moved_cancellations(events, best)
+    combined = _combine_calendars(kept)
+    return tuple(sorted(combined, key=lambda e: (e.time, e.id)))
 
 
 def period_bounds(
     as_of: datetime,
 ) -> tuple[tuple[str, datetime, datetime], ...]:
-    as_of = fixed_offset(as_of)
+    end = floor_hour(as_of)
     return tuple(
         (
             name,
-            as_of - timedelta(hours=(3 - i) * 24),
-            as_of - timedelta(hours=(2 - i) * 24),
+            end - timedelta(hours=(3 - i) * 24),
+            end - timedelta(hours=(2 - i) * 24),
         )
         for i, name in enumerate(PERIOD_NAMES)
     )
@@ -103,6 +206,30 @@ def _clipped_hours(start: datetime, end: datetime, lo: datetime, hi: datetime) -
     return max(0.0, (e - s).total_seconds() / 3600.0)
 
 
+def _union_hours(
+    intervals: Sequence[tuple[datetime, datetime]], lo: datetime, hi: datetime
+) -> float:
+    """Union of clipped intervals in hours (D3): overlapping clock time once."""
+    clipped = sorted(
+        (max(start, lo), min(end, hi))
+        for start, end in intervals
+        if max(start, lo) < min(end, hi)
+    )
+    total = 0.0
+    current_start: datetime | None = None
+    current_end: datetime | None = None
+    for start, end in clipped:
+        if current_start is None or current_end is None or start > current_end:
+            if current_start is not None and current_end is not None:
+                total += (current_end - current_start).total_seconds() / 3600.0
+            current_start, current_end = start, end
+        elif end > current_end:
+            current_end = end
+    if current_start is not None and current_end is not None:
+        total += (current_end - current_start).total_seconds() / 3600.0
+    return total
+
+
 def build_period_rollup(
     as_of: datetime, winners: Sequence[Event]
 ) -> dict[str, dict[str, Any]]:
@@ -120,6 +247,7 @@ def build_period_rollup(
         }
         for name, start, end in bounds
     }
+    tag_intervals: dict[tuple[str, str], list[tuple[datetime, datetime]]] = {}
     for event in winners:
         data: Any = event.data
         if event.type == "screen.hour":
@@ -146,43 +274,68 @@ def build_period_rollup(
                         target[tag] = target.get(tag, 0) + 1
             else:
                 for name, start, end in bounds:
-                    hours = _clipped_hours(data.start, data.end, start, end)
-                    if hours <= 0:
+                    if _clipped_hours(data.start, data.end, start, end) <= 0:
                         continue
-                    target = rollup[name]["calendar_hours_by_tag"]
                     for tag in data.tags:
-                        target[tag] = target.get(tag, 0.0) + hours
+                        tag_intervals.setdefault((name, tag), []).append(
+                            (data.start, data.end)
+                        )
+    period_start = {name: start for name, start, _ in bounds}
+    period_end = {name: end for name, _, end in bounds}
+    for (name, tag), intervals in tag_intervals.items():
+        hours = _union_hours(intervals, period_start[name], period_end[name])
+        if hours > 0:
+            rollup[name]["calendar_hours_by_tag"][tag] = hours
     return rollup
 
 
-def build_metric_snapshot(as_of: datetime, winners: Sequence[Event]) -> MetricSnapshot:
-    as_of = fixed_offset(as_of)
-    window_start = as_of - WINDOW
+def build_metric_snapshot(
+    as_of: datetime,
+    winners: Sequence[Event],
+    *,
+    open_families: frozenset[str] = frozenset(),
+) -> MetricSnapshot:
+    window_start, window_end = window_bounds(as_of)
     values: dict[str, float] = {"calendar.busy_hours": 0.0, "feed.item.count": 0.0}
+    busy_intervals: list[tuple[datetime, datetime]] = []
+    window_tag_intervals: dict[str, list[tuple[datetime, datetime]]] = {}
     for event in winners:
         data: Any = event.data
         if event.type == "screen.hour":
+            if not (window_start <= event.time < window_end):
+                continue
             for category, minutes in data.minutes_by_category.items():
                 key = f"screen_hours.{category}"
                 values[key] = values.get(key, 0.0) + float(minutes) / 60.0
         elif event.type == "github.push":
+            if not (window_start <= event.time < window_end):
+                continue
             values["github.push.count"] = values.get("github.push.count", 0.0) + 1.0
         elif event.type == "github.pr":
+            if not (window_start <= event.time < window_end):
+                continue
             if is_opened_pr(event):
                 values["github.pr.count"] = values.get("github.pr.count", 0.0) + 1.0
         elif event.type == "feed.item":
+            if not (window_start <= event.time < window_end):
+                continue
             values["feed.item.count"] += 1.0
             key = f"feed.item.count.{data.source}"
             values[key] = values.get(key, 0.0) + 1.0
         elif event.type.startswith("calendar.event."):
             if event.type == "calendar.event.cancelled":
                 continue
-            hours = _clipped_hours(data.start, data.end, window_start, as_of)
             if data.busy:
-                values["calendar.busy_hours"] += hours
+                busy_intervals.append((data.start, data.end))
             for tag in data.tags:
-                key = f"tag_hours.{tag}"
-                values[key] = values.get(key, 0.0) + hours
+                window_tag_intervals.setdefault(tag, []).append((data.start, data.end))
+    values["calendar.busy_hours"] = _union_hours(
+        busy_intervals, window_start, window_end
+    )
+    for tag, intervals in window_tag_intervals.items():
+        hours = _union_hours(intervals, window_start, window_end)
+        if hours > 0:
+            values[f"tag_hours.{tag}"] = hours
     rollup = build_period_rollup(as_of, winners)
     screen_universe = {
         category
@@ -251,4 +404,9 @@ def build_metric_snapshot(as_of: datetime, winners: Sequence[Event]) -> MetricSn
             *(f"period.{n}.prs" for n in PERIOD_NAMES),
         )
     }
+    if open_families:
+        for rest in open_families:
+            key = f"period.last.{rest}"
+            if values.get(key) == 0.0:
+                del values[key]
     return MetricSnapshot(values=values)

@@ -10,13 +10,16 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from framework.briefing.context import MetricSnapshot
-from framework.briefing.numbers import extract_number_tokens
+from framework.briefing.numbers import NumberToken, extract_number_tokens
 from framework.glimmer.labels import INTERNAL_ONLY_LABELS
 from framework.glimmer.metrics import PERIOD_NAMES, period_bounds
 from framework.schemas.events import Event
 
 _ALIAS_RE = re.compile(r"\b[ef]\d+\b", re.IGNORECASE)
 _TIER_ORDER = {"public": 0, "private": 1, "sensitive": 2}
+_MODEL_SKIPPED_SCREEN = frozenset({"system"})
+_PERIOD_WORD_RE = re.compile(r"(?<![\w-])(earlier|prior|last)(?![\w-])", re.IGNORECASE)
+_SYSTEM_TOKEN_RE = re.compile(r"\bsystem\b")
 
 
 def resolve_aliases(
@@ -146,15 +149,97 @@ def _zero_token_backed(snapshot: MetricSnapshot, cited: Sequence[Event]) -> bool
     return False
 
 
+def event_touches_window(
+    event: Event, window_start: datetime, window_end: datetime
+) -> bool:
+    """D4 selection rule: a combined winner enters the cycle iff it touches the window."""
+    if event.type == "calendar.event.cancelled":
+        return window_start <= event.time < window_end
+    if event.type.startswith("calendar.event."):
+        data: Any = event.data
+        start, end = data.start, data.end
+        if start == end:
+            return window_start <= start < window_end
+        return max(start, window_start) < min(end, window_end)
+    return window_start <= event.time < window_end
+
+
+def _period_mentions(masked: str) -> list[tuple[str, int, int]]:
+    """Period words on the repo-masked statement, with offsets."""
+    return [
+        (match.group(0).casefold(), match.start(), match.end())
+        for match in _PERIOD_WORD_RE.finditer(masked)
+    ]
+
+
+def _pair_periods(
+    tokens: Sequence[NumberToken], mentions: Sequence[tuple[str, int, int]]
+) -> list[str | None]:
+    """Bind each number token to the period its statement names for it.
+
+    By order when token and mention counts match; otherwise (a) the first
+    mention after the token and before the next token, (b) the last mention
+    before the token and after the previous token, (c) the statement's only
+    named period. Unbound (None) when no rule fires.
+    """
+    if len(tokens) == len(mentions):
+        return [name for name, _, _ in mentions]
+    named = {name for name, _, _ in mentions}
+    only = next(iter(named)) if len(named) == 1 else None
+    paired: list[str | None] = []
+    for index, token in enumerate(tokens):
+        token_start = token.start
+        token_end = token.start + len(token.raw)
+        if index > 0:
+            prev_end = tokens[index - 1].start + len(tokens[index - 1].raw)
+        else:
+            prev_end = 0
+        next_start = tokens[index + 1].start if index + 1 < len(tokens) else None
+        after = [
+            mention
+            for mention in mentions
+            if mention[1] >= token_end
+            and (next_start is None or mention[1] < next_start)
+        ]
+        if after:
+            paired.append(after[0][0])
+            continue
+        before = [
+            mention
+            for mention in mentions
+            if mention[2] <= token_start and mention[1] >= prev_end
+        ]
+        if before:
+            paired.append(before[-1][0])
+            continue
+        paired.append(only)
+    return paired
+
+
 def _snapshot_backs(
     token_abs: Decimal,
     places: int,
     snapshot: MetricSnapshot,
     cited: Sequence[Event],
     as_of: datetime,
+    paired: str | None,
+    named: set[str],
 ) -> bool:
-    if token_abs == 0 and _zero_token_backed(snapshot, cited):
-        return True
+    period_only = paired is not None or bool(named)
+    if not period_only:
+        if token_abs == 0 and _zero_token_backed(snapshot, cited):
+            return True
+    elif token_abs == 0:
+        if paired is not None:
+            return any(
+                snapshot.values.get(f"period.{paired}.{family}") in (None, 0.0)
+                for family in _cited_period_families(cited)
+            )
+        return any(
+            snapshot.values.get(f"period.{name}.{family}") in (None, 0.0)
+            for name in named
+            for family in _cited_period_families(cited)
+        )
     spans = {name: (start, end) for name, start, end in period_bounds(as_of)}
     for key, value in snapshot.values.items():
         if not _backs(value, places, token_abs):
@@ -164,6 +249,10 @@ def _snapshot_backs(
             if len(parts) < 3:
                 continue
             period_name, rest = parts[1], parts[2]
+            if paired is not None and period_name != paired:
+                continue
+            if paired is None and named and period_name not in named:
+                continue
             span = spans.get(period_name)
             if span is None:
                 continue
@@ -178,7 +267,7 @@ def _snapshot_backs(
                 for e in cited
             ):
                 return True
-        elif any(_family_match(key, e) for e in cited):
+        elif not period_only and any(_family_match(key, e) for e in cited):
             return True
     return False
 
@@ -251,6 +340,7 @@ def check_fact(
     feed_titles: Sequence[str],
     as_of: datetime,
     window_start: datetime,
+    open_families: frozenset[str] = frozenset(),
 ) -> str | None:
     """Return the first failing code, or None when the fact passes."""
     cited: list[Event] = []
@@ -261,8 +351,9 @@ def check_fact(
         cited.append(event)
     if any(event.id not in winning_ids for event in cited):
         return "FACT_EVIDENCE_UNKNOWN"
+    window_end = period_bounds(as_of)[-1][2]
     for event in cited:
-        if not (window_start <= event.time < as_of):
+        if not event_touches_window(event, window_start, window_end):
             return "FACT_EVIDENCE_OUT_OF_WINDOW"
     if _ALIAS_RE.search(statement):
         return "FACT_ALIAS_IN_STATEMENT"
@@ -270,6 +361,10 @@ def check_fact(
     for internal in INTERNAL_ONLY_LABELS:
         if internal.casefold() in collapsed_statement:
             return "FACT_INTERNAL_LABEL"
+    if _SYSTEM_TOKEN_RE.search(collapsed_statement) and any(
+        event.type == "screen.hour" for event in cited
+    ):
+        return "FACT_SCREEN_SYSTEM_CATEGORY"
     known_ids: set[str] = set(evidence_ids)
     for event in cited:
         if event.type.startswith("github."):
@@ -279,11 +374,21 @@ def check_fact(
             known_ids.update(repo.split("/"))
     all_feed = bool(cited) and all(event.type == "feed.item" for event in cited)
     masked_statement = _mask_cited_repos(statement, cited)
-    for token in extract_number_tokens(masked_statement, known_ids=known_ids):
+    tokens = extract_number_tokens(masked_statement, known_ids=known_ids)
+    mentions = _period_mentions(masked_statement)
+    paired = _pair_periods(tokens, mentions)
+    named = {name for name, _, _ in mentions}
+    if open_families and (_cited_period_families(cited) & open_families):
+        for token, period in zip(tokens, paired):
+            if token.value == 0 and period == "last":
+                return "FACT_OPEN_HOUR_ZERO"
+    for token, period in zip(tokens, paired):
         token_abs = abs(token.value)
         if all_feed and Decimal(len(cited)) == token_abs:
             continue
-        if _snapshot_backs(token_abs, token.places, snapshot, cited, as_of):
+        if _snapshot_backs(
+            token_abs, token.places, snapshot, cited, as_of, period, named
+        ):
             continue
         return "FACT_NUMBER_UNBACKED"
     collapsed = _collapse(statement)
