@@ -42,7 +42,9 @@ class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
         return None
 
 
-_OPENER = urllib.request.build_opener(NoRedirectHandler)
+_OPENER = urllib.request.build_opener(
+    urllib.request.ProxyHandler({}), NoRedirectHandler
+)
 
 
 def urlopen(request: urllib.request.Request, timeout: float | None = None) -> Any:
@@ -113,25 +115,28 @@ class OpenAICompatibleClient:
         model: str,
         api_key: str,
         timeout_s: int = MODEL_TIMEOUT_S,
+        response_format: Mapping[str, Any] | None = None,
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._model = model
         self._api_key = api_key
         self._timeout_s = timeout_s
+        self.response_format = response_format
 
     def complete(self, prompt: str) -> LLMResponse:
         start = time.monotonic()
         failure: str | None = None
         raw = b""
         try:
-            body = json.dumps(
-                {
-                    "model": self._model,
-                    "temperature": 0,
-                    "max_tokens": MODEL_MAX_TOKENS,
-                    "messages": [{"role": "user", "content": prompt}],
-                }
-            ).encode()
+            payload: dict[str, Any] = {
+                "model": self._model,
+                "temperature": 0,
+                "max_tokens": MODEL_MAX_TOKENS,
+                "messages": [{"role": "user", "content": prompt}],
+            }
+            if self.response_format is not None:
+                payload["response_format"] = self.response_format
+            body = json.dumps(payload).encode()
             request = urllib.request.Request(
                 f"{self._base_url}/chat/completions",
                 data=body,

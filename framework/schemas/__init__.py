@@ -3,6 +3,7 @@
 from framework.schemas.base import Dimension, SchemaModel, Tier
 from framework.schemas.core import Criterion, Fact, FactWindow, IkigaiWeights, Profile
 from framework.schemas.events import (
+    LABELS,
     AppApproveData,
     AppCheckinData,
     AppJournalData,
@@ -14,6 +15,7 @@ from framework.schemas.events import (
     CalendarEventCancelledData,
     CalendarEventCreatedData,
     CalendarEventUpdatedData,
+    CalendarLabelData,
     EditorHourData,
     Event,
     EventData,
@@ -26,6 +28,7 @@ from framework.schemas.events import (
     HealthDailyData,
     JobsSnapshotData,
     JobStageCounts,
+    Label,
     MusicPlayData,
     ScreenHourData,
 )
@@ -39,6 +42,7 @@ from framework.schemas.manifest import (
 )
 
 __all__ = [
+    "LABELS",
     "AppApproveData",
     "AppCheckinData",
     "AppJournalData",
@@ -51,6 +55,7 @@ __all__ = [
     "CalendarEventCancelledData",
     "CalendarEventCreatedData",
     "CalendarEventUpdatedData",
+    "CalendarLabelData",
     "ChangelogEntry",
     "Criterion",
     "Decision",
@@ -71,6 +76,7 @@ __all__ = [
     "IkigaiWeights",
     "JobStageCounts",
     "JobsSnapshotData",
+    "Label",
     "Manifest",
     "ManifestDiff",
     "MusicPlayData",

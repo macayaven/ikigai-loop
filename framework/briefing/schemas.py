@@ -36,7 +36,7 @@ ActionKind = Literal[
 
 EvidenceKind = Literal["tap", "calendar_tag", "github_push", "no_screen"]
 
-COMMITMENT_TAG_PATTERN = r"iki-[a-z]+"
+COMMITMENT_TAG_PATTERN = r"(?<![\w-])iki-[a-z]+"
 _COMMITMENT_TAG_RE = re.compile(COMMITMENT_TAG_PATTERN)
 
 

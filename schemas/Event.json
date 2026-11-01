@@ -375,6 +375,59 @@
       "title": "CalendarEventUpdatedData",
       "type": "object"
     },
+    "CalendarLabelData": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "enum": [
+            "iki-deep",
+            "iki-meeting",
+            "iki-family",
+            "iki-social",
+            "iki-care",
+            "iki-rest",
+            "iki-admin",
+            "iki-unknown"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "label_source": {
+          "const": "local_model",
+          "default": "local_model",
+          "title": "Label Source",
+          "type": "string"
+        },
+        "model_id": {
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "target_event_id": {
+          "minLength": 1,
+          "title": "Target Event Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "calendar.label",
+          "default": "calendar.label",
+          "title": "Type",
+          "type": "string"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "target_event_id",
+        "label",
+        "model_id",
+        "valid"
+      ],
+      "title": "CalendarLabelData",
+      "type": "object"
+    },
     "EditorHourData": {
       "additionalProperties": false,
       "properties": {
@@ -819,6 +872,7 @@
           "calendar.event.cancelled": "#/$defs/CalendarEventCancelledData",
           "calendar.event.created": "#/$defs/CalendarEventCreatedData",
           "calendar.event.updated": "#/$defs/CalendarEventUpdatedData",
+          "calendar.label": "#/$defs/CalendarLabelData",
           "editor.hour": "#/$defs/EditorHourData",
           "feed.item": "#/$defs/FeedItemData",
           "github.issue": "#/$defs/GitHubIssueData",
@@ -841,6 +895,9 @@
         },
         {
           "$ref": "#/$defs/CalendarEventCancelledData"
+        },
+        {
+          "$ref": "#/$defs/CalendarLabelData"
         },
         {
           "$ref": "#/$defs/GitHubPushData"
@@ -938,6 +995,7 @@
         "calendar.event.created",
         "calendar.event.updated",
         "calendar.event.cancelled",
+        "calendar.label",
         "github.push",
         "github.pr",
         "github.issue",

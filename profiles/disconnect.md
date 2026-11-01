@@ -44,7 +44,7 @@ Profile A's limits apply (private categories, quiet hours, never-read sources, t
 
 | Statement it shows | Source | May read | Must never read | Status |
 |---|---|---|---|---|
-| Family call and a new date | Google Calendar, events tagged `iki-family` and `iki-date` | Busy intervals and those tags | Titles | needs setup |
+| Family call and a new date | Google Calendar, events tagged `iki-family` and `iki-date` | Busy intervals and those tags | Titles (local model only, when I switch labels on — see docs/PRIVACY.md) | needs setup |
 | Time away from screens | ActivityWatch and phone screen time | Categories and durations | Window titles, URLs | needs setup |
 | When I respond | Responses to the card | Time and answer | — | easy |
 

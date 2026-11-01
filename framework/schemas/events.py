@@ -1,6 +1,6 @@
 """Event envelope (PLAN section 2.2) with typed data per event type."""
 
-from typing import Annotated, Literal
+from typing import Annotated, Literal, get_args
 
 from pydantic import AwareDatetime, Field, model_validator
 
@@ -9,6 +9,18 @@ from framework.schemas.base import SchemaModel, Tier
 NonEmptyStr = Annotated[str, Field(min_length=1)]
 NonNegativeInt = Annotated[int, Field(ge=0)]
 NonNegativeFloat = Annotated[float, Field(ge=0)]
+
+Label = Literal[
+    "iki-deep",
+    "iki-meeting",
+    "iki-family",
+    "iki-social",
+    "iki-care",
+    "iki-rest",
+    "iki-admin",
+    "iki-unknown",
+]
+LABELS: tuple[str, ...] = get_args(Label)
 
 
 class CalendarEventData(SchemaModel):
@@ -36,6 +48,15 @@ class CalendarEventUpdatedData(CalendarEventData):
 
 class CalendarEventCancelledData(CalendarEventData):
     type: Literal["calendar.event.cancelled"] = "calendar.event.cancelled"
+
+
+class CalendarLabelData(SchemaModel):
+    type: Literal["calendar.label"] = "calendar.label"
+    target_event_id: NonEmptyStr
+    label: Label
+    label_source: Literal["local_model"] = "local_model"
+    model_id: NonEmptyStr
+    valid: bool
 
 
 class GitHubPushData(SchemaModel):
@@ -164,6 +185,7 @@ EventData = Annotated[
     CalendarEventCreatedData
     | CalendarEventUpdatedData
     | CalendarEventCancelledData
+    | CalendarLabelData
     | GitHubPushData
     | GitHubPrData
     | GitHubIssueData
@@ -189,6 +211,7 @@ EventType = Literal[
     "calendar.event.created",
     "calendar.event.updated",
     "calendar.event.cancelled",
+    "calendar.label",
     "github.push",
     "github.pr",
     "github.issue",

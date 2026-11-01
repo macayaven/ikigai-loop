@@ -262,11 +262,25 @@ Built on branch `t11-wonder-proposal` per [docs/plans/011-wonder-proposal.md](do
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started; the last sessions ran in Contributor mode, on this public repo and made-up data only. Claude Code ran the live measurements outside those sessions, on made-up data.
 
+## Ticket 9c — Glimmer calendar labels (2026-11-01)
+
+Built on branch `t9c-glimmer-labels` per [docs/plans/009c-glimmer-labels.md](docs/plans/009c-glimmer-labels.md): the closed 8-label set defined once in `framework/schemas/events.py` with `CalendarLabelData` as a new `calendar.label` event type; the in-memory tag overlay in `framework/glimmer/labels.py` with `iki-care` kept out of every prompt, snapshot, rollup, and fact; the pinned prompt, strict two-shape parser, private-endpoint guard, and per-title queue in `framework/glimmer/label_step.py`; the collector tag boundary fix plus the in-memory title sink; the label sweep in `framework/cycle/labels.py` behind the off-by-default `labels` subcommand; the frozen keyword baseline in `evals/r10_keywords.py`; the gated R10 runner in `evals/r10.py`; five new test files plus additions to three existing ones, all on synthetic titles with fakes instead of any network; and the docs (the calendar section of `docs/PRIVACY.md`, the README Status line, the profile lines, this entry). Evidence in [docs/sessions/009c-glimmer-labels.md](docs/sessions/009c-glimmer-labels.md).
+
+R10 on the frozen set, one pass: `model correct: 77/80 strict: 77/80`, `keywords correct: 51/80 strict: 50/80`, `decision: eligible`. Claude Code started the run, and the switch stays off in this repo.
+
+On Ticket 11's main, `forbidden_literals_for` in `framework/cycle/__init__.py` also returns the internal-only labels, so the outbound scan is a second check behind the strip in `extract_facts`.
+
+`evals/r10_cases.json` isn't Muse Code's: a separate Claude Code agent wrote those 80 invented titles and froze them by hash before the plan was written, so no session writing the prompt, the list or the rule could see them. `evals/r10_results/` is the runner's output, with `seconds` rounded in one file as the session note says.
+
+Two outside reviewers, GPT Sol 6.1 through Codex and Gemini 4 Argon, read the set read-only before it went public. The notice in `evals/README.md` was Sol's suggestion, and no entry changed. Argon asked to replace four care titles and rename two people; I declined, because rewriting cases after seeing results would break the claim that they were frozen first.
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
   planning documents (SPEC.md, the pitch, docs/WORKFLOW.md) and helped structure the ikigai profiles from my interview answers; it reviewed plans and diffs,
   and ran feasibility checks on Oct 27 outside this repo (one call each to Muse Glimmer,
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
-- It wrote no code in this repository. All code here was written by Muse Code, as summarised in `docs/sessions/`, and the branch commits are Muse Code's. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
+- Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as summarised in `docs/sessions/`. The exception is the held-out test sets a ticket's entry names. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks I found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
 - **GPT Sol 6.1 and GPT Astra 6 (OpenAI), through Codex,** reviewed this project read-only on Nov 1: literature, code, demo plan, failure modes and launch plan. They wrote nothing in this repository. Findings that changed something are credited in the ticket that used them.

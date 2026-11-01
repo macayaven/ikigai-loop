@@ -13,6 +13,7 @@ from framework.briefing.context import (
 from framework.briefing.schemas import Briefing, Commitment
 from framework.glimmer.checks import private_free_text_values
 from framework.glimmer.facts import ALLOWED_TYPES, FactResult, LLMClient, extract_facts
+from framework.glimmer.labels import INTERNAL_ONLY_LABELS, apply_labels
 from framework.glimmer.metrics import WINDOW, fixed_offset
 from framework.proposal.core import ModelParams, ProposalResult, WonderClient, propose
 from framework.proposal.hour import (
@@ -27,6 +28,8 @@ from framework.store.fact_store import FactStore
 from framework.store.proposal_store import ProposalStore
 from framework.store.store import EventStore
 
+LABEL_TYPES = frozenset({"calendar.label"})
+
 
 def run_cycle(
     as_of: datetime,
@@ -40,11 +43,23 @@ def run_cycle(
 ) -> tuple[FactResult, int]:
     """Load the window, extract facts, record the cycle, return ``(result, run)``."""
     as_of = fixed_offset(as_of)
+    label_rows = [
+        row
+        for row in store.events_between(
+            subject_id, as_of - WINDOW, as_of, types=LABEL_TYPES
+        )
+        if row.collected_at <= as_of
+    ]
     events = store.events_between(
         subject_id, as_of - WINDOW, as_of, types=ALLOWED_TYPES
     )
     result = extract_facts(
-        as_of, subject_id, events, llm, personal_pass=personal_pass, feed_pass=feed_pass
+        as_of,
+        subject_id,
+        apply_labels(events, label_rows),
+        llm,
+        personal_pass=personal_pass,
+        feed_pass=feed_pass,
     )
     return result, fact_store.record_cycle(result)
 
@@ -63,11 +78,14 @@ _BUSY_TYPES = (
 def forbidden_literals_for(
     store: EventStore, subject_id: str, as_of: datetime
 ) -> tuple[str, ...]:
-    """Forbidden raw literals over all cycle-window rows collected in time."""
+    """Forbidden raw literals over cycle-window rows, plus the internal-only labels.
+
+    The labels hold on every cycle, whatever the store holds.
+    """
     start, end = cycle_window(as_of)
     events = store.events_between(subject_id, start, end)
     rows = [event for event in events if event.collected_at <= as_of]
-    return private_free_text_values(rows)
+    return (*private_free_text_values(rows), *sorted(INTERNAL_ONLY_LABELS))
 
 
 def _rebuild_facts(fact_store: FactStore, cycle_id: str, run: int) -> list[Fact]:

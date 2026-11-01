@@ -27,7 +27,7 @@ from framework.schemas import (
 )
 
 MADRID = ZoneInfo("Europe/Madrid")
-TAG_PATTERN = re.compile(r"iki-[a-z]+")
+TAG_PATTERN = re.compile(r"(?<![\w-])iki-[a-z]+")
 LABEL_PATTERN = re.compile(r"[a-z]+")
 
 
@@ -62,6 +62,7 @@ class CalendarIcsCollector:
         http_get: HttpGet = urllib_http_get,
         now_fn: Callable[[], datetime] = lambda: datetime.now(UTC),
         label: str = "personal",
+        title_sink: dict[str, str] | None = None,
     ) -> None:
         if LABEL_PATTERN.fullmatch(label) is None:
             raise ValueError(f"invalid calendar label: {label!r}")
@@ -70,6 +71,7 @@ class CalendarIcsCollector:
         self.label = label
         self.name = f"calendar-{label}"
         self.version = "calendar@0.1.0"
+        self.title_sink = title_sink
 
     def poll(self, cursor: Any) -> tuple[list[Event], Any]:
         now = self._now_fn()
@@ -210,6 +212,8 @@ class CalendarIcsCollector:
         raw_summary = component.get("SUMMARY")
         summary = str(raw_summary) if raw_summary is not None else ""
         tags = list(dict.fromkeys(TAG_PATTERN.findall(summary)))
+        if self.title_sink is not None and summary.strip():
+            self.title_sink[event_id(self.name, source_id)] = summary
         is_new = summary.strip().startswith("new:")
         raw_transp = component.get("TRANSP", "OPAQUE")
         busy = str(raw_transp).upper() != "TRANSPARENT"

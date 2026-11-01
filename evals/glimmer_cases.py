@@ -341,6 +341,14 @@ def _dropped_payload(etype: str, journal_text: str) -> dict[str, Any]:
         return {"energy": 3}
     if etype == "app.journal":
         return {"text": journal_text}
+    if etype == "calendar.label":
+        return {
+            "target_event_id": "evt_f9_label_target",
+            "label": "iki-deep",
+            "label_source": "local_model",
+            "model_id": "mock-model",
+            "valid": True,
+        }
     raise AssertionError(f"unhandled dropped type: {etype}")
 
 
