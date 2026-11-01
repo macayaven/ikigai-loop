@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "ClaimDraft": {
+      "additionalProperties": false,
+      "description": "One drafted claim: prose plus id-only evidence.",
+      "properties": {
+        "fact_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Fact Ids",
+          "type": "array"
+        },
+        "metric_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Metric Refs",
+          "type": "array"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "fact_ids",
+        "metric_refs"
+      ],
+      "title": "ClaimDraft",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The narrow draft: one commitment plus claim lists.",
+  "properties": {
+    "commitment_id": {
+      "minLength": 1,
+      "title": "Commitment Id",
+      "type": "string"
+    },
+    "not_working": {
+      "items": {
+        "$ref": "#/$defs/ClaimDraft"
+      },
+      "title": "Not Working",
+      "type": "array"
+    },
+    "overall_state": {
+      "items": {
+        "$ref": "#/$defs/ClaimDraft"
+      },
+      "title": "Overall State",
+      "type": "array"
+    },
+    "since_last": {
+      "items": {
+        "$ref": "#/$defs/ClaimDraft"
+      },
+      "title": "Since Last",
+      "type": "array"
+    },
+    "working": {
+      "items": {
+        "$ref": "#/$defs/ClaimDraft"
+      },
+      "title": "Working",
+      "type": "array"
+    }
+  },
+  "required": [
+    "commitment_id",
+    "overall_state",
+    "working",
+    "not_working",
+    "since_last"
+  ],
+  "title": "ProposalDraft",
+  "type": "object"
+}

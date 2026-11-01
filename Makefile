@@ -11,7 +11,7 @@ check:
 test:
 	uv run pytest
 
-EVAL_FILES = evals/hello.py evals/briefing_gate.py evals/glimmer_facts.py
+EVAL_FILES = evals/hello.py evals/briefing_gate.py evals/glimmer_facts.py evals/proposal_gate.py
 
 eval:
 	mkdir -p logs

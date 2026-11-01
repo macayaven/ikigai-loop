@@ -55,7 +55,8 @@ Ikigai Loop: two goals, Builder and Disconnect, compete for Carlos's next free h
 ## Toolchain and models
 
 - Python 3.12 with `uv`.
-- Meta API at `https://api.meta.ai/v1` with key from `META_API_KEY`.
+- Product Wonder calls run through headless `muse exec` on my subscription, with `META_API_KEY` out of the child's environment.
+- Meta API at `https://api.meta.ai/v1` with key from `META_API_KEY` is the other transport, for anyone with a key.
 - Local models only via `LOCAL_LLM_BASE_URL`.
 - No other model endpoints.
 

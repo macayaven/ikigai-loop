@@ -157,7 +157,7 @@ flowchart TD
     G --> KB[(Knowledge base)]
     G --> A{Attention > 0.6<br/>and budget left?}
     A -- no --> G
-    A -- yes --> W[Muse Wonder<br/>Meta API]
+    A -- yes --> W[Muse Wonder<br/>Muse Code headless]
     W --> D{Decision}
     D -- noop --> KB
     D -- refine_objective --> O[Objective J<br/>owner approves]
@@ -177,7 +177,7 @@ flowchart TD
 |---|---|---|---|
 | Adapters (collectors) | Spark | Calendar, Spotify, GitHub (excluding the `ikigai-loop` repo itself), Apple Health daily aggregates, ActivityWatch app categories, public build feed, app telemetry → append-only `events` log. Deterministic; agents never call sources live; stream identical for both profiles and replayable | Scrape; call sources live from agents |
 | **Muse Glimmer** (open weights) | Spark via llama-swap | Every 3 h: events → KB facts; attention score; `AttentionRequest`; jury member; `insight_card` text | Decide objective, evals or code |
-| **Muse Wonder** | Meta Model API | Decision (`noop` / `evolve` / `recalibrate` / `refine_objective`); emits manifest diff or C3 spec; jury member | Ship directly |
+| **Muse Wonder** | Muse Code headless on my subscription (Model API transport kept for anyone with a key) | Decision (`noop` / `evolve` / `recalibrate` / `refine_objective`); emits manifest diff or C3 spec; jury member | Ship directly |
 | **Muse Code** | Meta coding agent | C3 only: implement a new block + its tests | Touch the framework or manifests |
 | Gate | Spark, Inspect AI | Section 5 | Skip a layer |
 | Deployer | Spark | Manifest swap; previous kept; rollback = pointer flip | Deploy without gate pass |

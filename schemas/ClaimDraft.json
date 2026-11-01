@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "description": "One drafted claim: prose plus id-only evidence.",
+  "properties": {
+    "fact_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Fact Ids",
+      "type": "array"
+    },
+    "metric_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Metric Refs",
+      "type": "array"
+    },
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "text",
+    "fact_ids",
+    "metric_refs"
+  ],
+  "title": "ClaimDraft",
+  "type": "object"
+}

@@ -13,6 +13,7 @@ import json
 import os
 import sqlite3
 from dataclasses import asdict
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Self
 
@@ -311,6 +312,31 @@ class FactStore:
                 ],
             }
         )
+
+    def fetch_latest_cycle(
+        self, subject_id: str, *, not_after: datetime | None = None
+    ) -> dict[str, Any] | None:
+        """Latest cycle for a subject: greatest as_of, then run, then id."""
+        rows = self._conn.execute(
+            "SELECT cycle_id, run, as_of FROM cycles WHERE subject_id = ?",
+            (subject_id,),
+        ).fetchall()
+        winner: tuple[str, int] | None = None
+        winner_key: tuple[Any, int, str] | None = None
+        for cycle_id, run, as_of_text in rows:
+            as_of = datetime.fromisoformat(as_of_text)
+            if not_after is not None and as_of > not_after:
+                continue
+            key = (as_of, int(run), str(cycle_id))
+            if winner_key is None or key > winner_key:
+                winner_key = key
+                winner = (str(cycle_id), int(run))
+        if winner is None:
+            return None
+        record = self.fetch_cycle(*winner)
+        record["cycle_id"] = winner[0]
+        record["run"] = winner[1]
+        return record
 
     def fetch_cycle(self, cycle_id: str, run: int) -> dict[str, Any]:
         row = self._conn.execute(

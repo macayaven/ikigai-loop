@@ -231,6 +231,7 @@ to 279 and 57. Evidence in
 [docs/sessions/009d-pr-count.md](docs/sessions/009d-pr-count.md).
 
 Prompt and review by Claude Code. Implementation by muse-spark-1.3, in Muse Code, in a headless session Claude Code started.
+
 ## Ticket 17a — verify_claims (2026-11-01)
 
 Built on branch `t17a-verify-claims` per [docs/plans/017a-verify-claims.md](docs/plans/017a-verify-claims.md):
@@ -254,6 +255,12 @@ Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implemen
 [docs/LITERATURE.md](docs/LITERATURE.md), dated Deviations in [docs/PREREG.md](docs/PREREG.md), a note at SPEC §5.1 and two README lines.
 
 GPT Sol 6.1, through Codex, checked every citation and proposed the deviations. Claude Code re-read 15 sources and drafted the text. Muse Code placed it. Implementation: muse-spark-1.3 (effort medium), in a headless session Claude Code started.
+
+## Ticket 11 — Wonder proposal step (2026-11-01)
+
+Built on branch `t11-wonder-proposal` per [docs/plans/011-wonder-proposal.md](docs/plans/011-wonder-proposal.md): the guarded Wonder call that turns a cycle into one proposal per goal. `framework/proposal/` holds the pure core (narrow draft and fallback schemas with a hand-built per-call response schema, free-hour picking over the slot's local day, offerable current-minus-parent deltas, the exact prompt with a one-pass filler, draft-to-briefing assembly, and `propose` with its pre-send scan, one retry on the violations, and labelled fallback or noop outcomes) plus the headless Muse Code transport `framework/proposal/muse_client.py` as the default (with `--preset empty`, because the default preset hands the model file tools that read outside the workspace), `framework/proposal/defaults.py` for the product's default model and effort, and the Model API `MetaClient`, still in the code for anyone with a key, which scans every outbound request with that request's forbidden literals and never logs the key. It imports `repair_loop` from Ticket 17a's `framework/verify/`, `framework/store/proposal_store.py` holds the append-only attempts and results with the first-draft failure report, and `framework/cycle/` holds the `run_proposals` seam and the `propose` CLI. The pytest meta-eval replays 37 scripted cases (P1-P37) through the real core and gate, and `make eval` adds the 37-sample replay task, all green on the mock model. Review found sixteen problems and I fixed them with tests first: the clock flags parse before any store opens with fixed errors, contributor refusal runs first, a foreign cycle id fails like an unknown one, stale and parent-without-deltas codes survive on every result exactly once, the policy block is marker-stripped, the report counts fallbacks and noops per model, the client re-sends once on a dropped connection, and the prompt carries the measured first-claim, number, period, hours, comparison, and positive-wording rules. A later review round added five more, fixed the same way: the two measured prompt lines restored exactly, `URLError`-wrapped drops re-sent under the same rules, newline claims failed as non-plain, and minus zero stripped of its sign. Moving to Muse Code found eight more, fixed the same way, with the numbers in [docs/sessions/011-wonder-proposal.md](docs/sessions/011-wonder-proposal.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started; the last sessions ran in Contributor mode, on this public repo and made-up data only. Claude Code ran the live measurements outside those sessions, on made-up data.
 
 ## AI assistance outside the Muse family
 

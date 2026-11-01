@@ -13,11 +13,18 @@ from framework.briefing.context import (
     load_private_terms,
 )
 from framework.briefing.gate import (
+    ADVICE_PHRASES,
+    ADVICE_WORDS,
+    DOWN_WORDS,
+    PERIOD_WORDS,
+    UP_WORDS,
     GateResult,
     Violation,
     action_targets_repo,
     action_window_codes,
     evaluate_briefing,
+    scan_outbound_text,
+    slot_window_codes,
     text_check_codes,
 )
 from framework.briefing.labels import MetricBinding, metric_label_binding
@@ -35,6 +42,11 @@ from framework.briefing.schemas import (
 )
 
 __all__ = [
+    "ADVICE_PHRASES",
+    "ADVICE_WORDS",
+    "DOWN_WORDS",
+    "PERIOD_WORDS",
+    "UP_WORDS",
     "Action",
     "ActionKind",
     "Briefing",
@@ -61,5 +73,7 @@ __all__ = [
     "load_commitments",
     "load_private_terms",
     "metric_label_binding",
+    "scan_outbound_text",
+    "slot_window_codes",
     "text_check_codes",
 ]
