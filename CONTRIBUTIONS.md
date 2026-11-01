@@ -272,6 +272,8 @@ On Ticket 11's main, `forbidden_literals_for` in `framework/cycle/__init__.py` a
 
 `evals/r10_cases.json` isn't Muse Code's: a separate agent wrote those 80 invented titles and froze them by hash before the plan was written, so no session writing the prompt, the list or the rule could see them. `evals/r10_results/` is the runner's output, with `seconds` rounded in one file as the session note says.
 
+Two outside reviewers, GPT Sol 6.1 through Codex and Gemini 4 Argon, read the set read-only before it went public. The notice in `evals/README.md` was Sol's suggestion, and no entry changed. Argon asked to replace four care titles and rename two people; I declined, because rewriting cases after seeing results would break the claim that they were frozen first.
+
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
 ## AI assistance outside the Muse family
@@ -280,5 +282,5 @@ Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implemen
   planning documents (SPEC.md, the pitch, docs/WORKFLOW.md) and helped structure the ikigai profiles from my interview answers; it reviewed plans and diffs,
   and ran feasibility checks on Oct 27 outside this repo (one call each to Muse Glimmer,
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
-- It wrote no code in this repository. All code here was written by Muse Code, as summarised in `docs/sessions/`, and the branch commits are Muse Code's. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
+- Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as summarised in `docs/sessions/`. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks I found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
 - **GPT Sol 6.1 and GPT Astra 6 (OpenAI), through Codex,** reviewed this project read-only on Nov 1: literature, code, demo plan, failure modes and launch plan. They wrote nothing in this repository. Findings that changed something are credited in the ticket that used them.

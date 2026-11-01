@@ -166,8 +166,7 @@ muse exec --api-key-stdin --model muse-wonder-1.0 --reasoning-effort medium \
   planning documents (SPEC.md, the pitch, this workflow), reviewed plans and diffs,
   and ran feasibility checks on Oct 27 outside this repo (one call each to Muse Glimmer,
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
-- It wrote no code in this repository and made no commits. All code here was produced
-  by Carlos with Muse Code, as recorded in `docs/sessions/`.
+- Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as recorded in `docs/sessions/`. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. All code here was produced by Carlos with Muse Code, as recorded in `docs/sessions/`.
 ```
 
 ---
