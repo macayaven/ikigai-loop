@@ -161,6 +161,14 @@ known-preference test on simulated rulings. Evidence in
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
 
+## Pre-registration (2026-11-01)
+
+Built on branch `prereg`: [docs/PREREG.md](docs/PREREG.md) pre-registers the Nov 2-4 live run (questions, design, receipts table, ruling split, R3 pass rules, base scenario, 20 pairs, completion rules, limits); [evals/r3_pairs.json](evals/r3_pairs.json) holds the base scenario and the 20 pairs with `apply_ops` in [evals/r3_scenario.py](evals/r3_scenario.py) as the exact code the later harness uses; [tests/test_r3_pairs.py](tests/test_r3_pairs.py) pins the shape, checks the JSON against the document table by table, and checks every arm through the gate with one claim per fact; `make eval` runs every Inspect task file in `EVAL_FILES` on the mock model through [evals/run_tasks.py](evals/run_tasks.py), which fails on an errored task or any incorrect sample, with [tests/test_eval_tasks.py](tests/test_eval_tasks.py) pinning the listing; `make demo` replays the M12 rejection offline via [evals/demo_rejection.py](evals/demo_rejection.py), covered by [tests/test_demo_rejection.py](tests/test_demo_rejection.py). Evidence in [docs/sessions/prereg.md](docs/sessions/prereg.md).
+
+The text of docs/PREREG.md was drafted by Claude Code and adopted by me. The ruling split in it is my own forecast, which I gave on Nov 1. Claude Code's review sent the first session's output back for the runner, the per-fact gate check, the document-match test and the demo derived from the M12 case. The amendment corrected the I7 row and the wording points the review had left open, and removed the I7 marker, so no open items remain. The session note lists the decisions.
+
+Prompts and review by Claude Code. Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

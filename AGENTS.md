@@ -11,8 +11,8 @@ Ikigai Loop: two goals, Builder and Disconnect, compete for Carlos's next free h
 
 - `make check` — ruff, pyright, pytest, gitleaks.
 - `make test` — pytest only.
-- `make eval` — hello task on the mock model today; the gate (L0–L4) and mutants arrive in later tickets.
-- `make demo` — placeholder, prints `not yet`.
+- `make eval` — runs every task file in EVAL_FILES on the mock model via evals/run_tasks.py; fails on an errored task or any incorrect sample.
+- `make demo` — replays the M12 gate rejection offline: the draft says 99, the source says 3.
 
 ## Layout
 

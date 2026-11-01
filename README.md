@@ -24,6 +24,7 @@ Built and merged:
 - Commitments and the gate additions they need (`framework/briefing/commitments.py`, `framework/briefing/labels.py`, made-up examples in `profiles/commitments.example.json`): an action passes only if it is a commitment I wrote, in my words; a claim that cites a metric passes only if it names that metric and its period and any direction word agrees with the values; advice wording fails. 18 of those 38 mutants and 8 of those 20 known-good briefings test these additions. What the gate still misses is listed at the top of `framework/briefing/numbers.py`.
 - Glimmer fact layer (`framework/glimmer/`, `framework/store/fact_store.py`, `framework/cycle/`): filters events to an allowlist, computes metrics and three 24-hour periods with no model, asks Muse Glimmer in two isolated passes, and drops any fact that fails its deterministic checks; 196 tests in `tests/test_glimmer_*.py`, `tests/test_fact_store.py` and `tests/test_cycle_cli.py`, passing.
 - Learner core (`framework/learner/`): Beta posteriors per time bucket over which of my two goals I take, commitment ranking, scoring each prediction before the ruling it predicts, byte-identical replay, and a known-preference test on simulated rulings; 146 tests in `tests/test_learner_*.py`, passing. Nothing calls it yet, and no real ruling has gone through it.
+- Pre-registration ([docs/PREREG.md](docs/PREREG.md)): the Nov 2-4 live run's predictions and rules, committed before the first card, with the R3 steering pairs as data (`evals/r3_pairs.json`).
 
 Not built yet:
 

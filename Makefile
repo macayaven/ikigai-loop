@@ -11,11 +11,13 @@ check:
 test:
 	uv run pytest
 
+EVAL_FILES = evals/hello.py evals/briefing_gate.py evals/glimmer_facts.py
+
 eval:
 	mkdir -p logs
 	# Keep Inspect's state inside the repo (sandbox-friendly, harmless elsewhere).
 	XDG_DATA_HOME=$(CURDIR)/logs/.xdg XDG_CACHE_HOME=$(CURDIR)/logs/.xdg/cache INSPECT_TRACE_FILE=$(CURDIR)/logs/trace.log \
-	uv run inspect eval evals/hello.py --model mockllm/model --log-dir logs
+	uv run python evals/run_tasks.py --log-dir logs $(EVAL_FILES)
 
 demo:
-	@echo "not yet"
+	@uv run python evals/demo_rejection.py
