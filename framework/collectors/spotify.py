@@ -1,4 +1,4 @@
-"""Spotify recently-played collector with a per-poll refresh (ticket 7)."""
+"""Spotify recently-played collector with a per-poll refresh (ticket 7). Off the card path: Spotify's Developer Policy (§III.14) doesn't allow ingesting Spotify Content into an AI model."""
 
 import base64
 import json

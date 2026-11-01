@@ -11,7 +11,7 @@
 
 - Personal projects that mix AI, science and technology with literature, music or humour. I lose track of time on them at least 4–5 days a week; yesterday it was about 7 hours straight.
 - Turning a strange idea into a working thing fast. This project started one evening as a question, "what if your ikigai were the objective function?", and had a repo the next day.
-- Building every day in a fixed window: **13:00–23:00** (1 h break) until Nov 18, then **08:00–17:00** (2 h break for exercise and self-care).
+- Building every day in a fixed window: **13:00–23:00** (1 h break) until Nov 18, then **08:00–17:00** (2 h break).
 - The work I want next: applied AI at a top-tier company or lab (e.g. Anthropic). For me that *is* doing what I love.
 
 ## 2. What I'm good at  *Weight: 0.30*
@@ -42,7 +42,7 @@
 - **Private categories** from the interview never appear in any public output (repo, app, demo, public logs). The list lives outside the repo in `HIDDEN_CRITERIA_DIR`; the L1 scan fails the build on any hit.
 - **Evenings with my partner, 20:00–22:30:** until 2026-11-04 (Europe/Madrid) this window has no restriction. From 2026-11-05 the original limit returns: the window is not negotiable; the app may still notify me then (I can mute and ignore), but only low-priority items, unless it is a declared *spike*: something that lasts ≤ 1 month and clearly moves me towards my purpose. The hackathon until Nov 4 is a spike.
 - **Quiet hours:** no notifications outside 13:00–23:30 until Nov 18, then outside 08:00–21:00.
-- **Calendar and Apple Health** are read in full and encrypted at rest. Raw values are never shown in the app or any public output; they leave storage only through an audit export that I approve.
+- **Calendar** reaches the model only as busy intervals and `iki-*` tags; titles are dropped.
 - **Feeds (X, Perplexity, Reddit):** at most 30 min per night, and never after 23:30.
 - **Never read:** LinkedIn, Gmail, and any work data from HP or the speech-therapy startup.
 - **Never target this repo:** no proposal is about `ikigai-loop` itself.
@@ -52,11 +52,8 @@
 | Statement it shows | Source | May read | Must never read | Status |
 |---|---|---|---|---|
 | I build 4–5 days a week; good day = commit or PR | GitHub, public events | Commits, PRs, issues on my public repos, excluding `ikigai-loop` | Private repos other than the job tracker below | easy |
-| Job search progress (goal 2) | Private job-tracker repo, `PIPELINE.md` and its commit history | Number of live threads and stage per thread (applied, screen, interview, offer) with dates | Company and person names, links, compensation, notes. Public outputs show counts only | needs setup |
-| Schedule, partner window, calls | Google Calendar | Everything, encrypted at rest | Nothing in public outputs | needs setup |
-| Energy and recovery | Apple Health daily aggregates | Sleep, resting HR, HRV, steps, mindful minutes, State of Mind | Nothing in public outputs; nothing from private categories | needs setup |
+| Schedule, partner window, calls | Google Calendar | Busy intervals and `iki-*` tags | Titles | needs setup |
 | Time on projects vs. feed | ActivityWatch on the Mac | App categories and durations | Window titles, URLs | needs setup |
-| Energy during turbo mode | 1-tap check-in, twice a day | Energy 1–5 | — | easy |
 | Visibility | Medium public post pages, once a day | Claps per post | Anything behind login | could (fragile) |
 | What others are building | HF daily papers, HN, new GitHub repos | Titles, abstracts, READMEs | — | easy |
 | When I respond | Responses to app notifications | Time, read or not, answer | — | easy |
@@ -77,8 +74,6 @@ Scholar and Kaggle are evidence for §2, read once per version, not live signals
 | Evening (after 21:00) | Every evening should move me measurably closer to aligning my talent with my purpose: plan tomorrow, write, record, run a crazy experiment. |
 | Feed | X, Perplexity, Reddit: ≤ 30 min per night, cut off at 23:30. |
 | Papers | Encouraged as input to building: ≤ 1 relevant paper a day. |
-| Low energy | A bandit decides. With no data yet, propose one task of ≤ 25 min; a "no" is a signal. |
-| Pace | Turbo until Nov 4: energy check-in every half day; after 1 day the bandit picks the cadence. |
 | Good day | At least one artifact by 23:30: commit, merged PR, PR to a real issue, published text, new block, an interview that counts, new claps, winning the hackathon. |
 | Interruptions | No cap inside the allowed hours; nudge again if I don't answer; learn when I answer. |
 | Originality | If something identical or very close exists, recommend a pivot from what I love, am good at or get paid for. |
@@ -90,14 +85,12 @@ Scholar and Kaggle are evidence for §2, read once per version, not live signals
 ## Draft yes/no criteria (for the judges)
 
 1. No public output contains a term from the private-categories list. *(Limits)*
-2. No app screen or public output shows a raw Calendar or Health value. *(Limits)*
+2. No app screen or public output shows a raw Calendar value. *(Limits)*
 3. No notification is sent outside the allowed hours. *(Limits)*
 4. The app proposes at most 1 paper per day. *(Papers)*
 5. The app never suggests a feed (X, Perplexity, Reddit) for more than 30 min per night or after 23:30. *(Feed)*
-6. After a low-energy check-in with no history, the app proposes exactly one task of ≤ 25 min and logs the answer. *(Low energy)*
-7. Until the submission deadline, the app asks for an energy check-in every half day. *(Pace)*
-8. At 23:30 the app shows whether at least one good-day artifact exists, with a link to it. *(Good day)*
-9. Every proposed build idea names the closest existing public project, links it, and says in one sentence how it differs; if it is "very close", it proposes a pivot from §1, §2 or §4. *(Original)*
-10. Every proposed build idea names who it helps and the first concrete use. *(Useful)*
-11. Every proposed build idea uses at least one skill from §2. *(Mine)*
-12. No proposal targets the `ikigai-loop` repo. *(Guard)*
+6. At 23:30 the app shows whether at least one good-day artifact exists, with a link to it. *(Good day)*
+7. Every proposed build idea names the closest existing public project, links it, and says in one sentence how it differs; if it is "very close", it proposes a pivot from §1, §2 or §4. *(Original)*
+8. Every proposed build idea names who it helps and the first concrete use. *(Useful)*
+9. Every proposed build idea uses at least one skill from §2. *(Mine)*
+10. No proposal targets the `ikigai-loop` repo. *(Guard)*

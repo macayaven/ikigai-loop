@@ -1,5 +1,7 @@
 # Ikigai Loop: build plan (from BUILD-PLAN v0.4, 2026-10-28)
 
+> **Superseded on 2026-11-01.** This describes an earlier design. README.md describes the current entry. Kept as the record of how the project got here.
+
 Working plan for Oct 28 → Nov 4. It sits on top of [docs/SPEC.md](SPEC.md) and
 [docs/WORKFLOW.md](WORKFLOW.md). The museum demo follows
 [docs/MUSEUM-CONTRACT.md](MUSEUM-CONTRACT.md).

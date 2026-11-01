@@ -120,11 +120,16 @@ violation codes and passes all 12 known-good synthetic briefings with
 
 Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code.
 
+## Docs reconcile (2026-11-01)
+
+Built on branch `docs-reconcile`: `README.md` rewritten around the current entry pitch (first person, about 60 lines, with built/not-built status, the no-medical-advice line, the hackathon record, and the off-the-card-path list); `profiles/recovery.md` moved to `profiles/disconnect.md` and rewritten for family time with screens off; `profiles/builder.md` trimmed to the card path (calendar as busy intervals and `iki-*` tags, Low energy and Pace rows and criteria gone); superseded notes in `docs/SPEC.md`, `docs/PLAN.md`, `docs/MUSEUM-CONTRACT.md` and `docs/WORKFLOW.md`; card-path comments in three framework docstrings; the `AGENTS.md` Mission paragraph now matches the README and points at it, with every rule in that file unchanged. Docs and comments only: no behaviour, schema, fixture or test change. Why: the README still pitched two diverging apps and the second profile read as a health advisor, and neither is the entry any more. Ticket 8's review added M17–M20, so the gate has the 20 mutants the README counts where the Ticket 8 entry above says 16.
+
+Prompts and review by Claude Code. Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
   planning documents (SPEC.md, the pitch, docs/WORKFLOW.md) and helped structure the ikigai profiles from my interview answers; it reviewed plans and diffs,
   and ran feasibility checks on Oct 27 outside this repo (one call each to Muse Glimmer,
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
-- It wrote no code in this repository and made no commits. All code here was produced
-  by Carlos with Muse Code, as summarised in `docs/sessions/`.
+- It wrote no code in this repository and made no commits. All code here was written by Muse Code, as summarised in `docs/sessions/`. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions, reviewed their output, and ran pushes and merges.

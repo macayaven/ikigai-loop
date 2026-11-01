@@ -8,6 +8,8 @@ same date that supersedes by ``collected_at`` instead of conflicting.
 Screen.hour consumers take the latest ``collected_at`` per
 ``(device, hour)`` for the same reason: a changed hour is a new event for
 that hour, never an update and never a conflict.
+
+Health ingest is off the card path.
 """
 
 import hashlib
