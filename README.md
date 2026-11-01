@@ -1,6 +1,6 @@
 # Ikigai Loop
 
-I write down what I promised myself. The agent picks which promise gets my next free hour, and it can't tell me anything it can't prove from my own data.
+I write down what I promised myself. The agent picks which promise gets my next free hour, and a deterministic gate checks the numbers and sources it cites against my own data before I see them.
 
 ## How it works
 

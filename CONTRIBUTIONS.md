@@ -132,4 +132,4 @@ Prompts and review by Claude Code. Implementation: muse-spark-1.3 (effort medium
   planning documents (SPEC.md, the pitch, docs/WORKFLOW.md) and helped structure the ikigai profiles from my interview answers; it reviewed plans and diffs,
   and ran feasibility checks on Oct 27 outside this repo (one call each to Muse Glimmer,
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
-- It wrote no code in this repository and made no commits. All code here was written by Muse Code, as summarised in `docs/sessions/`. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions, reviewed their output, and ran pushes and merges.
+- It wrote no code in this repository. All code here was written by Muse Code, as summarised in `docs/sessions/`, and the branch commits are Muse Code's. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.

@@ -38,7 +38,7 @@ Profile A's limits apply (private categories, quiet hours, never-read sources, t
 - **No pushing towards programming** in this profile.
 - **At most 3 notifications a day**, none after 23:00, and an unanswered one is never repeated.
 - **It appears in at most 3 of the 5 daily slots.**
-- **After 21:00:** something funny, music or bed, never a task; lights out by 00:00.
+- **After 21:00:** something funny, music or bed, never a task.
 
 ## Signals I'll share
 

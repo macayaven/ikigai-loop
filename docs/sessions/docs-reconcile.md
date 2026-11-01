@@ -68,3 +68,11 @@ fails because the sandbox denies the loopback bind.
 Known gap: the prompt's word check over `profiles/*.md` still matches lines
 in `profiles/TEMPLATE.md`, a fictional sample this ticket leaves alone.
 `profiles/builder.md` and `profiles/disconnect.md` have no match.
+
+## Follow-up
+
+- Narrowed the `README.md` opening pitch to what the deterministic gate actually checks, because the old line claimed the agent can't tell me anything it can't prove and the gate doesn't check that a sentence is true.
+- Reworded the `CONTRIBUTIONS.md` Claude Code bullet to say the branch commits are Muse Code's and the merge commits on main come from Claude Code's pushes and squash merges.
+- Shortened the `profiles/disconnect.md` "After 21:00" limit to drop the lights-out clause.
+- Fixed `profiles/TEMPLATE.md` line 6 to say profile B (Disconnect) instead of profile B (Recovery).
+- Added `.gitattributes` with `CONTRIBUTIONS.md merge=union`, because every ticket appends an entry at the same place in that file and parallel branches then conflict.
