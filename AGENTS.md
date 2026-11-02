@@ -14,10 +14,12 @@ Ikigai Loop: two goals, Builder and Disconnect, compete for Carlos's next free h
 - `make eval` — runs every task file in EVAL_FILES on the mock model via evals/run_tasks.py; fails on an errored task or any incorrect sample.
 - `make demo` — replays the M12 gate rejection offline: the draft says 99, the source says 3.
 - `make try` — replays packaged made-up data through the real code, no key or model.
+- `make glimmer-proof` — runs one synthetic label through llama-swap, prints the served weights' basename, and refuses during a real slot's Glimmer window.
 
 ## Layout
 
 - `framework/` — Glimmer, Wonder, Muse Code runner, adapters, deployer, models.
+- `framework/provenance/` — read-only provenance export and Glimmer proof.
 - `blocks/` — one folder per block: schema, renderer, tests.
 - `evals/` — Inspect tasks (L0–L4), scorers, jury, mutants, calibration.
 - `profiles/` — objective profiles A and B (ikigai, weights).

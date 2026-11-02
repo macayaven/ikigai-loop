@@ -1,4 +1,4 @@
-.PHONY: check test eval demo r1b verify-page try
+.PHONY: check test eval demo r1b verify-page try glimmer-proof
 
 check:
 	uv run ruff check .
@@ -27,6 +27,9 @@ r1b:
 
 try:
 	uv run --no-default-groups try-ikigai
+
+glimmer-proof:
+	uv run python -m framework.provenance.glimmer_proof
 
 verify-page:
 	uv run python -m framework.verify.page_bundle
