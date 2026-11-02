@@ -1,0 +1,963 @@
+[
+  {
+    "id": "H01",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "deploys",
+    "why": "The January record contains 18 deploys, matching the spelled-out count.",
+    "input": {
+      "claims": [
+        {
+          "id": "c01",
+          "text": "The January release log lists eighteen deploys.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "release_deploys.january.count", "value": 18}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"release_deploys.january.count": 18},
+      "labels": {"release_deploys.january.count": ["january", "deploys"]}
+    }
+  },
+  {
+    "id": "H02",
+    "expected": "FAIL",
+    "kind": "wrong_number",
+    "domain": "revenue",
+    "why": "The February record holds 2,860 credits, but the claim reports 2,960.",
+    "input": {
+      "claims": [
+        {
+          "id": "c02",
+          "text": "The February ledger reports revenue of 2,960 credits.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "ledger_revenue.february.credits", "value": 2960}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"ledger_revenue.february.credits": 2860},
+      "labels": {"ledger_revenue.february.credits": ["february", "revenue", "credits"]}
+    }
+  },
+  {
+    "id": "H03",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "latency",
+    "why": "The written 42.60 milliseconds equals the recorded median of 42.6 milliseconds.",
+    "input": {
+      "claims": [
+        {
+          "id": "c03",
+          "text": "Median latency for the tile route was 42.60 milliseconds.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "tile_latency.median.ms", "value": 42.6}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"tile_latency.median.ms": 42.6},
+      "labels": {"tile_latency.median.ms": ["tile", "median", "latency", "milliseconds"]}
+    }
+  },
+  {
+    "id": "H04",
+    "expected": "FAIL",
+    "kind": "negation",
+    "domain": "tickets",
+    "why": "The handoff record says the attachment checklist was included; the claim denies its inclusion.",
+    "input": {
+      "claims": [
+        {
+          "id": "c04",
+          "text": "The ticket handoff did not include the attachment checklist.",
+          "fact_ids": ["ticket_handoff.checklist"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "ticket_handoff.checklist": "The attachment checklist was included in the ticket handoff."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H05",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "steps",
+    "why": "The Tuesday riverside-loop record contains 2,480 steps.",
+    "input": {
+      "claims": [
+        {
+          "id": "c05",
+          "text": "The riverside loop log contains 2,480 steps for Tuesday.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "riverside_steps.tuesday.count", "value": 2480}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"riverside_steps.tuesday.count": 2480},
+      "labels": {"riverside_steps.tuesday.count": ["riverside", "steps", "tuesday"]}
+    }
+  },
+  {
+    "id": "H06",
+    "expected": "FAIL",
+    "kind": "wrong_unit",
+    "domain": "screen_hours",
+    "why": "The Friday screen-time value is in hours; the claim presents it as minutes.",
+    "input": {
+      "claims": [
+        {
+          "id": "c06",
+          "text": "Friday screen time totalled 3.75 minutes.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "screen_time.friday.hours", "value": 3.75}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"screen_time.friday.hours": 3.75},
+      "labels": {"screen_time.friday.hours": ["screen", "time", "friday", "hours"]}
+    }
+  },
+  {
+    "id": "H07",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "revenue",
+    "why": "The March and April records show revenue increasing from 1,460 to 1,920 credits.",
+    "input": {
+      "claims": [
+        {
+          "id": "c07",
+          "text": "Revenue climbed from 1,460 credits in March to 1,920 credits in April.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "revenue.march.credits", "value": 1460},
+            {"metric_id": "revenue.april.credits", "value": 1920}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "revenue.march.credits": 1460,
+        "revenue.april.credits": 1920
+      },
+      "labels": {
+        "revenue.march.credits": ["revenue", "march", "credits"],
+        "revenue.april.credits": ["revenue", "april", "credits"]
+      },
+      "order": [["revenue.march.credits", "revenue.april.credits"]]
+    }
+  },
+  {
+    "id": "H08",
+    "expected": "FAIL",
+    "kind": "wrong_period",
+    "domain": "deploys",
+    "why": "The attached summary covers July, while the claim assigns its count to August.",
+    "input": {
+      "claims": [
+        {
+          "id": "c08",
+          "text": "The attached release summary records 24 deploys for August.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "deploy_total.july.count", "value": 24}
+          ]
+        }
+      ],
+      "facts": {
+        "release_summary.scope": "The attached release summary covers July only."
+      },
+      "metrics": {"deploy_total.july.count": 24},
+      "labels": {"deploy_total.july.count": ["deploys", "july"]}
+    }
+  },
+  {
+    "id": "H09",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "tickets",
+    "why": "The cited archive record confirms that the draft handoff checklist is present.",
+    "input": {
+      "claims": [
+        {
+          "id": "c09",
+          "text": "A draft handoff checklist is available in the ticket archive.",
+          "fact_ids": ["ticket_archive.draft_checklist"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "ticket_archive.draft_checklist": "The draft handoff checklist is present in the ticket archive."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H10",
+    "expected": "FAIL",
+    "kind": "mislabelled_metric",
+    "domain": "latency",
+    "why": "The cited 86 milliseconds measures maximum latency; the recorded median is 34 milliseconds.",
+    "input": {
+      "claims": [
+        {
+          "id": "c10",
+          "text": "The search route's median latency is 86 milliseconds.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "search_latency.maximum.ms", "value": 86}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "search_latency.maximum.ms": 86,
+        "search_latency.median.ms": 34
+      },
+      "labels": {
+        "search_latency.maximum.ms": ["search", "maximum", "latency", "milliseconds"],
+        "search_latency.median.ms": ["search", "median", "latency", "milliseconds"]
+      }
+    }
+  },
+  {
+    "id": "H11",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "screen_hours",
+    "why": "The written 2.50 hours equals the Wednesday record of 2.5 hours.",
+    "input": {
+      "claims": [
+        {
+          "id": "c11",
+          "text": "Wednesday screen time was 2.50 hours.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "screen_time.wednesday.hours", "value": 2.5}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"screen_time.wednesday.hours": 2.5},
+      "labels": {"screen_time.wednesday.hours": ["wednesday", "screen", "time", "hours"]}
+    }
+  },
+  {
+    "id": "H12",
+    "expected": "FAIL",
+    "kind": "missing_fact",
+    "domain": "steps",
+    "why": "The cited covered-walkway entry is absent; the complete archive inventory lists only the courtyard loop.",
+    "input": {
+      "claims": [
+        {
+          "id": "c12",
+          "text": "The steps archive contains an entry for the covered walkway.",
+          "fact_ids": ["steps_archive.covered_walkway"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "steps_archive.inventory": "Complete inventory of steps entries in this archive: courtyard loop only."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H13",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "deploys",
+    "why": "The May and June records show a decrease from 32 deploys to 26.",
+    "input": {
+      "claims": [
+        {
+          "id": "c13",
+          "text": "Deploys fell from thirty-two in May to twenty-six in June.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "deploy_count.may", "value": 32},
+            {"metric_id": "deploy_count.june", "value": 26}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "deploy_count.may": 32,
+        "deploy_count.june": 26
+      },
+      "labels": {
+        "deploy_count.may": ["deploys", "may"],
+        "deploy_count.june": ["deploys", "june"]
+      },
+      "order": [["deploy_count.may", "deploy_count.june"]]
+    }
+  },
+  {
+    "id": "H14",
+    "expected": "FAIL",
+    "kind": "wrong_unit",
+    "domain": "revenue",
+    "why": "The ledger records 1,840 dollars; the claim gives that unchanged number in cents.",
+    "input": {
+      "claims": [
+        {
+          "id": "c14",
+          "text": "The March ledger lists 1,840 cents in revenue.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "cash_revenue.march.dollars", "value": 1840}
+          ]
+        }
+      ],
+      "facts": {
+        "ledger.units": "All revenue values in this ledger are recorded in dollars."
+      },
+      "metrics": {"cash_revenue.march.dollars": 1840},
+      "labels": {"cash_revenue.march.dollars": ["march", "revenue", "dollars"]}
+    }
+  },
+  {
+    "id": "H15",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "latency",
+    "why": "Both cited values and their Monday-to-Tuesday decrease agree with the records.",
+    "input": {
+      "claims": [
+        {
+          "id": "c15",
+          "text": "Upload latency eased from 180 milliseconds on Monday to 144 milliseconds on Tuesday.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "upload_latency.monday.ms", "value": 180},
+            {"metric_id": "upload_latency.tuesday.ms", "value": 144}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "upload_latency.monday.ms": 180,
+        "upload_latency.tuesday.ms": 144
+      },
+      "labels": {
+        "upload_latency.monday.ms": ["upload", "latency", "monday", "milliseconds"],
+        "upload_latency.tuesday.ms": ["upload", "latency", "tuesday", "milliseconds"]
+      },
+      "order": [["upload_latency.monday.ms", "upload_latency.tuesday.ms"]]
+    }
+  },
+  {
+    "id": "H16",
+    "expected": "FAIL",
+    "kind": "wrong_period",
+    "domain": "tickets",
+    "why": "The count covers Wednesday only; the claim assigns it to Thursday.",
+    "input": {
+      "claims": [
+        {
+          "id": "c16",
+          "text": "The attached count lists 46 closed tickets for Thursday.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "tickets_closed.wednesday.count", "value": 46}
+          ]
+        }
+      ],
+      "facts": {
+        "tickets_count.scope": "The attached count covers closed tickets on Wednesday only."
+      },
+      "metrics": {"tickets_closed.wednesday.count": 46},
+      "labels": {"tickets_closed.wednesday.count": ["closed", "tickets", "wednesday"]}
+    }
+  },
+  {
+    "id": "H17",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "steps",
+    "why": "The cited record identifies the courtyard counter as the active source for the steps log.",
+    "input": {
+      "claims": [
+        {
+          "id": "c17",
+          "text": "The courtyard counter is now the active source for the steps log.",
+          "fact_ids": ["steps_log.active_source"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "steps_log.active_source": "The steps log's active source is the courtyard counter."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H18",
+    "expected": "FAIL",
+    "kind": "negation",
+    "domain": "screen_hours",
+    "why": "The record confirms that the export was saved; the claim says it was never saved.",
+    "input": {
+      "claims": [
+        {
+          "id": "c18",
+          "text": "The screen-hours export was never saved to the activity archive.",
+          "fact_ids": ["screen_export.saved"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "screen_export.saved": "The screen-hours export was saved to the activity archive on Thursday."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H19",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "revenue",
+    "why": "The preview-period revenue record is 0 credits, matching the stated zero.",
+    "input": {
+      "claims": [
+        {
+          "id": "c19",
+          "text": "Revenue during the preview period was zero credits.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "revenue.preview.credits", "value": 0}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"revenue.preview.credits": 0},
+      "labels": {"revenue.preview.credits": ["revenue", "preview", "period", "credits"]}
+    }
+  },
+  {
+    "id": "H20",
+    "expected": "FAIL",
+    "kind": "wrong_number",
+    "domain": "deploys",
+    "why": "The September tally contains 28 deploys, while the claim reports 29.",
+    "input": {
+      "claims": [
+        {
+          "id": "c20",
+          "text": "The September release tally shows 29 deploys.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "release_tally.september.count", "value": 29}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"release_tally.september.count": 28},
+      "labels": {"release_tally.september.count": ["september", "deploys"]}
+    }
+  },
+  {
+    "id": "H21",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "tickets",
+    "why": "The closed-ticket counts increase from 68 in January to 91 in February.",
+    "input": {
+      "claims": [
+        {
+          "id": "c21",
+          "text": "Closed tickets increased from 68 in January to 91 in February.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "tickets_closed.january.count", "value": 68},
+            {"metric_id": "tickets_closed.february.count", "value": 91}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "tickets_closed.january.count": 68,
+        "tickets_closed.february.count": 91
+      },
+      "labels": {
+        "tickets_closed.january.count": ["closed", "tickets", "january"],
+        "tickets_closed.february.count": ["closed", "tickets", "february"]
+      },
+      "order": [["tickets_closed.january.count", "tickets_closed.february.count"]]
+    }
+  },
+  {
+    "id": "H22",
+    "expected": "FAIL",
+    "kind": "missing_fact",
+    "domain": "latency",
+    "why": "The cited image-route review is missing; the complete archive inventory contains only the search-route review.",
+    "input": {
+      "claims": [
+        {
+          "id": "c22",
+          "text": "The latency archive includes a review of the image route.",
+          "fact_ids": ["latency_archive.image_review"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "latency_archive.inventory": "Complete inventory of latency reviews in this archive: the search-route review only."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H23",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "screen_hours",
+    "why": "The cited location record places the weekly export in the shared activity folder.",
+    "input": {
+      "claims": [
+        {
+          "id": "c23",
+          "text": "The weekly screen-hours export is stored in the shared activity folder.",
+          "fact_ids": ["screen_export.location"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "screen_export.location": "The weekly screen-hours export is stored in the shared activity folder."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H24",
+    "expected": "FAIL",
+    "kind": "mislabelled_metric",
+    "domain": "steps",
+    "why": "The cited 1,640 is the outdoor step count; the claim calls it indoor, whose recorded count is 920.",
+    "input": {
+      "claims": [
+        {
+          "id": "c24",
+          "text": "Tuesday's indoor steps totalled 1,640.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "outdoor_steps.tuesday.count", "value": 1640}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "outdoor_steps.tuesday.count": 1640,
+        "indoor_steps.tuesday.count": 920
+      },
+      "labels": {
+        "outdoor_steps.tuesday.count": ["outdoor", "steps", "tuesday"],
+        "indoor_steps.tuesday.count": ["indoor", "steps", "tuesday"]
+      }
+    }
+  },
+  {
+    "id": "H25",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "deploys",
+    "why": "The December ledger record contains the claimed 36 deploys.",
+    "input": {
+      "claims": [
+        {
+          "id": "c25",
+          "text": "The December release ledger contains 36 deploys.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "ledger_deploys.december.count", "value": 36}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"ledger_deploys.december.count": 36},
+      "labels": {"ledger_deploys.december.count": ["deploys", "december"]}
+    }
+  },
+  {
+    "id": "H26",
+    "expected": "FAIL",
+    "kind": "negation",
+    "domain": "revenue",
+    "why": "Revenue rose from 860 to 1,140 credits across the cited periods, and the claim denies that rise.",
+    "input": {
+      "claims": [
+        {
+          "id": "c26",
+          "text": "Revenue did not rise from 860 credits in February to 1,140 credits in March.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "revenue.february.credits", "value": 860},
+            {"metric_id": "revenue.march.credits", "value": 1140}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "revenue.february.credits": 860,
+        "revenue.march.credits": 1140
+      },
+      "labels": {
+        "revenue.february.credits": ["revenue", "february", "credits"],
+        "revenue.march.credits": ["revenue", "march", "credits"]
+      },
+      "order": [["revenue.february.credits", "revenue.march.credits"]]
+    }
+  },
+  {
+    "id": "H27",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "latency",
+    "why": "The April and May cache-latency records both contain 64 milliseconds.",
+    "input": {
+      "claims": [
+        {
+          "id": "c27",
+          "text": "Cache latency held steady at 64 milliseconds across April and May.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "cache_latency.april.ms", "value": 64},
+            {"metric_id": "cache_latency.may.ms", "value": 64}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "cache_latency.april.ms": 64,
+        "cache_latency.may.ms": 64
+      },
+      "labels": {
+        "cache_latency.april.ms": ["cache", "latency", "april", "milliseconds"],
+        "cache_latency.may.ms": ["cache", "latency", "may", "milliseconds"]
+      },
+      "order": [["cache_latency.april.ms", "cache_latency.may.ms"]]
+    }
+  },
+  {
+    "id": "H28",
+    "expected": "FAIL",
+    "kind": "missing_fact",
+    "domain": "tickets",
+    "why": "The cited evening handoff summary has no record; the complete register inventory lists only the intake checklist.",
+    "input": {
+      "claims": [
+        {
+          "id": "c28",
+          "text": "The ticket register contains the evening handoff summary.",
+          "fact_ids": ["ticket_register.evening_handoff"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "ticket_register.inventory": "Complete inventory of documents in this ticket register: intake checklist only."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H29",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "steps",
+    "why": "The records show steps decreasing from 3,120 on Thursday to 2,760 on Friday.",
+    "input": {
+      "claims": [
+        {
+          "id": "c29",
+          "text": "The recorded steps dropped from 3,120 on Thursday to 2,760 on Friday.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "steps.thursday.count", "value": 3120},
+            {"metric_id": "steps.friday.count", "value": 2760}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "steps.thursday.count": 3120,
+        "steps.friday.count": 2760
+      },
+      "labels": {
+        "steps.thursday.count": ["steps", "thursday"],
+        "steps.friday.count": ["steps", "friday"]
+      },
+      "order": [["steps.thursday.count", "steps.friday.count"]]
+    }
+  },
+  {
+    "id": "H30",
+    "expected": "FAIL",
+    "kind": "wrong_period",
+    "domain": "screen_hours",
+    "why": "The table covers Monday only; the claim assigns its 6.25 hours to Tuesday.",
+    "input": {
+      "claims": [
+        {
+          "id": "c30",
+          "text": "The table attributes 6.25 hours of screen time to Tuesday.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "screen_time.monday.hours", "value": 6.25}
+          ]
+        }
+      ],
+      "facts": {
+        "screen_table.scope": "This table contains screen time for Monday only."
+      },
+      "metrics": {"screen_time.monday.hours": 6.25},
+      "labels": {"screen_time.monday.hours": ["screen", "time", "monday", "hours"]}
+    }
+  },
+  {
+    "id": "H31",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "revenue",
+    "why": "The cited June net-revenue record contains -420 credits.",
+    "input": {
+      "claims": [
+        {
+          "id": "c31",
+          "text": "Net revenue for June was -420 credits.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "net_revenue.june.credits", "value": -420}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"net_revenue.june.credits": -420},
+      "labels": {"net_revenue.june.credits": ["net", "revenue", "june", "credits"]}
+    }
+  },
+  {
+    "id": "H32",
+    "expected": "FAIL",
+    "kind": "mislabelled_metric",
+    "domain": "deploys",
+    "why": "The value 41 belongs to successful deploys; the recorded reverted-deploy count is 6.",
+    "input": {
+      "claims": [
+        {
+          "id": "c32",
+          "text": "August recorded 41 reverted deploys.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "successful_deploys.august.count", "value": 41}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "successful_deploys.august.count": 41,
+        "reverted_deploys.august.count": 6
+      },
+      "labels": {
+        "successful_deploys.august.count": ["successful", "deploys", "august"],
+        "reverted_deploys.august.count": ["reverted", "deploys", "august"]
+      }
+    }
+  },
+  {
+    "id": "H33",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "tickets",
+    "why": "The cited register record marks the draft ticket export as approved.",
+    "input": {
+      "claims": [
+        {
+          "id": "c33",
+          "text": "The ticket register marks the draft export as approved.",
+          "fact_ids": ["ticket_export.status"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "ticket_export.status": "The draft ticket export is approved in the register."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H34",
+    "expected": "FAIL",
+    "kind": "wrong_unit",
+    "domain": "latency",
+    "why": "The latency record is in milliseconds, while the claim presents its unchanged value in seconds.",
+    "input": {
+      "claims": [
+        {
+          "id": "c34",
+          "text": "Median latency for the lookup route was 240 seconds.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "lookup_latency.median.ms", "value": 240}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"lookup_latency.median.ms": 240},
+      "labels": {"lookup_latency.median.ms": ["lookup", "median", "latency", "milliseconds"]}
+    }
+  },
+  {
+    "id": "H35",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "screen_hours",
+    "why": "The Wednesday and Thursday records show screen time decreasing from 4.25 to 3.6 hours.",
+    "input": {
+      "claims": [
+        {
+          "id": "c35",
+          "text": "Screen time fell from 4.25 hours on Wednesday to 3.60 hours on Thursday.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "screen_time.wednesday.hours", "value": 4.25},
+            {"metric_id": "screen_time.thursday.hours", "value": 3.6}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {
+        "screen_time.wednesday.hours": 4.25,
+        "screen_time.thursday.hours": 3.6
+      },
+      "labels": {
+        "screen_time.wednesday.hours": ["screen", "time", "wednesday", "hours"],
+        "screen_time.thursday.hours": ["screen", "time", "thursday", "hours"]
+      },
+      "order": [["screen_time.wednesday.hours", "screen_time.thursday.hours"]]
+    }
+  },
+  {
+    "id": "H36",
+    "expected": "FAIL",
+    "kind": "wrong_number",
+    "domain": "revenue",
+    "why": "The kiosk-session record holds 318.06 credits, while the claim reports 318.60.",
+    "input": {
+      "claims": [
+        {
+          "id": "c36",
+          "text": "Revenue for the kiosk session was 318.60 credits.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "session_revenue.kiosk.credits", "value": 318.6}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"session_revenue.kiosk.credits": 318.06},
+      "labels": {"session_revenue.kiosk.credits": ["revenue", "kiosk", "session", "credits"]}
+    }
+  },
+  {
+    "id": "H37",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "deploys",
+    "why": "The cited checklist record explicitly places approval before the evening release window.",
+    "input": {
+      "claims": [
+        {
+          "id": "c37",
+          "text": "The deploy checklist records approval before the evening release window.",
+          "fact_ids": ["release_checklist.approval"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "release_checklist.approval": "Approval was recorded in the deploy checklist before the evening release window."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H38",
+    "expected": "FAIL",
+    "kind": "negation",
+    "domain": "tickets",
+    "why": "The record says the batch contains tickets and all have categories; the claim says none do.",
+    "input": {
+      "claims": [
+        {
+          "id": "c38",
+          "text": "None of the tickets in the batch had a category assigned.",
+          "fact_ids": ["ticket_batch.category_status"],
+          "metric_refs": []
+        }
+      ],
+      "facts": {
+        "ticket_batch.category_status": "The batch contains tickets, and every ticket in it had a category assigned."
+      },
+      "metrics": {}
+    }
+  },
+  {
+    "id": "H39",
+    "expected": "PASS",
+    "kind": "true",
+    "domain": "latency",
+    "why": "The cited overnight maximum-latency record is 0.84 seconds.",
+    "input": {
+      "claims": [
+        {
+          "id": "c39",
+          "text": "The overnight trace records a maximum latency of 0.84 seconds.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "trace_latency.overnight.maximum.seconds", "value": 0.84}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"trace_latency.overnight.maximum.seconds": 0.84},
+      "labels": {
+        "trace_latency.overnight.maximum.seconds": ["overnight", "maximum", "latency", "seconds"]
+      }
+    }
+  },
+  {
+    "id": "H40",
+    "expected": "FAIL",
+    "kind": "wrong_number",
+    "domain": "steps",
+    "why": "The Saturday counter holds 4,860 steps; the claim transposes the digits to 4,680.",
+    "input": {
+      "claims": [
+        {
+          "id": "c40",
+          "text": "The counter logged 4,680 steps on Saturday.",
+          "fact_ids": [],
+          "metric_refs": [
+            {"metric_id": "steps.saturday.count", "value": 4680}
+          ]
+        }
+      ],
+      "facts": {},
+      "metrics": {"steps.saturday.count": 4860},
+      "labels": {"steps.saturday.count": ["steps", "saturday"]}
+    }
+  }
+]

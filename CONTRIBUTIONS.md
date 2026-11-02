@@ -560,6 +560,24 @@ runner tests that read the wall clock and failed near every quiet window; and R4
 a two-layer stack for rows made through three.
 The D1/I2 block was added after I saw R3's first run, and is labelled that way in the report.
 
+## Held-out checker set v1 (2026-11-02)
+
+GPT Sol 6.1 (OpenAI), through the Codex CLI at maximum reasoning effort, wrote
+the 40 held-out checker cases in `evals/heldout/checker-heldout-v1.json` on
+Nov 2: 20 PASS and 20 FAIL, each FAIL false in exactly one way, across the
+registered kinds and domains, each case with an id, expected verdict, kind,
+domain, one line on why, and a one-claim checker input. It worked blind from
+the public description of the checker at commit 5b8dad6, in a read-only
+sandbox with web search disabled, and labelled each case by the truth judged
+from that input alone. I froze the file in this commit before any scoring.
+
+Claude Code chose the public files the author saw, wrote the author's task,
+checked the file's JSON shape but not its verdicts, and placed the file in
+the working tree. Muse Code, muse-spark-1.3 at low effort, wrote the README
+in `evals/heldout/README.md` and the freeze test and made this commit, in a
+headless session Claude Code started, in Contributor mode, on this public
+repo.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
@@ -568,4 +586,4 @@ The D1/I2 block was added after I saw R3's first run, and is labelled that way i
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
 - Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as summarised in `docs/sessions/`. The exception is the held-out test sets a ticket's entry names. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks I found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. The exception is Ticket 14, as that entry says: the matcher block was about 48 lines, and the compile prompt text and two `docs/PRIVACY.md` paragraphs were given word for word. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
 - Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as summarised in `docs/sessions/`. The exceptions are the held-out test sets a ticket's entry names, and Ticket 10b's adjudication files and the mechanical steps that entry lists. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks I found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
-- **GPT Sol 6.1 and GPT Astra 6 (OpenAI), through Codex,** reviewed this project read-only on Nov 1: literature, code, demo plan, failure modes and launch plan. They wrote nothing in this repository. Findings that changed something are credited in the ticket that used them.
+- **GPT Sol 6.1 and GPT Astra 6 (OpenAI), through Codex,** reviewed this project read-only on Nov 1: literature, code, demo plan, failure modes and launch plan. They wrote nothing in this repository, except that GPT Sol 6.1 wrote the held-out checker cases in `evals/heldout/checker-heldout-v1.json` on Nov 2, and nothing else here. Findings that changed something are credited in the ticket that used them.
