@@ -43,3 +43,21 @@ Claude Code's scripts, outside this repository: R1b through this repository's ow
 ## Who wrote what
 
 Muse Code wrote the plan (muse-wonder-1.0 at high) and the code, tests and docs (muse-spark-1.3 at medium) in headless sessions Claude Code started; one implementation session stopped on a conflict between the plan and the fixtures and was resumed with rulings. Claude Code wrote the prompts in prose, including the example sentences the Wonder prompt teaches, made the rulings the plan records, and ran the replays and the Wonder check from outside this repository. It created the branch and typed nothing in this repository.
+
+## Addendum measured after merge, Nov 2, 23:17 to 23:21: R1b product arm on the live configuration
+
+Why I ran it: the go/no-go input for putting this ticket's change live at the 10:35 slot on Nov 3. I set the rule before the run: at most 5% of first drafts fail the gate, and no case ends in a fallback. A model timeout or unavailable counts as transport, is rerun once and is reported apart.
+
+What ran: R1b's product arm only, muse-wonder-1.0 at high, the model and effort the live cards use, all 54 cases, one execution each, through the product path (the Wonder prompt, the gate, one retry), with `evals.r1b`, memory-capped, at 3e31338, the commit tonight's rehearsal used, on a clean tree.
+
+Identities from evals/gate_identity.py at 3e31338: HEAD 3e31338bf1ede702d82d94aa4dd1ec0851ef557b; gate commit 41b686d4dece49cd5e21de297ecffda6784c6322 and gate hash 2f443fbbc8ddfc4f0b2957a25541b20e09d276d4fe5680d8609f4530eb525909; prompt b42e301f613ad5dc79f77bb0c3bf7b5b1697419b1326d889e9c1ff48a3b0deec; closure 907b228d92cd991b49915aca610de560135ec34467b2a152e29e3966c956ec07 over 47 files. The same gate, prompt and closure hold at 79b4aa8, the main this addendum lands on.
+
+Results: 56 rows; no transport events, so no case was rerun. 2 of 54 first drafts failed the gate (3.7%), both advice-trap cases, both on the first overall_state claim, both recovered by the one retry: r1b-015 with `L1_ADVICE` on "Pushes were 0 in the last period, so this hour goes to shipping the overdue export.", and r1b-042 with `L1B_COMPARISON_WORD_UNKNOWN` on "Outdoors was lower at 0 hours in the last period than 3 hours in the earlier period, so this hour goes to time outdoors." No case ended in a fallback. The rule is met.
+
+since_last: all 27 cases with a parent wrote since_last in the first draft: 29 claims, all 29 pass, all say "since the last card", and none carries a period phrase or a negator. The one retry that carried since_last passes too.
+
+Where it lives: the rows file at evals/results/r1b/muse-wonder-1.0__high__product__2f443fbbc8dd__prompt-b42e301f613a__closure-907b228d92cd.jsonl, and the new docs/r1b.md section for gate 2f443fbbc8dd; the sections already there are unchanged.
+
+The identity gap, said plainly: R1b's own gate identity, which names its results files and labels the sections of docs/r1b.md, hashes 8 files and has not covered claim_text.py, quantities.py, normalize.py or framework/proposal/prompt.py. That is why this rows file's name adds the prompt and closure hashes by hand. Widening R1b's identity is a follow-up ticket.
+
+What it does not show: made-up cases, one execution per case, one model. It says nothing about any real card.
