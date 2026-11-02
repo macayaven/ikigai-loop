@@ -69,6 +69,8 @@ Built and merged:
 - Public provenance (`framework/provenance/`, `docs/MODELS.md`, `docs/provenance.jsonl`): a read-only export writes one JSON line per slot with counts and codes and no card text, and `make glimmer-proof` runs one synthetic label through llama-swap, prints the served weights' basename, and refuses during a real slot's Glimmer window; 58 tests in `tests/test_provenance_export.py`, `tests/test_provenance_glimmer_proof.py` and `tests/test_provenance_docs.py`, passing.
 - Voice correction (`framework/voice/`): a voice note corrects the card, transcribed through Muse Code on my subscription, compiled to one typed operation by a guarded model call, applied as append-only events, with a corrected card for the same slot when the offer changed; 342 tests in `tests/test_voice_*.py` and `tests/test_r9_*.py`, passing. R9 on the frozen set of 60, one pass each: the literal matcher 13; muse-spark-1.3 minimal 58, the default; muse-spark-1.3 low 57; muse-wonder-1.0 low 58; muse-glimmer-30b local 54.
 
+- Source audit (`source_audit/`): I recount my pull requests and pushes from a public GitHub snapshot with code that shares nothing with the product, then walk the recount through the stored metric, the fact statement, and the delivered card; nothing schedules it, I run it by hand after a real card, and a network-free negative control covers the failure modes; 135 tests in `tests/test_source_audit_*.py`, passing.
+
 Not built yet:
 - The proof harness.
 - The replay viewer.
