@@ -5,10 +5,14 @@ description = "Two objective profiles, one signal stream, two diverging apps."
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "pydantic",
+    "icalendar>=7.3.0",
+    "recurring-ical-events>=3.8.2",
+    "pillow>=13.0.0",
 ]
 
 [project.scripts]
 verify-claims = "framework.verify.__main__:main"
+try-ikigai = "framework.tryit.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -19,10 +23,7 @@ dev = [
 ]
 app = [
     "inspect-ai",
-    "icalendar>=7.3.0",
-    "recurring-ical-events>=3.8.2",
     "jinja2>=3.1.6",
-    "pillow>=13.0.0",
 ]
 
 [build-system]

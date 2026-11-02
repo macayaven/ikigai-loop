@@ -1,0 +1,419 @@
+{
+  "note": "Everything in this file is made up for the synthetic replay.",
+  "subject_id": "synthetic-subject-021",
+  "as_of": "2026-10-24T16:00:00+02:00",
+  "slot": "2026-10-24T17:00:00+02:00",
+  "prev_card": "2026-10-24T13:30:00+02:00",
+  "cycle_id": "try-021",
+  "events": [
+    {
+      "collected_at": "2026-10-22T09:15:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "counts": {
+          "commits": 1
+        },
+        "repo": "synthetic-forge/demo",
+        "type": "github.push"
+      },
+      "id": "ev-push-e1",
+      "source": "github",
+      "source_id": "push-e1",
+      "subject_id": "synthetic-subject-021",
+      "tier": "public",
+      "time": "2026-10-22T09:15:00+02:00",
+      "type": "github.push"
+    },
+    {
+      "collected_at": "2026-10-22T10:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "device": "mac",
+        "minutes_by_category": {
+          "code": 30
+        },
+        "type": "screen.hour"
+      },
+      "id": "ev-screen-e1a",
+      "source": "activity",
+      "source_id": "screen-e1a",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-22T10:00:00+02:00",
+      "type": "screen.hour"
+    },
+    {
+      "collected_at": "2026-10-22T11:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "device": "mac",
+        "minutes_by_category": {
+          "feed": 30
+        },
+        "type": "screen.hour"
+      },
+      "id": "ev-screen-e1b",
+      "source": "activity",
+      "source_id": "screen-e1b",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-22T11:00:00+02:00",
+      "type": "screen.hour"
+    },
+    {
+      "collected_at": "2026-10-22T17:05:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "counts": {
+          "commits": 1
+        },
+        "repo": "synthetic-forge/demo",
+        "type": "github.push"
+      },
+      "id": "ev-push-p1",
+      "source": "github",
+      "source_id": "push-p1",
+      "subject_id": "synthetic-subject-021",
+      "tier": "public",
+      "time": "2026-10-22T17:05:00+02:00",
+      "type": "github.push"
+    },
+    {
+      "collected_at": "2026-10-23T09:40:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "counts": {
+          "commits": 1
+        },
+        "repo": "synthetic-forge/demo",
+        "type": "github.push"
+      },
+      "id": "ev-push-p2",
+      "source": "github",
+      "source_id": "push-p2",
+      "subject_id": "synthetic-subject-021",
+      "tier": "public",
+      "time": "2026-10-23T09:40:00+02:00",
+      "type": "github.push"
+    },
+    {
+      "collected_at": "2026-10-23T10:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "device": "mac",
+        "minutes_by_category": {
+          "code": 60
+        },
+        "type": "screen.hour"
+      },
+      "id": "ev-screen-p1a",
+      "source": "activity",
+      "source_id": "screen-p1a",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-23T10:00:00+02:00",
+      "type": "screen.hour"
+    },
+    {
+      "collected_at": "2026-10-23T11:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "device": "mac",
+        "minutes_by_category": {
+          "feed": 15
+        },
+        "type": "screen.hour"
+      },
+      "id": "ev-screen-p1b",
+      "source": "activity",
+      "source_id": "screen-p1b",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-23T11:00:00+02:00",
+      "type": "screen.hour"
+    },
+    {
+      "collected_at": "2026-10-23T17:20:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "counts": {
+          "commits": 1
+        },
+        "repo": "synthetic-forge/demo",
+        "type": "github.push"
+      },
+      "id": "ev-push-l1",
+      "source": "github",
+      "source_id": "push-l1",
+      "subject_id": "synthetic-subject-021",
+      "tier": "public",
+      "time": "2026-10-23T17:20:00+02:00",
+      "type": "github.push"
+    },
+    {
+      "collected_at": "2026-10-23T20:05:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "counts": {
+          "commits": 1
+        },
+        "repo": "synthetic-forge/demo",
+        "type": "github.push"
+      },
+      "id": "ev-push-l2",
+      "source": "github",
+      "source_id": "push-l2",
+      "subject_id": "synthetic-subject-021",
+      "tier": "public",
+      "time": "2026-10-23T20:05:00+02:00",
+      "type": "github.push"
+    },
+    {
+      "collected_at": "2026-10-24T09:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "device": "mac",
+        "minutes_by_category": {
+          "code": 60
+        },
+        "type": "screen.hour"
+      },
+      "id": "ev-screen-l1a",
+      "source": "activity",
+      "source_id": "screen-l1a",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-24T09:00:00+02:00",
+      "type": "screen.hour"
+    },
+    {
+      "collected_at": "2026-10-24T11:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "device": "mac",
+        "minutes_by_category": {
+          "code": 60
+        },
+        "type": "screen.hour"
+      },
+      "id": "ev-screen-l1b",
+      "source": "activity",
+      "source_id": "screen-l1b",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-24T11:00:00+02:00",
+      "type": "screen.hour"
+    },
+    {
+      "collected_at": "2026-10-24T14:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "device": "mac",
+        "minutes_by_category": {
+          "code": 30
+        },
+        "type": "screen.hour"
+      },
+      "id": "ev-screen-l1c",
+      "source": "activity",
+      "source_id": "screen-l1c",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-24T14:00:00+02:00",
+      "type": "screen.hour"
+    },
+    {
+      "collected_at": "2026-10-24T14:10:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "counts": {
+          "commits": 1
+        },
+        "repo": "synthetic-forge/demo",
+        "type": "github.push"
+      },
+      "id": "ev-push-l3",
+      "source": "github",
+      "source_id": "push-l3",
+      "subject_id": "synthetic-subject-021",
+      "tier": "public",
+      "time": "2026-10-24T14:10:00+02:00",
+      "type": "github.push"
+    },
+    {
+      "collected_at": "2026-10-24T14:50:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "counts": {
+          "commits": 1
+        },
+        "repo": "synthetic-forge/demo",
+        "type": "github.push"
+      },
+      "id": "ev-push-l4",
+      "source": "github",
+      "source_id": "push-l4",
+      "subject_id": "synthetic-subject-021",
+      "tier": "public",
+      "time": "2026-10-24T14:50:00+02:00",
+      "type": "github.push"
+    },
+    {
+      "collected_at": "2026-10-24T15:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "device": "mac",
+        "minutes_by_category": {
+          "feed": 30
+        },
+        "type": "screen.hour"
+      },
+      "id": "ev-screen-l1d",
+      "source": "activity",
+      "source_id": "screen-l1d",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-24T15:00:00+02:00",
+      "type": "screen.hour"
+    },
+    {
+      "collected_at": "2026-10-24T12:00:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "busy": true,
+        "category": "meeting",
+        "end": "2026-10-24T18:00:00+02:00",
+        "is_new": true,
+        "start": "2026-10-24T17:00:00+02:00",
+        "tags": [
+          "iki-meeting"
+        ],
+        "type": "calendar.event.created"
+      },
+      "id": "ev-cal-busy-1",
+      "source": "calendar",
+      "source_id": "cal-busy-1",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-24T17:00:00+02:00",
+      "type": "calendar.event.created"
+    }
+  ],
+  "earlier_taps": [
+    {
+      "collected_at": "2026-10-23T18:05:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "block_id": "card-prev-01",
+        "target": "A",
+        "type": "app.tap"
+      },
+      "id": "tap-prev-1",
+      "source": "telegram",
+      "source_id": "card-prev-01:A",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-23T18:05:00+02:00",
+      "type": "app.tap"
+    },
+    {
+      "collected_at": "2026-10-24T09:30:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "block_id": "card-prev-02",
+        "target": "A",
+        "type": "app.tap"
+      },
+      "id": "tap-prev-2",
+      "source": "telegram",
+      "source_id": "card-prev-02:A",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-24T09:30:00+02:00",
+      "type": "app.tap"
+    },
+    {
+      "collected_at": "2026-10-24T12:20:00+02:00",
+      "collector_version": "tryit-021",
+      "data": {
+        "block_id": "card-prev-03:B",
+        "target": "B",
+        "type": "app.tap"
+      },
+      "id": "tap-prev-3",
+      "source": "telegram",
+      "source_id": "card-prev-03:B",
+      "subject_id": "synthetic-subject-021",
+      "tier": "private",
+      "time": "2026-10-24T12:20:00+02:00",
+      "type": "app.tap"
+    }
+  ],
+  "commitments": [
+    {
+      "dimension": "good_at",
+      "evidence": "github_push",
+      "id": "cm-builder-parser",
+      "kind": "build",
+      "profile_id": "builder",
+      "title": "Build the synthetic parser sketch"
+    },
+    {
+      "dimension": "love",
+      "evidence": "calendar_tag",
+      "id": "cm-disconnect-family",
+      "kind": "social",
+      "profile_id": "disconnect",
+      "tag": "iki-family",
+      "title": "Call the synthetic family line"
+    }
+  ],
+  "builder_planted": {
+    "commitment_id": "cm-builder-parser",
+    "not_working": [],
+    "overall_state": [
+      {
+        "fact_family": "pushes",
+        "fact_member": "",
+        "metric_refs": [
+          "period.prior.pushes",
+          "period.last.pushes"
+        ],
+        "text": "Pushes rose from 2 in prior to 5 in last."
+      }
+    ],
+    "working": []
+  },
+  "builder_fixed": {
+    "commitment_id": "cm-builder-parser",
+    "not_working": [],
+    "overall_state": [
+      {
+        "fact_family": "pushes",
+        "fact_member": "",
+        "metric_refs": [
+          "period.prior.pushes",
+          "period.last.pushes"
+        ],
+        "text": "Pushes rose from 2 in prior to 4 in last."
+      }
+    ],
+    "working": []
+  },
+  "disconnect": {
+    "commitment_id": "cm-disconnect-family",
+    "not_working": [],
+    "overall_state": [
+      {
+        "fact_family": "screen_hours",
+        "fact_member": "code",
+        "metric_refs": [
+          "period.prior.screen_hours.code",
+          "period.last.screen_hours.code"
+        ],
+        "text": "Code screen hours rose from 1 in prior to 2.5 in last."
+      }
+    ],
+    "working": []
+  }
+}

@@ -34,3 +34,7 @@ jobs:
         run: uv sync --locked
       - name: make check
         run: make check
+      - name: try-ikigai wheel guard
+        run: |
+          uvx --from . try-ikigai --save "$RUNNER_TEMP/card.png"
+          python3 -c "import os, pathlib, sys; raw = pathlib.Path(os.environ['RUNNER_TEMP'], 'card.png').read_bytes(); sys.exit(0 if raw[:8] == b'\x89PNG\r\n\x1a\n' else 1)"

@@ -2,6 +2,18 @@
 
 I write down what I promised myself. The agent picks which promise gets my next free hour, and a deterministic gate checks the numbers and sources it cites against my own data before I see them. Anyone can run the same checks on their own agent: [Check your own agent](#check-your-own-agent).
 
+## Try it
+
+One command for a stranger. You need `uv` and `git`, and a network connection the first time; uv fetches Python itself if needed. It runs with no key, no model, no phone and no account, stores nothing, writes only the file you name (uv keeps its own download cache, as it does for any tool), and reads no real data:
+
+```sh
+uvx --from git+https://github.com/macayaven/ikigai-loop try-ikigai --save card.png
+```
+
+It replays made-up data through the same checks my real run uses and prints the card, the choice, a planted wrong number the gate rejects, and the records behind one sentence; `card.png` is the chart image. On my machine the first run took under 10 seconds from an empty cache, Python download included, and about a second after that.
+
+From a clone, `make try` runs the same replay.
+
 ## Check your own agent
 
 The number, source, label and direction checks in my gate also run on your agent's output, against records you supply. You need `uv` for the command below; the browser page needs nothing. Grab the worked input and run the checker:

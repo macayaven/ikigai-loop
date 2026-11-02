@@ -13,6 +13,7 @@ Ikigai Loop: two goals, Builder and Disconnect, compete for Carlos's next free h
 - `make test` — pytest only.
 - `make eval` — runs every task file in EVAL_FILES on the mock model via evals/run_tasks.py; fails on an errored task or any incorrect sample.
 - `make demo` — replays the M12 gate rejection offline: the draft says 99, the source says 3.
+- `make try` — replays packaged made-up data through the real code, no key or model.
 
 ## Layout
 
