@@ -380,6 +380,12 @@ Prompts and review by Claude Code; plan on muse-wonder-1.0 (effort high), implem
 
 GPT Terra 6.1, run through Codex, ran the no-context test that got the checker in 15 seconds and never saw the loop; GPT Sol 6.1, GPT Terra 6.1, GPT Astra 6, Muse Wonder Full and Claude Code's advisor voted for this unanimously.
 
+## Ticket 13b — one more try after a Wonder timeout (2026-11-02)
+
+Built on branch `t13b-stall-retry`, no plan file, the ticket text was the spec. A Wonder call in a slot that ends in a timeout gets one more attempt when a full call's time remains before the propose deadline, counted as `timeout_retries` apart from `local_retries`. With both models hung the timeline does not change. Evidence in [docs/sessions/013b-stall-retry.md](docs/sessions/013b-stall-retry.md).
+
+Prompts and review by Claude Code; implementation on muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only; Claude Code ran the live exercise outside those sessions, on made-up data. The stall itself was seen by the driver of Ticket 14, in its logs.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
