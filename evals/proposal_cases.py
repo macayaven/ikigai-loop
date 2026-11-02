@@ -662,7 +662,9 @@ _PARENT_SNAPSHOT: tuple[tuple[str, float], ...] = (
     ("period.last.pushes", 2.0),
 )
 
-_SINCE_LAST_GOOD = [_claim("Pushes rose 1 in last", metrics=("period.last.pushes",))]
+_SINCE_LAST_GOOD = [
+    _claim("Pushes rose 1 since the last card", metrics=("period.last.pushes",))
+]
 _PARENT_GOOD_DRAFT = _draft(
     PARSER_ID, GOOD_OVERALL, GOOD_WORKING, since_last=_SINCE_LAST_GOOD
 )
@@ -901,7 +903,7 @@ CASES: tuple[Case, ...] = (
                     GOOD_WORKING,
                     since_last=[
                         _claim(
-                            "Pushes rose 1 in last",
+                            "Pushes rose 1 since the last card",
                             metrics=("period.last.pushes",),
                         )
                     ],
@@ -1262,7 +1264,9 @@ CASES: tuple[Case, ...] = (
                     GOOD_OVERALL,
                     GOOD_WORKING,
                     since_last=[
-                        _claim("Pushes held at 0 in last", metrics=(PUSH_LAST,))
+                        _claim(
+                            "Pushes held at 0 since the last card", metrics=(PUSH_LAST,)
+                        )
                     ],
                 )
             ),

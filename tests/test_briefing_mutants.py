@@ -1,4 +1,4 @@
-"""Ticket 10b: meta-eval over ``evals/briefing_cases`` (118 mutants, 57 known-good)."""
+"""Ticket 10c: meta-eval over ``evals/briefing_cases`` (119 mutants, 57 known-good)."""
 
 import pytest
 
@@ -7,8 +7,9 @@ from framework.briefing.gate import evaluate_briefing
 
 
 def test_case_counts() -> None:
-    # 38 base mutants + 34 round-1 redteam (M39-M72) + 46 round-2 (M73-M118).
-    assert len(MUTANTS) == 38 + 34 + 46 == 118
+    # 38 base mutants + 34 round-1 redteam (M39-M72) + 46 round-2 (M73-M118)
+    # + 1 Ticket 10c since_last mutant (M119).
+    assert len(MUTANTS) == 38 + 34 + 46 + 1 == 119
     # 20 base known-good + 28 round-1 redteam (G21-G48) + 9 round-2 (G49-G57).
     assert len(KNOWN_GOOD) == 20 + 28 + 9 == 57
 

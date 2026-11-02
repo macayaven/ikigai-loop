@@ -202,13 +202,19 @@ def build_prompt(
             "In since_last, cite only delta ids from the delta table and write "
             "only the delta digit, never the current value. A direction word "
             "there must match the delta sign. A zero delta takes no direction "
-            "word."
+            "word. Write the change as since the last card, as in "
+            '"Prs rose by 3 since the last card." For a delta of an earlier '
+            "or prior period, put the period word before the label, as in "
+            '"Earlier pushes rose by 1 since the last card." Never place a '
+            "since_last change in a period: do not write in the last period, "
+            "in last, or during, over or across a period for it."
         )
         if all(delta.value == 0 for delta in deltas):
             rules += (
-                " Nothing changed since the last card: cite one listed delta "
-                "and write it as changed by 0, with no direction word, as in "
-                "busy changed by 0 hours."
+                " When every delta is 0, cite one listed delta and write it "
+                "as changed by 0 since the last card, leaving out direction "
+                "words, as in "
+                '"Busy changed by 0 hours since the last card."'
             )
         since_last_rules = rules + "\n"
         since_last_sentence = " since_last says what changed since his last card."

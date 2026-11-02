@@ -1352,7 +1352,7 @@ def test_period_word_required_on_since_last_period_refs() -> None:
 
     briefing = copy.deepcopy(case.briefing)
     claim = _section(briefing, "since_last")["claims"][2]
-    claim["text"] = "Pushes rose by 1 and 2 in last since the parent briefing"
+    claim["text"] = "Pushes rose by 1 and 2 since the last card"
     claim["metric_refs"] = [
         {"metric_id": "period.prior.pushes", "value": 1.0},
         {"metric_id": "period.last.pushes", "value": 2.0},
@@ -1774,3 +1774,136 @@ def test_since_last_last_card_names_last_period() -> None:
         }
     )
     assert _codes(evaluate_briefing(briefing, context)) == []
+
+
+def _since_last_text_case(
+    text: str, ref_id: str, ref_value: float, current: float, parent: float
+) -> tuple[dict[str, Any], Any]:
+    case = base_case_with_parent("builder")
+    briefing = copy.deepcopy(case.briefing)
+    claim = _section(briefing, "since_last")["claims"][2]
+    claim["text"] = text
+    claim["metric_refs"] = [{"metric_id": ref_id, "value": ref_value}]
+    values = dict(case.context.metrics.values)
+    values[ref_id] = current
+    parent_values = dict(case.context.parent_metrics.values)  # type: ignore[union-attr]
+    parent_values[ref_id] = parent
+    context = case.context.model_copy(
+        update={
+            "metrics": MetricSnapshot(values=values),
+            "parent_metrics": MetricSnapshot(values=parent_values),
+        }
+    )
+    return briefing, context
+
+
+def test_since_last_wording_real_sentence_rejected() -> None:
+    briefing, context = _since_last_text_case(
+        "Prs rose by 3 in the last period.", "period.last.prs", 3.0, 27.0, 24.0
+    )
+    result = evaluate_briefing(briefing, context)
+    assert [v.code for v in result.violations] == ["L1B_SINCE_LAST_WORDING"]
+    assert result.violations[0].location == "sections[since_last].claims[claim-s3]"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Prs rose by 3 since the last card.",
+        "Prs rose by 3 since my last card.",
+        "Prs rose by 3 since the previous card.",
+        "Prs rose by 3 Since The Last Card.",
+    ],
+)
+def test_since_last_wording_accepted_phrases_pass(text: str) -> None:
+    briefing, context = _since_last_text_case(text, "period.last.prs", 3.0, 27.0, 24.0)
+    assert _codes(evaluate_briefing(briefing, context)) == []
+
+
+@pytest.mark.parametrize(
+    ("text", "ref_id", "current", "parent", "expected"),
+    [
+        ("Prs rose by 3 in the last period.", "period.last.prs", 27.0, 24.0, None),
+        ("Prs rose by 3 in last.", "period.last.prs", 27.0, 24.0, None),
+        ("Prs rose by 3 during the last period.", "period.last.prs", 27.0, 24.0, None),
+        ("Prs rose by 3 for the last period.", "period.last.prs", 27.0, 24.0, None),
+        ("Prs rose by 3 over the last period.", "period.last.prs", 27.0, 24.0, None),
+        ("Prs rose by 3 across last.", "period.last.prs", 27.0, 24.0, None),
+        (
+            "Prs rose by 3 in a period.",
+            "period.last.prs",
+            27.0,
+            24.0,
+            ["L1B_PERIOD_WORD_MISSING", "L1B_SINCE_LAST_WORDING"],
+        ),
+        (
+            "Prs rose by 3 over the period.",
+            "period.last.prs",
+            27.0,
+            24.0,
+            ["L1B_PERIOD_WORD_MISSING", "L1B_SINCE_LAST_WORDING"],
+        ),
+        (
+            "Pushes rose by 1 in the earlier period.",
+            "period.earlier.pushes",
+            2.0,
+            1.0,
+            None,
+        ),
+        ("Prs rose by 3 in the prior period.", "period.prior.prs", 5.0, 2.0, None),
+        (
+            "Prs rose by 3 in the last period since the last card.",
+            "period.last.prs",
+            27.0,
+            24.0,
+            None,
+        ),
+        (
+            "Pushes dropped by 2 over the prior period since my last card.",
+            "period.prior.pushes",
+            3.0,
+            5.0,
+            None,
+        ),
+        ("Busy rose by 0.5 in the last period.", "calendar.busy_hours", 3.0, 2.5, None),
+    ],
+)
+def test_since_last_wording_rejected_patterns_fire(
+    text: str,
+    ref_id: str,
+    current: float,
+    parent: float,
+    expected: list[str] | None,
+) -> None:
+    ref_value = round(current - parent, 10)
+    briefing, context = _since_last_text_case(
+        text, ref_id, ref_value, current, current - ref_value
+    )
+    result = evaluate_briefing(briefing, context)
+    assert [v.code for v in result.violations] == (
+        expected if expected is not None else ["L1B_SINCE_LAST_WORDING"]
+    ), text
+
+
+def test_since_last_wording_working_section_out_of_scope() -> None:
+    briefing, context = _fresh()
+    claim = _section(briefing, "working")["claims"][0]
+    claim["text"] = "Prs were 27 in the last period."
+    claim["fact_ids"] = []
+    claim["metric_refs"] = [{"metric_id": "period.last.prs", "value": 27.0}]
+    values = dict(context.metrics.values)
+    values["period.last.prs"] = 27.0
+    context = context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+    assert "L1B_SINCE_LAST_WORDING" not in _codes(evaluate_briefing(briefing, context))
+
+
+def test_since_last_wording_fact_only_out_of_scope() -> None:
+    case = base_case_with_parent("builder")
+    briefing = copy.deepcopy(case.briefing)
+    claim = _section(briefing, "since_last")["claims"][2]
+    claim["text"] = "The synthetic focus session finished yesterday in the last period."
+    claim["fact_ids"] = ["fact:synthetic-1"]
+    claim["metric_refs"] = []
+    assert "L1B_SINCE_LAST_WORDING" not in _codes(
+        evaluate_briefing(briefing, case.context)
+    )

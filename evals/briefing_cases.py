@@ -1427,7 +1427,37 @@ def _round2_mutants() -> tuple[Case, ...]:
     return tuple(cases)
 
 
-MUTANTS: tuple[Case, ...] = _build_mutants() + _redteam_mutants() + _round2_mutants()
+def _since_last_mutants() -> tuple[Case, ...]:
+    """Ticket 10c: the since_last wording mutant, apart from the round-2 set."""
+    cases: list[Case] = []
+
+    def m119(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "since_last"), "claim-s3")
+        claim["text"] = "Prs rose by 3 in the last period."
+        claim["metric_refs"] = [_ref("period.last.prs", 3.0)]
+        values = dict(context.metrics.values)
+        values["period.last.prs"] = 27.0
+        ctx = context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+        parent_values = dict(ctx.parent_metrics.values)  # type: ignore[union-attr]
+        parent_values["period.last.prs"] = 24.0
+        return ctx.model_copy(
+            update={"parent_metrics": MetricSnapshot(values=parent_values)}
+        )
+
+    cases.append(
+        _mutate(
+            base_case_with_parent("builder"),
+            "M119-since-last-period-phrase",
+            ("L1B_SINCE_LAST_WORDING",),
+            m119,
+        )
+    )
+    return tuple(cases)
+
+
+MUTANTS: tuple[Case, ...] = (
+    _build_mutants() + _redteam_mutants() + _round2_mutants() + _since_last_mutants()
+)
 
 
 def _build_known_good() -> tuple[Case, ...]:

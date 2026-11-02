@@ -52,6 +52,7 @@ CATEGORY_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
             "L1_ACTION_TEXT_MISMATCH",
             "L1B_MISSING_SINCE_LAST",
             "L1B_SINCE_LAST_WITHOUT_PARENT",
+            "L1B_SINCE_LAST_WORDING",
             "L1B_PARENT_MISMATCH",
             "L0_ACTION_COUNT",
             "L0_DUPLICATE_ID",

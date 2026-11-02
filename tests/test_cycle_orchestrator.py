@@ -3776,7 +3776,7 @@ class _FullRunWonder:
         if second:
             payload["since_last"] = [
                 {
-                    "text": "Pushes rose 1 in last",
+                    "text": "Pushes rose 1 since the last card",
                     "fact_ids": [],
                     "metric_refs": ["period.last.pushes"],
                 }
@@ -4842,7 +4842,7 @@ def _draft_stdout_for(schema: dict[str, Any]) -> bytes:
     if "since_last" in properties:
         payload["since_last"] = [
             {
-                "text": "Pushes rose 1 in last",
+                "text": "Pushes rose 1 since the last card",
                 "fact_ids": [],
                 "metric_refs": ["period.last.pushes"],
             }

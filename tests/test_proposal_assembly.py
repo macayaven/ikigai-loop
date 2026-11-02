@@ -216,7 +216,7 @@ def test_different_parent_gives_different_id() -> None:
     payload = _good_payload()
     payload["since_last"] = [
         {
-            "text": "Pushes rose 1 in last",
+            "text": "Pushes rose 1 since the last card",
             "fact_ids": [],
             "metric_refs": ["period.last.pushes"],
         }
@@ -314,7 +314,7 @@ def test_parent_arms() -> None:
     payload = _good_payload()
     payload["since_last"] = [
         {
-            "text": "Pushes rose 1 in last",
+            "text": "Pushes rose 1 since the last card",
             "fact_ids": [],
             "metric_refs": ["period.last.pushes"],
         }
