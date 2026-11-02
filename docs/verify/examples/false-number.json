@@ -4,21 +4,21 @@
       "id": "c1",
       "metric_refs": [
         {
-          "metric_id": "deploys.nov",
-          "value": 9
+          "metric_id": "November deploys",
+          "value": 12
         }
       ],
-      "text": "Deploys reached 9 in November"
+      "text": "Deploys reached 12 in November"
     }
   ],
   "facts": {},
   "labels": {
-    "deploys.nov": [
+    "November deploys": [
       "deploys",
       "november"
     ]
   },
   "metrics": {
-    "deploys.nov": 5
+    "November deploys": 7
   }
 }

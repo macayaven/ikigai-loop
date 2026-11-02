@@ -4,15 +4,15 @@
       "id": "c1",
       "metric_refs": [
         {
-          "metric_id": "deploys.oct",
+          "metric_id": "October deploys",
           "value": 5
         },
         {
-          "metric_id": "deploys.nov",
-          "value": 9
+          "metric_id": "November deploys",
+          "value": 7
         }
       ],
-      "text": "Deploys rose from 5 in October to 9 in November"
+      "text": "Deploys rose from 5 in October to 7 in November"
     },
     {
       "fact_ids": [
@@ -26,23 +26,23 @@
     "t1": "Support queue note filed on Monday"
   },
   "labels": {
-    "deploys.nov": [
+    "November deploys": [
       "deploys",
       "november"
     ],
-    "deploys.oct": [
+    "October deploys": [
       "deploys",
       "october"
     ]
   },
   "metrics": {
-    "deploys.nov": 9,
-    "deploys.oct": 5
+    "November deploys": 7,
+    "October deploys": 5
   },
   "order": [
     [
-      "deploys.oct",
-      "deploys.nov"
+      "October deploys",
+      "November deploys"
     ]
   ]
 }
