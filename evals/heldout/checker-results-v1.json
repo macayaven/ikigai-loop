@@ -1,0 +1,854 @@
+{
+  "commit": "1cd8db807f775b20653797e114c8c2be0412d42a",
+  "data_sha256": "937789f47824e6a073e72a73f027eadf95e24787acb1a77bc97c269513bc2610",
+  "counts": {
+    "true_pass": 18,
+    "true_fail": 17,
+    "false_pass": 3,
+    "false_fail": 2,
+    "no_verdict": 0
+  },
+  "cases": [
+    {
+      "id": "H01",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "deploys",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c01",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c01",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H02",
+      "expected": "FAIL",
+      "kind": "wrong_number",
+      "domain": "revenue",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_VALUE_MISMATCH"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c02",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c02",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H03",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "latency",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c03",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c03",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H04",
+      "expected": "FAIL",
+      "kind": "negation",
+      "domain": "tickets",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "false_pass",
+      "codes": [],
+      "skipped": []
+    },
+    {
+      "id": "H05",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "steps",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c05",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c05",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H06",
+      "expected": "FAIL",
+      "kind": "wrong_unit",
+      "domain": "screen_hours",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c06",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c06",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H07",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "revenue",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c07",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c07",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        },
+        {
+          "claim_id": "c07",
+          "check": "value-period binding",
+          "reason": "no period declared for a cited metric in the comparison"
+        }
+      ]
+    },
+    {
+      "id": "H08",
+      "expected": "FAIL",
+      "kind": "wrong_period",
+      "domain": "deploys",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c08",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c08",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H09",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "tickets",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": []
+    },
+    {
+      "id": "H10",
+      "expected": "FAIL",
+      "kind": "mislabelled_metric",
+      "domain": "latency",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c10",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c10",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H11",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "screen_hours",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c11",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c11",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H12",
+      "expected": "FAIL",
+      "kind": "missing_fact",
+      "domain": "steps",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_UNKNOWN_FACT"
+      ],
+      "skipped": []
+    },
+    {
+      "id": "H13",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "deploys",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "false_fail",
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF",
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c13",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c13",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        },
+        {
+          "claim_id": "c13",
+          "check": "value-period binding",
+          "reason": "no period declared for a cited metric in the comparison"
+        }
+      ]
+    },
+    {
+      "id": "H14",
+      "expected": "FAIL",
+      "kind": "wrong_unit",
+      "domain": "revenue",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c14",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c14",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H15",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "latency",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c15",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c15",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        },
+        {
+          "claim_id": "c15",
+          "check": "value-period binding",
+          "reason": "no period declared for a cited metric in the comparison"
+        }
+      ]
+    },
+    {
+      "id": "H16",
+      "expected": "FAIL",
+      "kind": "wrong_period",
+      "domain": "tickets",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING",
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c16",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c16",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H17",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "steps",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": []
+    },
+    {
+      "id": "H18",
+      "expected": "FAIL",
+      "kind": "negation",
+      "domain": "screen_hours",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "false_pass",
+      "codes": [],
+      "skipped": []
+    },
+    {
+      "id": "H19",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "revenue",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c19",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c19",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H20",
+      "expected": "FAIL",
+      "kind": "wrong_number",
+      "domain": "deploys",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_VALUE_MISMATCH",
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c20",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c20",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H21",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "tickets",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c21",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c21",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        },
+        {
+          "claim_id": "c21",
+          "check": "value-period binding",
+          "reason": "no period declared for a cited metric in the comparison"
+        }
+      ]
+    },
+    {
+      "id": "H22",
+      "expected": "FAIL",
+      "kind": "missing_fact",
+      "domain": "latency",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_UNKNOWN_FACT"
+      ],
+      "skipped": []
+    },
+    {
+      "id": "H23",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "screen_hours",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "false_fail",
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "skipped": []
+    },
+    {
+      "id": "H24",
+      "expected": "FAIL",
+      "kind": "mislabelled_metric",
+      "domain": "steps",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c24",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c24",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H25",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "deploys",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c25",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c25",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H26",
+      "expected": "FAIL",
+      "kind": "negation",
+      "domain": "revenue",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c26",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c26",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        },
+        {
+          "claim_id": "c26",
+          "check": "value-period binding",
+          "reason": "no period declared for a cited metric in the comparison"
+        }
+      ]
+    },
+    {
+      "id": "H27",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "latency",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c27",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c27",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        },
+        {
+          "claim_id": "c27",
+          "check": "value-period binding",
+          "reason": "no period declared for a cited metric in the comparison"
+        }
+      ]
+    },
+    {
+      "id": "H28",
+      "expected": "FAIL",
+      "kind": "missing_fact",
+      "domain": "tickets",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_UNKNOWN_FACT"
+      ],
+      "skipped": []
+    },
+    {
+      "id": "H29",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "steps",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c29",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c29",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        },
+        {
+          "claim_id": "c29",
+          "check": "value-period binding",
+          "reason": "no period declared for a cited metric in the comparison"
+        }
+      ]
+    },
+    {
+      "id": "H30",
+      "expected": "FAIL",
+      "kind": "wrong_period",
+      "domain": "screen_hours",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING",
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c30",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c30",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H31",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "revenue",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c31",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c31",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H32",
+      "expected": "FAIL",
+      "kind": "mislabelled_metric",
+      "domain": "deploys",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c32",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c32",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H33",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "tickets",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": []
+    },
+    {
+      "id": "H34",
+      "expected": "FAIL",
+      "kind": "wrong_unit",
+      "domain": "latency",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c34",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c34",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H35",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "screen_hours",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c35",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c35",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        },
+        {
+          "claim_id": "c35",
+          "check": "value-period binding",
+          "reason": "no period declared for a cited metric in the comparison"
+        }
+      ]
+    },
+    {
+      "id": "H36",
+      "expected": "FAIL",
+      "kind": "wrong_number",
+      "domain": "revenue",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_VALUE_MISMATCH"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c36",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c36",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H37",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "deploys",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": []
+    },
+    {
+      "id": "H38",
+      "expected": "FAIL",
+      "kind": "negation",
+      "domain": "tickets",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "false_pass",
+      "codes": [],
+      "skipped": []
+    },
+    {
+      "id": "H39",
+      "expected": "PASS",
+      "kind": "true",
+      "domain": "latency",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "bucket": "true_pass",
+      "codes": [],
+      "skipped": [
+        {
+          "claim_id": "c39",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c39",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    },
+    {
+      "id": "H40",
+      "expected": "FAIL",
+      "kind": "wrong_number",
+      "domain": "steps",
+      "exit_code": 1,
+      "verdict": "FAIL",
+      "bucket": "true_fail",
+      "codes": [
+        "L1B_METRIC_VALUE_MISMATCH"
+      ],
+      "skipped": [
+        {
+          "claim_id": "c40",
+          "check": "unit",
+          "reason": "no unit declared for a cited metric"
+        },
+        {
+          "claim_id": "c40",
+          "check": "period name",
+          "reason": "no period declared for a cited metric"
+        }
+      ]
+    }
+  ]
+}

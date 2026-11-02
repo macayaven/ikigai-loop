@@ -634,6 +634,12 @@ review, where GPT Sol 6.1, GPT Terra 6.1 and GPT Astra 6, run through Codex, and
 each reproduced the negated and minutes escapes; the three GPT reviewers voted for this ticket,
 Wonder Full voted against, and I approved it on Nov 2.
 
+## Held-out checker set v1 scored (2026-11-02)
+
+Claude Code ran the public checker once per case on 1cd8db8 from a scratch script outside the repository, and checked the counts. It also placed the three published files, including the author's task it had written.
+
+Muse Code, muse-spark-1.3 at medium effort, wrote the scorer, its tests, the results doc and the README line, ran the scorer once to write the results JSON, and made this commit, in a headless session Claude Code started, in Contributor mode, on this public repo.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

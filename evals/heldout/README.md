@@ -57,6 +57,8 @@ I register this rule now, before any score exists:
   one after scoring, that is a ruling I disclose in the results, never an
   edit to this file.
 
+Scored once on 1cd8db8: [checker-results-v1.md](checker-results-v1.md) and [checker-results-v1.json](checker-results-v1.json) from [../heldout_score.py](../heldout_score.py), with [checker-author-task.md](checker-author-task.md), [checker-author-manifest.txt](checker-author-manifest.txt) and [checker-author-commands.txt](checker-author-commands.txt).
+
 ## Gate set v1
 
 `gate-heldout-v1.json` holds 40 test sentences for the briefing gate, in the
