@@ -1,0 +1,554 @@
+{
+  "attacks": [
+    {
+      "id": "G01",
+      "target": "D",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The prior-period push record is 1.",
+      "claim": {
+        "text": "In the prior period, the push count was 1.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.prior.pushes", "value": 1}
+        ]
+      }
+    },
+    {
+      "id": "G02",
+      "target": "A",
+      "predicted_passes": false,
+      "kind": "since_last",
+      "why": "There is no previous card against which a fall can be established.",
+      "claim": {
+        "text": "Pushes have fallen since the previous card.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.pushes", "value": 0}
+        ]
+      }
+    },
+    {
+      "id": "G03",
+      "target": "C",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The calendar busy-hours record is 6.5, expressed in its correct unit.",
+      "claim": {
+        "text": "The calendar's busy time totals 6.5 hours.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "calendar.busy_hours", "value": 6.5}
+        ]
+      }
+    },
+    {
+      "id": "G04",
+      "target": "B",
+      "predicted_passes": false,
+      "kind": "negation",
+      "why": "Fact f1 establishes a fall from 3 to 1; the sentence denies that fall.",
+      "claim": {
+        "text": "Pushes did not fall from earlier to prior.",
+        "fact_ids": ["f1"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G05",
+      "target": "A",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Fact f2 establishes a decrease across the named periods.",
+      "claim": {
+        "text": "Programming screen hours fell between the prior and last periods.",
+        "fact_ids": ["f2"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G06",
+      "target": "C",
+      "predicted_passes": false,
+      "kind": "unit",
+      "why": "The cited 1.75 is hours, not minutes.",
+      "claim": {
+        "text": "Programming screen time in the last period was 1.75 minutes.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75}
+        ]
+      }
+    },
+    {
+      "id": "G07",
+      "target": "C",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The last-period video screen record is 4 hours.",
+      "claim": {
+        "text": "The last period contains 4 hours of video screen time.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Media/Video", "value": 4}
+        ]
+      }
+    },
+    {
+      "id": "G08",
+      "target": "D",
+      "predicted_passes": false,
+      "kind": "period",
+      "why": "The cited 3 pushes belong to earlier; prior has 1.",
+      "claim": {
+        "text": "The prior period had 3 pushes.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.earlier.pushes", "value": 3}
+        ]
+      }
+    },
+    {
+      "id": "G09",
+      "target": "F",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Existing fact f1 supports a decrease at both consecutive period transitions.",
+      "claim": {
+        "text": "Pushes decreased at each step from earlier through prior to last.",
+        "fact_ids": ["f1"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G10",
+      "target": "E",
+      "predicted_passes": false,
+      "kind": "mislabelled_metric",
+      "why": "The cited 4 hours describe video, while programming has 1.75 hours in last.",
+      "claim": {
+        "text": "Programming screen hours in last totalled 4.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Media/Video", "value": 4}
+        ]
+      }
+    },
+    {
+      "id": "G11",
+      "target": "B",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The cited last-period count establishes the absence of pushes.",
+      "claim": {
+        "text": "The last period's push count is 0.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.pushes", "value": 0}
+        ]
+      }
+    },
+    {
+      "id": "G12",
+      "target": "F",
+      "predicted_passes": false,
+      "kind": "invented_fact",
+      "why": "Fact f3 does not exist, and no record establishes a completed code review.",
+      "claim": {
+        "text": "A code review was completed in the last period.",
+        "fact_ids": ["f3"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G13",
+      "target": "D",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Both counts are assigned to their recorded periods.",
+      "claim": {
+        "text": "Pushes in earlier were 3, while pushes in prior were 1.",
+        "fact_ids": ["f1"],
+        "metric_refs": [
+          {"metric_id": "period.earlier.pushes", "value": 3},
+          {"metric_id": "period.prior.pushes", "value": 1}
+        ]
+      }
+    },
+    {
+      "id": "G14",
+      "target": "A",
+      "predicted_passes": false,
+      "kind": "since_last",
+      "why": "Fact f2 compares periods; no previous card exists to support this card-to-card decrease.",
+      "claim": {
+        "text": "Programming screen hours decreased since the last card.",
+        "fact_ids": ["f2"],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75}
+        ]
+      }
+    },
+    {
+      "id": "G15",
+      "target": "D",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The programming values are 4.75 in prior and 1.75 in last.",
+      "claim": {
+        "text": "Programming screen hours were 4.75 in prior and 1.75 in last.",
+        "fact_ids": ["f2"],
+        "metric_refs": [
+          {"metric_id": "period.prior.screen_hours.Work/Programming", "value": 4.75},
+          {"metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75}
+        ]
+      }
+    },
+    {
+      "id": "G16",
+      "target": "B",
+      "predicted_passes": false,
+      "kind": "negation",
+      "why": "The sentence denies the recorded last-period value of 0.",
+      "claim": {
+        "text": "The push count in the last period is not 0.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.pushes", "value": 0}
+        ]
+      }
+    },
+    {
+      "id": "G17",
+      "target": "E",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The cited push-count metric holds 4 and is labelled as pushes.",
+      "claim": {
+        "text": "The push counter shows 4 pushes.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "github.push.count", "value": 4}
+        ]
+      }
+    },
+    {
+      "id": "G18",
+      "target": "C",
+      "predicted_passes": false,
+      "kind": "unit",
+      "why": "The calendar's 6.5 is measured in hours, not minutes.",
+      "claim": {
+        "text": "The calendar shows 6.5 busy minutes.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "calendar.busy_hours", "value": 6.5}
+        ]
+      }
+    },
+    {
+      "id": "G19",
+      "target": "E",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The cited 4.75-hour record describes programming in prior.",
+      "claim": {
+        "text": "Programming screen time in prior totalled 4.75 hours.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.prior.screen_hours.Work/Programming", "value": 4.75}
+        ]
+      }
+    },
+    {
+      "id": "G20",
+      "target": "D",
+      "predicted_passes": false,
+      "kind": "period",
+      "why": "The cited 1.75 hours belong to last; programming in prior has 4.75 hours.",
+      "claim": {
+        "text": "Programming screen time in prior totalled 1.75 hours.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75}
+        ]
+      }
+    },
+    {
+      "id": "G21",
+      "target": "A",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Fact f1 supports a period-to-period decrease from 1 to 0.",
+      "claim": {
+        "text": "From prior to last, the push count decreased.",
+        "fact_ids": ["f1"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G22",
+      "target": "E",
+      "predicted_passes": false,
+      "kind": "mislabelled_metric",
+      "why": "The cited 1.75 hours describe programming; video in last has 4 hours.",
+      "claim": {
+        "text": "Video screen time in the last period totalled 1.75 hours.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75}
+        ]
+      }
+    },
+    {
+      "id": "G23",
+      "target": "F",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Existing fact f2 establishes that prior's programming total exceeds last's.",
+      "claim": {
+        "text": "Programming screen hours in prior exceeded those in last.",
+        "fact_ids": ["f2"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G24",
+      "target": "F",
+      "predicted_passes": false,
+      "kind": "invented_fact",
+      "why": "No completed-task metric exists in the records.",
+      "claim": {
+        "text": "Completed tasks numbered 1 in the last period.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.completed_tasks", "value": 1}
+        ]
+      }
+    },
+    {
+      "id": "G25",
+      "target": "D",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The consecutive period counts sum to 3 + 1 + 0 = 4.",
+      "claim": {
+        "text": "The push total across earlier, prior and last is 4.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.earlier.pushes", "value": 3},
+          {"metric_id": "period.prior.pushes", "value": 1},
+          {"metric_id": "period.last.pushes", "value": 0}
+        ]
+      }
+    },
+    {
+      "id": "G26",
+      "target": "A",
+      "predicted_passes": false,
+      "kind": "since_last",
+      "why": "No parent card or parent metric exists to establish an unchanged push count.",
+      "claim": {
+        "text": "The recorded push count is unchanged since the last card.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "github.push.count", "value": 4}
+        ]
+      }
+    },
+    {
+      "id": "G27",
+      "target": "D",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The earlier-period push count is 3.",
+      "claim": {
+        "text": "For the earlier period, pushes totalled 3.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.earlier.pushes", "value": 3}
+        ]
+      }
+    },
+    {
+      "id": "G28",
+      "target": "B",
+      "predicted_passes": false,
+      "kind": "negation",
+      "why": "The records show a decrease from 4.75 to 1.75 hours; the sentence denies it.",
+      "claim": {
+        "text": "Programming screen hours did not decrease from prior to last.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.prior.screen_hours.Work/Programming", "value": 4.75},
+          {"metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75}
+        ]
+      }
+    },
+    {
+      "id": "G29",
+      "target": "A",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "This compares periods: the push count decreased from 3 to 0, a drop of 3.",
+      "claim": {
+        "text": "From earlier to last, pushes decreased by 3.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.earlier.pushes", "value": 3},
+          {"metric_id": "period.last.pushes", "value": 0}
+        ]
+      }
+    },
+    {
+      "id": "G30",
+      "target": "C",
+      "predicted_passes": false,
+      "kind": "unit",
+      "why": "The video record's 4 is hours, not seconds.",
+      "claim": {
+        "text": "Video screen time in last totals 4 seconds.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Media/Video", "value": 4}
+        ]
+      }
+    },
+    {
+      "id": "G31",
+      "target": "A",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Fact f1 establishes 0 pushes in last versus 3 in earlier.",
+      "claim": {
+        "text": "Pushes were lower in last than in earlier.",
+        "fact_ids": ["f1"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G32",
+      "target": "D",
+      "predicted_passes": false,
+      "kind": "period",
+      "why": "The cited count of 1 belongs to prior; last has 0 pushes.",
+      "claim": {
+        "text": "The last period's push count was 1.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.prior.pushes", "value": 1}
+        ]
+      }
+    },
+    {
+      "id": "G33",
+      "target": "C",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "The last-period programming record is 1.75 hours.",
+      "claim": {
+        "text": "Programming screen time in last totalled 1.75 hours.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75}
+        ]
+      }
+    },
+    {
+      "id": "G34",
+      "target": "E",
+      "predicted_passes": false,
+      "kind": "mislabelled_metric",
+      "why": "The cited 4-hour last-period record belongs to video, not programming.",
+      "claim": {
+        "text": "In last, 4 screen hours were attributed to programming.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.screen_hours.Media/Video", "value": 4}
+        ]
+      }
+    },
+    {
+      "id": "G35",
+      "target": "B",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Zero correctly expresses the cited absence of last-period pushes.",
+      "claim": {
+        "text": "The last period recorded zero pushes.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.last.pushes", "value": 0}
+        ]
+      }
+    },
+    {
+      "id": "G36",
+      "target": "F",
+      "predicted_passes": false,
+      "kind": "invented_fact",
+      "why": "Fact f4 does not exist, and no record establishes a merged pull request.",
+      "claim": {
+        "text": "A pull request was merged in the last period.",
+        "fact_ids": ["f4"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G37",
+      "target": "F",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Existing facts f1 and f2 support the respective declines across prior and last.",
+      "claim": {
+        "text": "Pushes and programming screen hours both declined from prior to last.",
+        "fact_ids": ["f1", "f2"],
+        "metric_refs": []
+      }
+    },
+    {
+      "id": "G38",
+      "target": "A",
+      "predicted_passes": false,
+      "kind": "since_last",
+      "why": "There is no previous card or parent busy-hours metric to establish a rise.",
+      "claim": {
+        "text": "Busy calendar hours rose since the previous card.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "calendar.busy_hours", "value": 6.5}
+        ]
+      }
+    },
+    {
+      "id": "G39",
+      "target": "D",
+      "predicted_passes": true,
+      "kind": "true",
+      "why": "Last has 0 pushes, below both earlier's 3 and prior's 1.",
+      "claim": {
+        "text": "The last period had fewer pushes than both earlier and prior.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.earlier.pushes", "value": 3},
+          {"metric_id": "period.prior.pushes", "value": 1},
+          {"metric_id": "period.last.pushes", "value": 0}
+        ]
+      }
+    },
+    {
+      "id": "G40",
+      "target": "B",
+      "predicted_passes": false,
+      "kind": "negation",
+      "why": "The earlier period records 3 pushes, contradicting the negated presence of pushes.",
+      "claim": {
+        "text": "There were no pushes in the earlier period.",
+        "fact_ids": [],
+        "metric_refs": [
+          {"metric_id": "period.earlier.pushes", "value": 3}
+        ]
+      }
+    }
+  ]
+}

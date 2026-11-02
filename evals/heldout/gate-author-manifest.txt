@@ -1,0 +1,15 @@
+Held-out gate set v1: what the author saw
+
+Source: github.com/macayaven/ikigai-loop at commit aa3c0e8eb423d02c9ad1c98f83b376964cb97ca4, main on 2026-11-02, fetched at 22:05 CET.
+The author's folder held its task, INSTRUCTIONS.md (written by Claude Code, published here as gate-author-task.md), and the files under contract/, each public text from that commit. Paths are relative to that folder. The task restates the red-team runner's fixed synthetic context as plain data: metric ids and values, the two facts, the rest of the card, the private terms and the raw value.
+
+sha256 of the file in the author's folder, the file, and where it came from:
+
+7e3774fe94c19368cc6c2e15b3282d4e1d205a5a2764805c916642d465551ea6  INSTRUCTIONS.md  <- the task, written by Claude Code
+5ae7ebf05432367d58fedd60e06711e4d6c00a21fa7c695a4574d681a926a437  contract/redteam-README.md  <- docs/redteam/README.md, verbatim
+fe83285c433f401cab9da26773ac1078ea6e224744e73ce9fa3373d5b0798761  contract/PREREG.md  <- docs/PREREG.md, verbatim
+ffe2935e4aae520a0e37a7998711049bc28509aaed8fdc64c25b22de8853134b  contract/session-010b-redteam.md  <- docs/sessions/010b-redteam.md, verbatim
+2624ba9835033bbb45766b66db1ed4b8c84fa02f373a7388f232edba89c8bbaf  contract/session-010c-since-last-wording.md  <- docs/sessions/010c-since-last-wording.md, verbatim
+34ed0f899d49dc71b526cbe62081ad9dd69056544216abd03ddb2acee9ee0b9b  contract/gate-codes-in-docs.md  <- every Markdown line in docs/ and README.md naming a gate code, outside docs/plans/ and the four files above, quoted with file and line
+
+Not given to the author: framework/ (any source, including framework/briefing/), tests/, evals/ (including the runner), docs/plans/, and every red-team input or result file in docs/redteam/ (round-*.json, true-sentences-*.json, their frozen, results and adjudicated files).

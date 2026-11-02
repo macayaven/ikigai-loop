@@ -578,6 +578,28 @@ in `evals/heldout/README.md` and the freeze test and made this commit, in a
 headless session Claude Code started, in Contributor mode, on this public
 repo.
 
+## Held-out gate set v1 (2026-11-02)
+
+GPT Sol 6.1 (OpenAI), through the Codex CLI at maximum reasoning effort,
+wrote the 40 held-out gate sentences in `evals/heldout/gate-heldout-v1.json`
+on Nov 2: 20 true sentences a correct gate must let through, and 20 false
+ones it must stop, each false in exactly one way, with the expected verdict
+in `predicted_passes` and the target letters following this set's own legend.
+It worked blind from the public documents at commit aa3c0e8, in a read-only
+sandbox with web search disabled, and labelled each sentence by the truth
+judged from the records alone. I froze the file in this commit before any
+scoring.
+
+Claude Code chose the public documents the author saw, wrote the author's
+task, including the runner's fixed context as plain data, checked the file's
+JSON shape and that the red-team runner's loader accepts it but not its
+verdicts, and placed the data file and the three published files
+(`gate-author-task.md`, `gate-author-manifest.txt`,
+`gate-author-commands.txt`) in the working tree. Muse Code,
+muse-spark-1.3 at low effort, wrote the README section and the freeze test
+and made this commit, in a headless session Claude Code started, in
+Contributor mode, on this public repo.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
@@ -586,4 +608,4 @@ repo.
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
 - Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as summarised in `docs/sessions/`. The exception is the held-out test sets a ticket's entry names. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks I found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. The exception is Ticket 14, as that entry says: the matcher block was about 48 lines, and the compile prompt text and two `docs/PRIVACY.md` paragraphs were given word for word. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
 - Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as summarised in `docs/sessions/`. The exceptions are the held-out test sets a ticket's entry names, and Ticket 10b's adjudication files and the mechanical steps that entry lists. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks I found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
-- **GPT Sol 6.1 and GPT Astra 6 (OpenAI), through Codex,** reviewed this project read-only on Nov 1: literature, code, demo plan, failure modes and launch plan. They wrote nothing in this repository, except that GPT Sol 6.1 wrote the held-out checker cases in `evals/heldout/checker-heldout-v1.json` on Nov 2, and nothing else here. Findings that changed something are credited in the ticket that used them.
+- **GPT Sol 6.1 and GPT Astra 6 (OpenAI), through Codex,** reviewed this project read-only on Nov 1: literature, code, demo plan, failure modes and launch plan. They wrote nothing in this repository, except that GPT Sol 6.1 wrote the held-out sets on Nov 2, `evals/heldout/checker-heldout-v1.json` and `evals/heldout/gate-heldout-v1.json`, and nothing else in the repository. Findings that changed something are credited in the ticket that used them.
