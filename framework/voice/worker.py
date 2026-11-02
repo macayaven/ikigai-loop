@@ -35,7 +35,12 @@ from framework.briefing.schemas import Commitment
 from framework.collectors.common import as_dict, event_id, subject_id_from_env
 from framework.cycle import forbidden_literals_for, run_proposals
 from framework.cycle.card_build import build_statements
-from framework.cycle.orchestrator import EligibilityState, eligible_commitments
+from framework.cycle.orchestrator import (
+    EXTRA_SLOT,
+    EligibilityState,
+    eligible_commitments,
+    limits_for_slot,
+)
 from framework.cycle.slot_ledger import SlotCardRow, SlotLedger
 from framework.proposal.core import (
     MetaUnavailableError,
@@ -1087,6 +1092,10 @@ def _repropose(
     failures: list[BaseException] = []
     clients: dict[str, Any] = {}
     lock = threading.Lock()
+    if ctx.slot == EXTRA_SLOT:
+        slot_limits = limits_for_slot(ctx.slot)
+    else:
+        slot_limits = ctx.deps.limits
 
     def _run(profile_id: str) -> None:
         store = EventStore(ctx.deps.db_path)
@@ -1107,7 +1116,7 @@ def _repropose(
                 client=client,
                 private_terms=terms,
                 eligible_by_profile={profile_id: eligible.get(profile_id, ())},
-                limits=ctx.deps.limits,
+                limits=slot_limits,
                 models=params,
                 stale_after_s=ctx.deps.stale_after_s,
                 cycle_id=stored_cycle,

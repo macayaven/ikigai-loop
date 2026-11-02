@@ -806,3 +806,12 @@ def test_chat_weights_without_glimmer_refuses_when_props_unreadable(
     assert code == 1, out.err
     assert "WEIGHTS_NOT_GLIMMER" in out.err
     assert "figment" not in out.out + out.err
+
+
+def test_window_1130_nov3_only() -> None:
+    """The Glimmer proof refuses inside the Nov 3 11:30 window only."""
+    from framework.provenance.glimmer_proof import window_refusal as _refusal
+
+    assert _refusal(datetime(2026, 11, 3, 11, 10, tzinfo=MADRID)) is not None
+    assert _refusal(datetime(2026, 11, 2, 11, 10, tzinfo=MADRID)) is None
+    assert _refusal(datetime(2026, 11, 4, 11, 10, tzinfo=MADRID)) is None

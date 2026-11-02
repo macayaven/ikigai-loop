@@ -525,6 +525,12 @@ prose, including the example sentences the Wonder prompt teaches, made the
 rulings the plan records, and ran the replays and the Wonder check from
 outside this repository. It created the branch and typed nothing in this
 repository.
+## Ticket 13c — an 11:30 card on Nov 3 (2026-11-02)
+
+Built on branch `t13c-1130-slot` per [docs/plans/013c-1130-slot.md](docs/plans/013c-1130-slot.md):
+one more pinned Builder card on Nov 3 at 11:30 Madrid, since I have my phone from 11:00 that day; the daily schedule, the Builder-only times and the daily limits are untouched, and only that instant classifies as a pinned slot with limits starting at 11:30. Those limits reach the hour finder and the gate at the three places that already passed them on, a voice correction to that card re-proposes with its limits, and the Glimmer proof refuses its window before that card. Evidence in [docs/sessions/013c-1130-slot.md](docs/sessions/013c-1130-slot.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started; those sessions ran in Contributor mode, on this public repo and made-up data only.
 
 ## AI assistance outside the Muse family
 

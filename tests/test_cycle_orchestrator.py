@@ -6310,3 +6310,158 @@ def test_rebuild_chain_wrong_and_why_stay_per_card() -> None:
     assert skipped == 0
     assert rebuilt.rulings_seen == 2
     assert rebuilt.buckets["evening"].wrong == 1
+
+
+# -- ticket 13c: one dated 11:30 slot on 2026-11-03 only (made-up data) --
+
+
+def test_1130_nov3_classifies_ok_builder_only() -> None:
+    """Nov 3 11:30 is pinned and Builder only."""
+    from framework.cycle.orchestrator import EXTRA_SLOT as _EXTRA_SLOT
+
+    slot = slot_at("11:30", day=3)
+    assert slot == _EXTRA_SLOT
+    assert classify_slot(slot) == "ok"
+    assert validate_slot(slot) is None
+    assert slot_profiles(slot) == ("builder",)
+
+
+def test_1130_nov2_nov4_stay_unpinned_both_goals() -> None:
+    """Pinning: 11:30 on any other date keeps today's forceable shape."""
+    for day in (2, 4):
+        slot = slot_at("11:30", day=day)
+        assert classify_slot(slot) == "unpinned"
+        assert validate_slot(slot) == "SLOT_NOT_PINNED"
+        assert slot_profiles(slot) == ("builder", "disconnect")
+
+
+def test_1130_nov3_wrong_offset_stays_bad_offset() -> None:
+    """Pinning: the dated check never matches a wrong-offset stamp."""
+    slot = datetime.fromisoformat("2026-11-03T11:30:00+02:00")
+    assert classify_slot(slot) == "bad_offset"
+    assert validate_slot(slot) == "SLOT_NOT_PINNED"
+
+
+def test_1130_nov3_free_hour_starts_at_slot(tmp_path: Path) -> None:
+    """A free Nov 3 11:30 gives 11:30-12:30, gated only by the dated limits."""
+    from framework.briefing.context import TimeInterval as _Interval
+    from framework.cycle.orchestrator import limits_for_slot as _limits_for_slot
+    from framework.cycle.orchestrator import plan_hour as _plan_hour
+    from framework.proposal.hour import fallback_window_codes as _window_codes
+
+    slot = slot_at("11:30", day=3)
+    as_of = slot - timedelta(minutes=25)
+    store = EventStore(db_path=tmp_path / "free.db")
+    try:
+        hour = _plan_hour(as_of=as_of, slot=slot, subject_id=SUBJECT, store=store)
+        assert hour is not None
+        assert hour.start == slot
+        assert hour.end == slot + timedelta(hours=1)
+        limits = _limits_for_slot(slot)
+        assert (limits.allowed_start.hour, limits.allowed_start.minute) == (11, 30)
+        window = _Interval(start=slot, end=slot + timedelta(hours=1))
+        assert (
+            _window_codes(slot=slot, start=window.start, end=window.end, limits=limits)
+            == ()
+        )
+        assert "L1_SLOT_OUTSIDE_ALLOWED_HOURS" in _window_codes(
+            slot=slot, start=window.start, end=window.end, limits=SLOT_LIMITS
+        )
+    finally:
+        store.close()
+
+
+def test_1130_nov3_busy_first_half_moves_to_noon(tmp_path: Path) -> None:
+    """A busy 11:30-12:00 on Nov 3 gives 12:00-13:00, like any slot."""
+    from framework.cycle.orchestrator import plan_hour as _plan_hour
+
+    slot = slot_at("11:30", day=3)
+    as_of = slot - timedelta(minutes=25)
+    store = EventStore(db_path=tmp_path / "busy.db")
+    try:
+        store.append_events(
+            [
+                Event.model_validate(
+                    {
+                        "id": "evt-busy-1130-a",
+                        "subject_id": SUBJECT,
+                        "source": "synthetic",
+                        "type": "calendar.event.created",
+                        "time": slot.isoformat(),
+                        "source_id": "busy-1130-a@aaa",
+                        "data": {
+                            "type": "calendar.event.created",
+                            "start": slot.isoformat(),
+                            "end": (slot + timedelta(minutes=30)).isoformat(),
+                            "busy": True,
+                            "category": "synthetic",
+                            "tags": [],
+                            "is_new": False,
+                        },
+                        "tier": "private",
+                        "collected_at": as_of.isoformat(),
+                        "collector_version": "synthetic@0.1.0",
+                    }
+                ),
+            ]
+        )
+        hour = _plan_hour(as_of=as_of, slot=slot, subject_id=SUBJECT, store=store)
+        assert hour is not None
+        assert hour.start == slot + timedelta(minutes=30)
+        assert hour.end == slot + timedelta(minutes=90)
+    finally:
+        store.close()
+
+
+def test_limits_for_slot_identity_and_daily_hours_kept(tmp_path: Path) -> None:
+    """Every other slot gets the identical SLOT_LIMITS object and hour."""
+    from framework.cycle.orchestrator import EXTRA_SLOT as _EXTRA_SLOT
+    from framework.cycle.orchestrator import limits_for_slot as _limits_for_slot
+    from framework.cycle.orchestrator import plan_hour as _plan_hour
+
+    assert _limits_for_slot(_EXTRA_SLOT) is not SLOT_LIMITS
+    for day in (2, 3, 4):
+        for hm in ("13:30", "15:30", "18:00", "20:30", "22:30"):
+            assert _limits_for_slot(slot_at(hm, day=day)) is SLOT_LIMITS
+    for day in (2, 4):
+        assert _limits_for_slot(slot_at("11:30", day=day)) is SLOT_LIMITS
+    store = EventStore(db_path=tmp_path / "same.db")
+    try:
+        for hm in ("13:30", "15:30", "18:00", "20:30", "22:30"):
+            slot = slot_at(hm, day=3)
+            as_of = slot - timedelta(minutes=25)
+            assert _plan_hour(
+                as_of=as_of, slot=slot, subject_id=SUBJECT, store=store
+            ) == _plan_hour(
+                as_of=as_of,
+                slot=slot,
+                subject_id=SUBJECT,
+                store=store,
+                limits=SLOT_LIMITS,
+            )
+    finally:
+        store.close()
+
+
+def test_1130_nov3_end_to_end_sends_builder_card(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The real run_slot sends one Builder card for 11:30-12:30 on Nov 3."""
+    from framework.cycle.slot_ledger import parse_detail as _parse_detail
+
+    _env(monkeypatch, tmp_path)
+    slot = slot_at("11:30", day=3)
+    harness = _harness(tmp_path, slot)
+    code, out, _ = _run(slot, harness, capsys)
+    assert code == 0, out
+    assert len(harness.telegram.calls) == 1
+    sides = SlotLedger(harness.db).slot_cards_for_slot(slot)
+    assert [side.profile_id for side in sides] == ["builder"]
+    rows = SlotLedger(harness.db).rows_for_slot(slot)
+    hour_rows = [row for row in rows if row.step == "hour"]
+    assert hour_rows and hour_rows[-1].outcome == "ok"
+    detail = _parse_detail(hour_rows[-1].detail)
+    assert detail["start"] == slot.isoformat()
+    assert detail["end"] == (slot + timedelta(hours=1)).isoformat()

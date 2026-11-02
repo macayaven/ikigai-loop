@@ -4411,3 +4411,71 @@ def test_stored_cycle_id_passes_through(
 
     assert _process_one(deps, row) == "applied_card"
     assert seen["cycle_id"] == "cycle-1"
+
+
+def test_1130_voice_correction_reproposes_from_1130(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A correction to the Nov 3 11:30 card re-proposes from 11:30."""
+    import dataclasses
+    from datetime import time as _time
+
+    harness = make_harness(
+        monkeypatch,
+        tmp_path,
+        compile_script=[correction_json("skip", WRITE_ID, "today")],
+        transcript=b"skip the write-up today",
+    )
+    dated = datetime(2026, 11, 3, 11, 30, tzinfo=MADRID)
+    old = seed_old_card(harness, slot=dated, message_id=700)
+    seed_results(harness, old)
+    seed_note(harness, 91, reply_to=700)
+    seen: dict[str, Any] = {}
+    original_propose = harness.propose
+
+    def spy_propose(**kwargs: Any) -> Any:
+        seen["limits"] = kwargs["limits"]
+        return original_propose(**kwargs)
+
+    deps = dataclasses.replace(deps_of(harness), propose_fn=spy_propose)
+    row = VoiceLedger(harness.db).claim_next(harness.now)
+    assert row is not None
+    assert process_one(deps, row) == "applied_card"
+    assert seen["limits"].allowed_start == _time(11, 30)
+
+
+def test_voice_correction_ordinary_slot_keeps_injected_limits(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Pinning: any other slot's correction sees the voice deps limits."""
+    import dataclasses
+    from datetime import time as _time
+
+    from framework.briefing.context import ProfileLimits as _ProfileLimits
+
+    harness = make_harness(
+        monkeypatch,
+        tmp_path,
+        compile_script=[correction_json("skip", WRITE_ID, "today")],
+        transcript=b"skip the write-up today",
+    )
+    old = seed_old_card(harness, message_id=700)
+    seed_results(harness, old)
+    seed_note(harness, 92, reply_to=700)
+    unusual = _ProfileLimits(
+        timezone="Europe/Madrid",
+        allowed_start=_time(14, 0),
+        allowed_end=_time(14, 30),
+    )
+    seen: dict[str, Any] = {}
+    original_propose = harness.propose
+
+    def spy_propose(**kwargs: Any) -> Any:
+        seen["limits"] = kwargs["limits"]
+        return original_propose(**kwargs)
+
+    deps = dataclasses.replace(deps_of(harness), limits=unusual, propose_fn=spy_propose)
+    row = VoiceLedger(harness.db).claim_next(harness.now)
+    assert row is not None
+    assert process_one(deps, row) == "applied_card"
+    assert seen["limits"] is unusual
