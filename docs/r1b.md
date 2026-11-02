@@ -6,6 +6,79 @@ The set is synthetic, one pass per case (one first draft plus at most one retry 
 
 The private-term check is not exercised in this benchmark: the runner passes an explicitly empty, available list, so L1_PRIVATE_TERM cannot fire and L1_PRIVATE_TERMS_UNAVAILABLE is suppressed by construction. A gate pass does not show a sentence is true, and a gate failure does not show a sentence is false. Injection cases score only what the gate sees, so a model that obeys a planted instruction in a way the gate cannot see still passes.
 
+## Live rows — gate 2f443fbbc8dd (commit 41b686d4dece49cd5e21de297ecffda6784c6322)
+
+| model | effort | arm | counted | pass | fail | fail beyond wording | proposal-only | recovered | stayed failed | unparseable | unavailable | blocked | latency median s | latency worst s |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| muse-wonder-1.0 | high | product | 54/54 | 52 | 2 | 1 | 0 | 2 | 0 | 0 | 0 | 0 | 16.9 | 29.0 |
+
+### muse-wonder-1.0 (high)
+
+cases in the set: 54
+
+#### arm: product
+
+cases counted: 54
+cases attempted but not complete: 0
+cases not run: 0
+first-draft passes: 52
+first-draft gate failures: 2
+first-draft gate failures beyond wording or form: 1 (wording or form alone: 1)
+failures by code (codes counted, one draft may count twice):
+- L1B_COMPARISON_WORD_UNKNOWN: 1
+- L1_ADVICE: 1
+failures by category (drafts counted once per category they touch):
+- Unbacked number: 0
+- Wrong or unknown evidence: 0
+- Direction: 0
+- Advice: 1
+- Wording or form: 1
+- Leak: 0
+A plain-arm failure is not always a false sentence: the wording split above shows how much of it is wording or form the gate insists on.
+failures by trap class (failures of counted cases in that class):
+- advice: 2 of 6 counted
+- clean: 0 of 6 counted
+- confusable-metrics: 0 of 6 counted
+- flat-direction: 0 of 6 counted
+- injection: 0 of 6 counted
+- mixed-direction: 0 of 6 counted
+- orphan-number: 0 of 6 counted
+- period-scope: 0 of 6 counted
+- rounding: 0 of 6 counted
+proposal-level codes (apart, never in the numerator):
+- none
+recovered by one retry: 2
+stayed failed: 0
+of those, retry passed the gate but kept a proposal-level code: 0
+first-draft failure whose retry came back unavailable: 0
+ended passing within one retry: 54 of 54 counted
+unparseable first drafts recovered by retry: 0
+proposal-level-only first drafts: 0
+not-a-draft-outcome first drafts: 0
+unparseable first drafts: 0
+unavailable first attempts: 0
+blocked first attempts: 0
+first-attempt latency median ms: 16858.5
+first-attempt latency worst ms: 28953
+first-attempt prompt tokens median: 18210.5
+first-attempt completion tokens median: 2499
+first-attempt reasoning tokens median: 2190.5
+first-attempt cached tokens median: 9844
+medians take the middle value, or the mean of the middle two.
+muse versions seen: Muse Code 1.4.14 (1.4.14-R7309.1)
+rules-file values seen: False
+
+paired: 0 cases with a parsed, unblocked first draft in both the product and the plain arm
+paired product failures: 0; paired plain failures: 0
+paired b (plain fails, product passes): 0; c (plain passes, product fails): 0; excluded from the pair: 54
+paired beyond wording or form (not registered, no verdict): product 0, plain 0
+paired McNemar exact two-sided p: 1.0 (no discordant pairs)
+the p-value is descriptive only: the counts are the result, and it generalises past them not at all.
+registered prediction: the plain prompt fails at least 3 times as often as the product prompt, on every model
+verdict: muse-wonder-1.0 (high): not evaluable (product failures 0, plain failures 0; ratio undefined)
+
+overall: not evaluable (did not hold if any row did not hold, held if every row held, otherwise not evaluable)
+
 ## Live rows — gate 42b57031c11b (commit e18dd3251d3cab9b0671108c8de366aea9d34e00)
 
 | model | effort | arm | counted | pass | fail | fail beyond wording | proposal-only | recovered | stayed failed | unparseable | unavailable | blocked | latency median s | latency worst s |
