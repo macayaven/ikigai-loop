@@ -424,6 +424,11 @@ The idea came from an outside review round on Nov 1, where GPT Sol 6.1, run thro
 
 Prompts and review by Claude Code; plan on muse-wonder-1.0 (effort high), implementation on muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code ran the live fetches, the counts on scratch copies of my store and the break tests outside those sessions. The since-line finding was this ticket's, and Ticket 13 changed its rule because of it.
 
+## Clock fix — a test that broke as the date moved (2026-11-02)
+
+Built on branch `fix-clock-tests`, no plan file, the ticket text was the spec. `test_canary_exception_cli_reports_type_only` built its one calendar row at a fixed instant, Oct 31 14:00 at +01:00, while the `labels` command reads its as-of time from the real clock and only looks at rows from two days before to fourteen days after; once the real clock passed Nov 2 14:00 the row fell outside that window, the raising client never ran, and the output no longer named `RuntimeError`. The test now dates its row an hour before the real clock, like the two budget tests in the same file, and keeps every assertion; no product code changed.
+
+Prompt and review by Claude Code; implementation on muse-spark-1.3 (effort low), in Muse Code, in a headless session Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code looked for other tests at risk by running the whole suite with the clock moved forward to Nov 3, Nov 5 and Nov 9, in Madrid time and in UTC, outside that session, and no other test failed because of the date.
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
