@@ -1,4 +1,4 @@
-.PHONY: check test eval demo r1b verify-page try glimmer-proof
+.PHONY: check test eval demo r1b verify-page try glimmer-proof audit-control
 
 check:
 	uv run ruff check .
@@ -33,3 +33,6 @@ glimmer-proof:
 
 verify-page:
 	uv run python -m framework.verify.page_bundle
+
+audit-control:
+	uv run python -m source_audit negative-control

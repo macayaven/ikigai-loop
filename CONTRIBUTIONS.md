@@ -414,6 +414,16 @@ The raising-handler finding came from a review by GPT Sol 6.1, run through Codex
 
 Prompts and review by Claude Code; plan by muse-wonder-full-1.0 (effort high); plan amendments by muse-wonder-1.0 (effort high) from the reviewer's findings; implementation and fixes by muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started; these code sessions ran in Contributor mode, on this public repo and made-up data only.
 
+## Ticket E2 — source-to-card audit (2026-11-02)
+
+Built on branch `e2-source-audit` per [docs/plans/020-source-audit.md](docs/plans/020-source-audit.md):
+`source_audit/` recounts my pull requests and pushes from a public GitHub snapshot with code that imports nothing from the product, then walks the recount through the stored metric, the fact statement and the delivered card; `fetch`, `recount`, `compare`, `run` and a network-free `negative-control` cover the failure modes, and 135 tests in `tests/test_source_audit_*.py` hold it. Evidence in
+[docs/sessions/020-source-audit.md](docs/sessions/020-source-audit.md).
+
+The idea came from an outside review round on Nov 1, where GPT Sol 6.1, run through Codex, proposed it, and GPT Sol 6.1, GPT Terra 6.1 and GPT Astra 6, all run through Codex, Muse Wonder Full, and Claude as advisor voted for it, 5 of 5.
+
+Prompts and review by Claude Code; plan on muse-wonder-1.0 (effort high), implementation on muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code ran the live fetches, the counts on scratch copies of my store and the break tests outside those sessions. The since-line finding was this ticket's, and Ticket 13 changed its rule because of it.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

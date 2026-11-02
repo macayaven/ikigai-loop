@@ -6,7 +6,7 @@ When I tap Why?, the cited statements and reason codes go to Telegram as the rep
 
 My taps and voice notes pass through Telegram because I send them there. Telegram handles what passes through it under its own privacy policy.
 
-The event store, the card ledger and the bot token stay on my machine. The published log in `docs/provenance.jsonl` holds counts and codes per slot and no card text, and the ledger itself stays on my machine.
+The event store, the card ledger and the bot token stay on my machine. The published log in `docs/provenance.jsonl` holds counts and codes per slot and no card text, and the ledger itself stays on my machine. The audit export holds only closed codes, counts, instants, and public GitHub identifiers that pass a shape check, and it holds no statement, title, or value from my store.
 
 Only my own messages are handled; anything else is counted and ignored.
 
