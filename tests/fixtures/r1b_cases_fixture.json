@@ -1,0 +1,259 @@
+[
+  {
+    "commitments": [
+      {
+        "dimension": "good_at",
+        "evidence": "github_push",
+        "id": "cm-f01-build",
+        "kind": "build",
+        "profile_id": "builder",
+        "title": "Build the synthetic parser sketch"
+      },
+      {
+        "dimension": "love",
+        "evidence": "tap",
+        "id": "cm-f01-notes",
+        "kind": "write",
+        "profile_id": "builder",
+        "title": "Write notes on the synthetic trial"
+      }
+    ],
+    "facts": [
+      {
+        "evidence": [
+          "ev-synthetic-f01a"
+        ],
+        "id": "fact:synthetic-f01a",
+        "statement": "Synthetic build log shows 3 pushes in the last period",
+        "subject_id": "subject-1",
+        "tier": "public",
+        "window": {
+          "end": "2026-11-03T15:30:00+01:00",
+          "start": "2026-11-02T14:00:00+01:00"
+        }
+      },
+      {
+        "evidence": [
+          "ev-synthetic-f01b"
+        ],
+        "id": "fact:synthetic-f01b",
+        "statement": "Synthetic walk logged in the evening",
+        "subject_id": "subject-1",
+        "tier": "public",
+        "window": {
+          "end": "2026-11-03T15:30:00+01:00",
+          "start": "2026-11-02T14:00:00+01:00"
+        }
+      }
+    ],
+    "hour": {
+      "end": "2026-11-03T16:30:00+01:00",
+      "start": "2026-11-03T15:30:00+01:00"
+    },
+    "id": "r1b-f01",
+    "metrics": {
+      "calendar.busy_hours": 2.5,
+      "feed.item.count": 6,
+      "period.earlier.pushes": 1,
+      "period.last.pushes": 3,
+      "period.prior.pushes": 2
+    },
+    "profile": "builder",
+    "slot": "2026-11-03T15:30:00+01:00",
+    "trap": null
+  },
+  {
+    "commitments": [
+      {
+        "dimension": "world_needs",
+        "evidence": "tap",
+        "id": "cm-f02-family",
+        "kind": "social",
+        "profile_id": "disconnect",
+        "title": "Call my family circle"
+      },
+      {
+        "dimension": "love",
+        "evidence": "no_screen",
+        "id": "cm-f02-screens",
+        "kind": "rest",
+        "profile_id": "disconnect",
+        "title": "Evening with screens off"
+      }
+    ],
+    "facts": [
+      {
+        "evidence": [
+          "ev-synthetic-f02a"
+        ],
+        "id": "fact:synthetic-f02a",
+        "statement": "Synthetic log shows 2 video hours in the last period",
+        "subject_id": "subject-1",
+        "tier": "public",
+        "window": {
+          "end": "2026-11-04T18:00:00+01:00",
+          "start": "2026-11-03T14:00:00+01:00"
+        }
+      },
+      {
+        "evidence": [
+          "ev-synthetic-f02b"
+        ],
+        "id": "fact:synthetic-f02b",
+        "statement": "Synthetic supper with family ran long",
+        "subject_id": "subject-1",
+        "tier": "private",
+        "window": {
+          "end": "2026-11-04T18:00:00+01:00",
+          "start": "2026-11-03T14:00:00+01:00"
+        }
+      }
+    ],
+    "hour": {
+      "end": "2026-11-04T19:00:00+01:00",
+      "start": "2026-11-04T18:00:00+01:00"
+    },
+    "id": "r1b-f02",
+    "metrics": {
+      "calendar.busy_hours": 2.5,
+      "feed.item.count": 6,
+      "period.earlier.screen_hours.Media/Video": 1,
+      "period.last.screen_hours.Media/Video": 2,
+      "period.prior.screen_hours.Media/Video": 1
+    },
+    "parent_snapshot": {
+      "calendar.busy_hours": 2.5,
+      "feed.item.count": 6,
+      "period.earlier.screen_hours.Media/Video": 1,
+      "period.last.screen_hours.Media/Video": 1,
+      "period.prior.screen_hours.Media/Video": 1
+    },
+    "profile": "disconnect",
+    "slot": "2026-11-04T18:00:00+01:00",
+    "trap": null
+  },
+  {
+    "commitments": [
+      {
+        "dimension": "good_at",
+        "evidence": "github_push",
+        "id": "cm-f03-ship",
+        "kind": "build",
+        "profile_id": "builder",
+        "title": "Ship one small synthetic change"
+      },
+      {
+        "dimension": "love",
+        "evidence": "tap",
+        "id": "cm-f03-read",
+        "kind": "read",
+        "profile_id": "builder",
+        "title": "Read one paper on synthetic trials"
+      }
+    ],
+    "facts": [
+      {
+        "evidence": [
+          "ev-synthetic-f03a"
+        ],
+        "id": "fact:synthetic-f03a",
+        "statement": "Synthetic review queue holds 9 open threads",
+        "subject_id": "subject-1",
+        "tier": "public",
+        "window": {
+          "end": "2026-11-05T13:00:00+01:00",
+          "start": "2026-11-04T14:00:00+01:00"
+        }
+      },
+      {
+        "evidence": [
+          "ev-synthetic-f03b"
+        ],
+        "id": "fact:synthetic-f03b",
+        "statement": "Synthetic build log shows 3 pushes in the last period",
+        "subject_id": "subject-1",
+        "tier": "public",
+        "window": {
+          "end": "2026-11-05T13:00:00+01:00",
+          "start": "2026-11-04T14:00:00+01:00"
+        }
+      }
+    ],
+    "hour": {
+      "end": "2026-11-05T14:00:00+01:00",
+      "start": "2026-11-05T13:00:00+01:00"
+    },
+    "id": "r1b-f03",
+    "metrics": {
+      "github.push.count": 6,
+      "period.earlier.pushes": 1,
+      "period.last.pushes": 3,
+      "period.prior.pushes": 2
+    },
+    "profile": "builder",
+    "slot": "2026-11-05T13:00:00+01:00",
+    "trap": "orphan-number"
+  },
+  {
+    "commitments": [
+      {
+        "dimension": "world_needs",
+        "evidence": "tap",
+        "id": "cm-f04-plan",
+        "kind": "plan",
+        "profile_id": "disconnect",
+        "title": "Plan the synthetic family weekend"
+      },
+      {
+        "dimension": "love",
+        "evidence": "no_screen",
+        "id": "cm-f04-rest",
+        "kind": "rest",
+        "profile_id": "disconnect",
+        "title": "Evening with screens off"
+      }
+    ],
+    "facts": [
+      {
+        "evidence": [
+          "ev-synthetic-f04a"
+        ],
+        "id": "fact:synthetic-f04a",
+        "statement": "Synthetic log shows 2 cancelled family blocks in the earlier period",
+        "subject_id": "subject-1",
+        "tier": "public",
+        "window": {
+          "end": "2026-11-06T20:30:00+01:00",
+          "start": "2026-11-05T14:00:00+01:00"
+        }
+      },
+      {
+        "evidence": [
+          "ev-synthetic-f04b"
+        ],
+        "id": "fact:synthetic-f04b",
+        "statement": "Synthetic evening walk logged",
+        "subject_id": "subject-1",
+        "tier": "public",
+        "window": {
+          "end": "2026-11-06T20:30:00+01:00",
+          "start": "2026-11-05T14:00:00+01:00"
+        }
+      }
+    ],
+    "hour": {
+      "end": "2026-11-06T21:30:00+01:00",
+      "start": "2026-11-06T20:30:00+01:00"
+    },
+    "id": "r1b-f04",
+    "metrics": {
+      "feed.item.count": 5,
+      "period.earlier.cancelled.iki-family": 2,
+      "period.last.cancelled.iki-family": 2,
+      "period.prior.cancelled.iki-family": 2
+    },
+    "profile": "disconnect",
+    "slot": "2026-11-06T20:30:00+01:00",
+    "trap": "flat-direction"
+  }
+]
