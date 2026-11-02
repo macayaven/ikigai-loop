@@ -81,7 +81,7 @@ With one metric ref, use no comparison or direction word at all, including more,
 With two or three period refs of one family, a direction word describes change in time order: earlier, then prior, then last, from the cited values in that order. Every step between the cited periods must move the same way, and a flat step does not count, so when they don't, cite only the two periods you compare. Do not write higher in prior than in last for falling values. Write lower in the last period than in the prior period.
 Up words: up, rose, rise, rises, rising, risen, increase, increased, increases, increasing, more, higher, grew, grow, grows, growing, grown. Down words: down, fell, fall, falls, falling, fallen, decrease, decreased, decreases, decreasing, less, fewer, lower, dropped, drop, drops, dropping.
 On a claim that cites metrics, the words earlier, prior, and last name only a cited period metric on that claim. Do not write prior to, at last, last time, second to last, or the last push. Previous is not a period word.
-In since_last, cite only delta ids from the delta table and write only the delta digit, never the current value. A direction word there must match the delta sign. A zero delta takes no direction word.
+In since_last, cite only delta ids from the delta table and write only the delta digit, never the current value. A direction word there must match the delta sign. A zero delta takes no direction word. Write the change as since the last card, as in "Prs rose by 3 since the last card." For a delta of an earlier or prior period, put the period word before the label, as in "Earlier pushes rose by 1 since the last card." Never place a since_last change in a period: do not write in the last period, in last, or during, over or across a period for it.
 For a cancelled metric, the sentence must contain the word cancel.
 Only cite metric ids the table lists. Never claim an unlisted metric fell to 0. Never invent an id.
 No advice and no health content. A claim states what the data shows: no instruction, no suggestion, and no question. Never begin a sentence with a bare verb. Never write you can, you could, consider, need to, try to, please, let's, recommend, or suggest. Never use these words: should, must, diet, diets, calorie, calories, medication, medications, medicine, medicines, dose, doses, dosage, dosages, symptom, symptoms, diagnosis, diagnoses, treatment, treatments, therapy, therapies, intensity, shouldn't, mustn't. Never use these phrases: push harder, rest more.
@@ -165,6 +165,18 @@ def test_snapshot_with_parent() -> None:
         Delta(metric_id="calendar.busy_hours", value=-0.5, display="-0.5"),
     )
     assert build_prompt(**_fixture_args(deltas=deltas)) == EXPECTED_WITH_PARENT
+
+
+def test_all_zero_rules_carry_no_negator() -> None:
+    import re
+
+    deltas = (Delta(metric_id="calendar.busy_hours", value=0.0, display="0"),)
+    prompt = build_prompt(**_fixture_args(deltas=deltas))
+    branch = prompt.split("When every delta is 0,")[1].split("\n")[0]
+    assert "changed by 0 since the last card" in branch
+    tokens = re.findall(r"[a-z]+|n't", branch.casefold())
+    for word in ("not", "no", "never", "none", "nothing", "without", "failed", "n't"):
+        assert word not in tokens, word
 
 
 def test_pinned_gate_word_sets_present() -> None:
@@ -481,7 +493,29 @@ def test_rule_examples_checked_against_real_gate() -> None:
     )
     assert (
         _gate_check(
-            "Busy changed by 0 hours",
+            "Prs rose by 3 since the last card.",
+            (),
+            (("period.last.prs", 3.0),),
+            section="since_last",
+            values={"calendar.busy_hours": 2.5, "period.last.prs": 27.0},
+            parent_values={"calendar.busy_hours": 2.5, "period.last.prs": 24.0},
+        )
+        == ()
+    )
+    assert (
+        _gate_check(
+            "Earlier pushes rose by 1 since the last card.",
+            (),
+            (("period.earlier.pushes", 1.0),),
+            section="since_last",
+            values={"calendar.busy_hours": 2.5, "period.earlier.pushes": 2.0},
+            parent_values={"calendar.busy_hours": 2.5, "period.earlier.pushes": 1.0},
+        )
+        == ()
+    )
+    assert (
+        _gate_check(
+            "Busy changed by 0 hours since the last card.",
             (),
             (("calendar.busy_hours", 0.0),),
             section="since_last",

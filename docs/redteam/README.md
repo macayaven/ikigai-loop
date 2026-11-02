@@ -140,6 +140,7 @@ true-sentences-wonder-rules.json newly blocked: [] by code {}; raised: {"current
 - A label joined in lower case.
 - In `verify_claims`: units, approximators, foreign number words and imperatives, which it leaves to the gate.
 - Words after `this hour goes` naming the pick, which the title rule and the other-label check do not read, so a commitment's words or another metric's label written there pass.
+- In `since_last`: containment words outside the pinned list, a direction word outside the lists, and a delta written as a value.
 
 A list of attacks that fails is evidence about those attacks, not proof the gate is complete.
 
@@ -155,3 +156,4 @@ These are known costs, each pinned in a test:
 - Time words on a period-less metric claim.
 - A quoted title with a dash or colon before a strong verb.
 - An unlisted noun after a number.
+- A since_last change that keeps a period phrase on the label next to the accepted phrase, as in "Pushes in the last period increased by 1 since the last card." It reads as true and the gate rejects it with `L1B_SINCE_LAST_WORDING` alone, because the claim still holds a period phrase.

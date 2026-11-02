@@ -271,13 +271,15 @@ def build_minimal_draft(case: R1bCase) -> dict[str, Any]:
         delta_binding = r1b.metric_binding_for(delta.metric_id)
         assert delta_binding is not None
         delta_label = r1b.shortest_label(delta_binding)
-        sentence = [delta_label.capitalize(), "changed", "by", delta.display]
-        if delta_binding.period is not None:
-            sentence.extend(["in", "the", delta_binding.period, "period"])
+        sentence = []
+        if delta_binding.period in ("earlier", "prior"):
+            sentence.append(delta_binding.period.capitalize())
+        sentence.extend([delta_label.capitalize(), "changed", "by", delta.display])
         if "hours" in delta.metric_id:
             sentence.append("hours" if delta.value != 1 else "hour")
         if "cancelled." in delta.metric_id:
             sentence.append("cancelled")
+        sentence.extend(["since", "the", "last", "card"])
         payload["since_last"] = [
             {
                 "text": " ".join(sentence),

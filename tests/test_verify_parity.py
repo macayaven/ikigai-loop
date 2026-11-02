@@ -171,6 +171,10 @@ EXCLUDED_MUTANTS = (
     ("M116-N28-question-no-mark", "questions are claim-path-only"),
     ("M117-R44-link", "unsafe text is claim-path-only"),
     ("M118-R45-no-letters-digits", "unsafe text is claim-path-only"),
+    (
+        "M119-since-last-period-phrase",
+        "since_last wording: parent and since_last the public shape cannot say",
+    ),
 )
 
 EXPRESSIBLE_KNOWN_GOOD = (
@@ -432,7 +436,9 @@ def _translate(case: Case) -> dict[str, object]:
 
 
 def test_pinned_lists_match_the_predicate() -> None:
-    assert len(MUTANTS) == 38 + 34 + 46 == 118
+    # 38 base + 34 round-1 redteam (M39-M72) + 46 round-2 (M73-M118)
+    # + 1 Ticket 10c since_last mutant (M119).
+    assert len(MUTANTS) == 38 + 34 + 46 + 1 == 119
     assert len(KNOWN_GOOD) == 20 + 28 + 9 == 57
     computed_mutants = sorted(c.name for c in MUTANTS if _is_expressible(c))
     assert computed_mutants == sorted(EXPRESSIBLE_MUTANTS)
@@ -440,7 +446,7 @@ def test_pinned_lists_match_the_predicate() -> None:
     assert sorted(n for n, _ in EXCLUDED_MUTANTS) == sorted(
         c.name for c in MUTANTS if not _is_expressible(c)
     )
-    assert len(EXCLUDED_MUTANTS) == 85
+    assert len(EXCLUDED_MUTANTS) == 86
     computed_good = sorted(c.name for c in KNOWN_GOOD if _is_expressible(c))
     assert computed_good == sorted(EXPRESSIBLE_KNOWN_GOOD)
     assert len(EXPRESSIBLE_KNOWN_GOOD) == 45

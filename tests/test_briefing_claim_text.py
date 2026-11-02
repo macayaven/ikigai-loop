@@ -784,3 +784,80 @@ def test_new_code_messages_never_echo_matches() -> None:
         )
         assert "Zebrafinch" not in message
         assert "Dentist" not in message
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Prs rose by 3 in the last period.",
+        "Prs rose by 3 in last.",
+        "Prs rose by 3 during last.",
+        "Prs rose by 3 for the last period.",
+        "Prs rose by 3 over the last period.",
+        "Prs rose by 3 across last.",
+        "Prs rose by 3 in a period.",
+        "Prs rose by 3 during the period.",
+        "Prs rose by 3 over a period.",
+        "Prs rose by 3 across the period.",
+        "Pushes rose by 1 in the earlier period.",
+        "Pushes rose by 1 during earlier.",
+        "Pushes rose by 1 over the earlier period.",
+        "Prs rose by 3 for prior.",
+        "Prs rose by 3 across the prior period.",
+    ],
+)
+def test_since_last_containment_patterns_fire(text: str) -> None:
+    from framework.briefing.claim_text import claim_text_codes
+
+    codes = claim_text_codes(
+        text,
+        section_type="since_last",
+        has_metric_refs=True,
+        cited_refs=[("period.last.prs", 3.0)],
+    )
+    assert "L1B_SINCE_LAST_WORDING" in codes, text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Prs rose by 3 since the last card.",
+        "Prs rose by 3 since my last card.",
+        "Prs rose by 3 since the previous card.",
+        "Prior prs rose by 3 since the last card.",
+        "Earlier pushes rose by 1 since the last card.",
+    ],
+)
+def test_since_last_plain_wording_passes_claim_codes(text: str) -> None:
+    from framework.briefing.claim_text import claim_text_codes
+
+    codes = claim_text_codes(
+        text,
+        section_type="since_last",
+        has_metric_refs=True,
+        cited_refs=[("period.last.prs", 3.0)],
+    )
+    assert "L1B_SINCE_LAST_WORDING" not in codes, text
+
+
+def test_since_last_wording_ignores_other_sections() -> None:
+    from framework.briefing.claim_text import claim_text_codes
+
+    codes = claim_text_codes(
+        "Prs rose by 3 in the last period.",
+        section_type="working",
+        has_metric_refs=True,
+        cited_refs=[("period.last.prs", 3.0)],
+    )
+    assert "L1B_SINCE_LAST_WORDING" not in codes
+
+
+def test_since_last_wording_needs_metric_refs() -> None:
+    from framework.briefing.claim_text import claim_text_codes
+
+    codes = claim_text_codes(
+        "Prs rose by 3 in the last period.",
+        section_type="since_last",
+        has_metric_refs=False,
+    )
+    assert "L1B_SINCE_LAST_WORDING" not in codes

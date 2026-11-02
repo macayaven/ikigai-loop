@@ -454,6 +454,7 @@ _CLAIM_MESSAGES = {
         "state the digits from the cited metric instead of a quantity word"
     ),
     "L1B_NEGATED_CLAIM": "state the value or direction positively",
+    "L1B_SINCE_LAST_WORDING": "write the change as since the last card",
     "L1B_COMPARISON_WORD_UNKNOWN": (
         "write the comparison with a pinned direction word, the cited "
         "label, its periods and its values only"
@@ -782,11 +783,13 @@ def _binding_violations(
     # In a since_last claim the delta is the change since the last card,
     # so there `last card` names the last period; everywhere else it stays
     # a non-period sense.
-    period_text = (
-        re.sub(r"(?<!\w)last card(?!\w)", "last", lower)
-        if section_type == "since_last"
-        else lower
-    )
+    if section_type == "since_last":
+        period_text = re.sub(r"(?<!\w)last card(?!\w)", "last", lower)
+        period_text = re.sub(
+            r"(?<!\w)since the previous card(?!\w)", "since the last", period_text
+        )
+    else:
+        period_text = lower
     named = counted_periods(period_text)
     if len(remaining) == 1:
         binding = known[0]

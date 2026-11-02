@@ -338,6 +338,13 @@ NEGATORS_PHRASE = (
 )
 
 PERIOD_WORDS = ("earlier", "prior", "last")
+SINCE_LAST_PHRASES = (
+    ("since", "the", "last", "card"),
+    ("since", "my", "last", "card"),
+    ("since", "the", "previous", "card"),
+)
+_SINCE_LAST_PREPS = ("in", "during", "for", "over", "across")
+_SINCE_LAST_GENERIC_PREPS = ("in", "during", "over", "across")
 ADVICE_PHRASES = ("push harder", "rest more")
 
 SPACED_PERIOD_COMPOUNDS = (
@@ -3045,6 +3052,41 @@ def _title_hit(
     return False
 
 
+def _word_tokens(lower: str) -> list[str]:
+    """Word tokens of the normalised casefolded copy (D1/D2 matching)."""
+    return re.findall(r"[a-z0-9]+", lower)
+
+
+def since_last_accepted(lower: str) -> bool:
+    """Whether ``lower`` carries a D1 accepted phrase as token sequence."""
+    tokens = _word_tokens(lower)
+    return any(
+        tokens[start : start + len(phrase)] == list(phrase)
+        for phrase in SINCE_LAST_PHRASES
+        for start in range(len(tokens) - len(phrase) + 1)
+    )
+
+
+def since_last_containment_hit(lower: str) -> bool:
+    """Whether a D2 containment pattern names a period in ``lower``."""
+    tokens = _word_tokens(lower)
+    for index, token in enumerate(tokens):
+        if token not in _SINCE_LAST_PREPS:
+            continue
+        rest = tokens[index + 1 :]
+        if (
+            token in _SINCE_LAST_GENERIC_PREPS
+            and rest[:1] in (["a"], ["the"])
+            and rest[1:2] == ["period"]
+        ):
+            return True
+        if rest[:1] == ["the"]:
+            rest = rest[1:]
+        if rest[:1] in (["earlier"], ["prior"], ["last"]):
+            return True
+    return False
+
+
 def claim_text_codes(
     text: str,
     *,
@@ -3159,6 +3201,12 @@ def claim_text_codes(
         and _value_period_hit(lower, number_tokens, cited)
     ):
         codes.append("L1B_VALUE_PERIOD_MISMATCH")
+    if (
+        section_type == "since_last"
+        and has_metric_refs
+        and since_last_containment_hit(lower)
+    ):
+        codes.append("L1B_SINCE_LAST_WORDING")
     if section_type != "since_last" and has_metric_refs and eligible_comparison(cited):
         qtokens = quantity_fired_tokens(
             text,

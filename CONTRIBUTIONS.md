@@ -505,6 +505,27 @@ and made-up data only. The PREREG entry's text was written by muse-wonder-1.0 in
 Claude Code's instructions on what it must say; Claude Code's prompts named files, tables,
 functions and one example sentence copied from the product prompt, and held no code.
 
+## Ticket 10c — since_last wording (2026-11-02)
+
+Built on branch `t10c-since-last` per [docs/plans/010c-since-last-wording.md](docs/plans/010c-since-last-wording.md):
+one claim-only code `L1B_SINCE_LAST_WORDING` for containment patterns in
+`since_last` claims with metric refs, two teaching lines in the Wonder prompt
+with gate-checked examples, the all-zero branch reworded off the negated
+opener, pre-existing fixtures reworded to the taught phrase with no outcome
+changed, mutant M119 pinning the 15:30 sentence, and PREREG entry 17.
+Evidence in
+[docs/sessions/010c-since-last-wording.md](docs/sessions/010c-since-last-wording.md).
+
+Prompts and review by Claude Code; plan on muse-wonder-1.0 (effort high);
+code, tests and docs on muse-spark-1.3 (effort medium), with a final
+muse-spark-1.3 session at medium for the commit and the rebase and small docs
+amends after it on muse-spark-1.3 at low, in Muse Code, in
+headless sessions Claude Code started. Claude Code wrote the prompts in
+prose, including the example sentences the Wonder prompt teaches, made the
+rulings the plan records, and ran the replays and the Wonder check from
+outside this repository. It created the branch and typed nothing in this
+repository.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
