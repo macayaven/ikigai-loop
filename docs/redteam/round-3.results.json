@@ -1,0 +1,375 @@
+{
+  "review_rows": [],
+  "rows": [
+    {
+      "codes": [],
+      "id": "G01",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH",
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "G02",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [],
+      "id": "G03",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "id": "G04",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [],
+      "id": "G05",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "G06",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [],
+      "id": "G07",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "G08",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [],
+      "id": "G09",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_METRIC_LABEL_MISMATCH",
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "id": "G10",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [],
+      "id": "G11",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING",
+        "L1B_UNKNOWN_FACT"
+      ],
+      "id": "G12",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [],
+      "id": "G13",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH",
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "G14",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [],
+      "id": "G15",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "id": "G16",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [],
+      "id": "G17",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [],
+      "id": "G18",
+      "passed": true,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [],
+      "id": "G19",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "G20",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [],
+      "id": "G21",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [
+        "L1B_METRIC_LABEL_MISMATCH",
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "id": "G22",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "G23",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_METRIC_LABEL_UNKNOWN",
+        "L1B_UNKNOWN_METRIC"
+      ],
+      "id": "G24",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "G25",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "G26",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [],
+      "id": "G27",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "id": "G28",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [],
+      "id": "G29",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "G30",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [],
+      "id": "G31",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "G32",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [],
+      "id": "G33",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_METRIC_LABEL_MISMATCH",
+        "L1B_METRIC_LABEL_MISSING"
+      ],
+      "id": "G34",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [],
+      "id": "G35",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING",
+        "L1B_UNKNOWN_FACT"
+      ],
+      "id": "G36",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [],
+      "id": "G37",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "G38",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [],
+      "id": "G39",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "G40",
+      "passed": false,
+      "predicted_passes": false,
+      "raised": null,
+      "target": "B"
+    }
+  ]
+}

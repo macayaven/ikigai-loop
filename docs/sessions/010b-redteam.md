@@ -6,11 +6,12 @@
 |---|---|---|---|
 | round-1.json | 34 | 0 | 32 |
 | round-2.json | 32 | 0 | 32 |
+| round-3.json | 40 | 21 | 21 |
 | true-sentences-spark-rules.json | 30 | 4 | 4 |
 | true-sentences-wonder-norules.json | 30 | 9 | 10 |
 | true-sentences-wonder-rules.json | 30 | 0 | 0 |
 
-Total sentences: 156, blocked on frozen: 13, blocked on current: 78.
+Total sentences: 196, blocked on frozen: 34, blocked on current: 99.
 
 ### Round 1
 
@@ -88,8 +89,21 @@ Found in review (kept apart from attacker totals):
 | R53 | real_hole | False | ["L1B_NUMBER_WITHOUT_METRIC_REF"] |
 | R54 | real_hole | False | ["L1B_UNVERIFIABLE_QUANTITY"] |
 
+### Round 3
+
+Through on frozen: 19 (by verdict: {"not_false": 18, "real_hole": 1}; by target: {"A": 4, "B": 2, "C": 4, "D": 5, "E": 2, "F": 2}).
+Predicted/actual agreement: 37/40.
+Through on fixed gate: 19; fixed: 0.
+
+Found in review (kept apart from attacker totals):
+
+| id | verdict | passed | codes |
+|---|---|---|---|
+| none yet | - | - | - |
+
 round-1.json newly blocked: ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A21", "A22", "A23", "A24", "A26", "A27", "A28", "A29", "A30", "A31", "A32", "A33", "A34"] by code {"L1B_COMPARISON_WORD_UNKNOWN": 2, "L1B_DIRECTION_MISMATCH": 2, "L1B_METRIC_LABEL_MISMATCH": 1, "L1B_NEGATED_CLAIM": 2, "L1B_NUMBER_WITHOUT_METRIC_REF": 3, "L1B_PERIOD_WORD_MISSING": 1, "L1B_UNIT_MISMATCH": 1, "L1B_UNVERIFIABLE_QUANTITY": 12, "L1B_VALUE_PERIOD_MISMATCH": 1, "L1_ADVICE": 3, "L1_CLAIM_LANGUAGE": 4, "L1_PRIVATE_TERM": 4, "L1_RAW_VALUE": 1, "L1_UNSAFE_TEXT": 1}; raised: {"current": [], "frozen": []}.
 round-2.json newly blocked: ["N01", "N02", "N03", "N04", "N05", "N06", "N07", "N08", "N09", "N10", "N11", "N12", "N13", "N14", "N15", "N16", "N17", "N18", "N19", "N20", "N21", "N22", "N23", "N24", "N25", "N26", "N27", "N28", "N29", "N30", "N31", "N32"] by code {"L1B_DIRECTION_MISMATCH": 2, "L1B_METRIC_LABEL_MISMATCH": 1, "L1B_NEGATED_CLAIM": 1, "L1B_NUMBER_WITHOUT_METRIC_REF": 1, "L1B_PERIOD_WORD_MISSING": 1, "L1B_UNIT_MISMATCH": 3, "L1B_UNVERIFIABLE_QUANTITY": 10, "L1B_VALUE_PERIOD_MISMATCH": 4, "L1_ADVICE": 4, "L1_CLAIM_LANGUAGE": 2, "L1_PRIVATE_TERM": 2, "L1_RAW_VALUE": 1, "L1_UNSAFE_TEXT": 1}; raised: {"current": [], "frozen": []}.
+round-3.json newly blocked: [] by code {}; raised: {"current": [], "frozen": []}.
 true-sentences-spark-rules.json newly blocked: [] by code {}; raised: {"current": [], "frozen": []}.
 true-sentences-wonder-norules.json newly blocked: ["S16"] by code {"L1B_NEGATED_CLAIM": 1}; raised: {"current": [], "frozen": []}.
 true-sentences-wonder-rules.json newly blocked: [] by code {}; raised: {"current": [], "frozen": []}.
