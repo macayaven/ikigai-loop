@@ -248,7 +248,7 @@ synthetic data. A follow-up said what the page takes on its first line, listed t
 
 Evidence in [docs/sessions/017a-verify-claims.md](docs/sessions/017a-verify-claims.md).
 
-Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started. I asked for a second follow-up so the page opens with a labelled made-up example already run; prompts and review by Claude Code, implementation: muse-spark-1.3 (effort medium), in Muse Code, in a headless session Claude Code started.
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started. I asked for a second follow-up so the page opens with a labelled made-up example already run; prompts and review by Claude Code, implementation: muse-spark-1.3 (effort medium), in Muse Code, in a headless session Claude Code started. I asked for a third follow-up after a friend couldn't use the page, so a stranger can check a sentence of their own without JSON, with a plain-words verdict, a sentence box and a records table, and the page's own Python in docs/verify/verify_page.py, the checker itself unchanged; prompts and review by Claude Code, whose prompts gave several of the page's lines word for word; implementation and three fix rounds on muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only; three no-context reviews of screenshots on muse-wonder-1.0 (effort high), each in an empty folder.
 
 ## Docs 2 — literature check and deviations (2026-11-01)
 

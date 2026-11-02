@@ -4,11 +4,11 @@
       "id": "c1",
       "metric_refs": [
         {
-          "metric_id": "deploys.nov",
-          "value": 5
+          "metric_id": "November deploys",
+          "value": 7
         }
       ],
-      "text": "Deploys reached 5 in November and the Harborlight Ledger note is attached"
+      "text": "Deploys reached 7 in November and the Harborlight Ledger note is attached"
     }
   ],
   "deny_terms": [
@@ -16,12 +16,12 @@
   ],
   "facts": {},
   "labels": {
-    "deploys.nov": [
+    "November deploys": [
       "deploys",
       "november"
     ]
   },
   "metrics": {
-    "deploys.nov": 5
+    "November deploys": 7
   }
 }

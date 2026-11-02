@@ -244,4 +244,13 @@ Findings from Claude Code's review of the first build, applied in the fix sessio
 - A28, each distinct word is searched once per claim. `contains_token` restarts at each occurrence, so 3,660 sibling word entries of `a` runs against 50 long claims ran 43 s.
 - A29, the recipe's command gains `--no-foreign-personal-context`, because without it Muse Code can read a person's rules and skills from other tools and send them to the API.
 
+## Amendments, Nov 2: page for strangers
+
+Each overrides the matching text above it.
+
+- A30, every action on the page works from the first paint, and a click before the checker is ready waits and runs when it is; this replaces D12's Run that stays disabled until loading finishes. The page text in D12 is replaced by a plain first screen, and LIMITS_NOTE moves into the Check JSON directly section with the field table and recipe links.
+- A31, docs/verify/verify_page.py is the page's own Python, fetched during loading by relative path and written next to the bundle files, so D12's one-file page becomes the page plus this file. It builds checker input from plain sentences and record rows and puts a report into plain words. framework/verify and bundle.json don't change, and nothing is fetched after the page is ready.
+- A32, the plain form sends no labels, order, deny terms or advice words, so it needs no period column; one record per sentence; a cited value comes only from its sentence and metrics only from the table; sentences with no number are listed by number and not sent; a hidden claim shows no text, number or note.
+- A33, the D15 examples share one made-up world, 12 against 7 as in the README's worked case, with the metric ids "November deploys" and "October deploys". Their codes don't change.
+
 

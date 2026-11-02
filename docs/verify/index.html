@@ -4,90 +4,467 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
-<title>Verify claims in your agent's output</title>
+<title>Check your AI agent's numbers</title>
 <style>
 :root { color-scheme: light dark; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  margin: 0 auto; max-width: 72rem; padding: 1rem; line-height: 1.45;
+  margin: 0 auto; max-width: 44rem; padding: 1rem; line-height: 1.5;
 }
 @media (prefers-color-scheme: dark) {
   body { background: #111; color: #eee; }
-  textarea, pre { background: #1c1c1c; color: #eee; border-color: #444; }
+  textarea, pre, input { background: #1c1c1c; color: #eee; border-color: #444; }
   button { background: #2a2a2a; color: #eee; border-color: #555; }
 }
-.panes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-@media (max-width: 44rem) { .panes { grid-template-columns: 1fr; } }
-textarea, pre {
-  width: 100%; box-sizing: border-box; min-height: 16rem;
+textarea, pre, input {
+  width: 100%; box-sizing: border-box;
   border: 1px solid #bbb; border-radius: 0.4rem; padding: 0.6rem;
+  font-size: 1rem;
+}
+textarea { min-height: 6rem; }
+textarea.mono, pre {
   font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.85rem;
   white-space: pre-wrap; word-break: break-word;
 }
 pre { margin: 0; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 0.25rem; }
 .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.8rem 0; align-items: center; }
 .controls .examples-label { align-self: center; }
 button { padding: 0.5rem 1rem; border: 1px solid #bbb; border-radius: 0.4rem; font-size: 1rem; }
-button:disabled { opacity: 0.45; }
+button.primary { font-weight: bold; background: #0b57d0; border-color: #0b57d0; color: #fff; }
+.card { border: 1px solid #bbb; border-radius: 0.6rem; padding: 0.8rem 1rem; margin: 0.8rem 0; }
+.claim { border: 1px solid #bbb; border-radius: 0.6rem; padding: 0.6rem 0.8rem; margin: 0.6rem 0; }
+.badge { display: inline-block; padding: 0.1rem 0.6rem; border-radius: 999px; font-weight: bold; color: #fff; }
+.badge-pass { background: #1a7f37; }
+.badge-fail { background: #b42318; }
+@media (prefers-color-scheme: dark) {
+  button.primary { background: #7aa2f7; border-color: #7aa2f7; color: #111; }
+  .card, .claim { border-color: #555; }
+  .badge-pass { background: #3fb950; color: #111; }
+  .badge-fail { background: #ff7b72; color: #111; }
+}
 .note { font-size: 0.9rem; opacity: 0.9; }
+details { margin: 0.8rem 0; }
+summary { cursor: pointer; }
+.verdict { margin: 0.8rem 0; }
 </style>
 </head>
-<body>
-<h1>Verify claims in your agent's output</h1>
-<p>Give it your agent's claims and your own records as JSON. See which numbers and sources don't reconcile.</p>
-<p>This example is made up: the claim says 9 and the records say 5. Replace that JSON with your own, then press Run.</p>
-<p class="note">This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.</p>
-<p class="note">Everything runs on your machine. I load the checker once, then nothing is sent anywhere.</p>
-<p class="note">The input holds your agent's claims plus your own records: facts and metrics come from your system of record, never from the agent's output. <a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">Every field</a> is in the worked example, and <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/ADAPTER.md">the adapter recipe</a> maps another shape to it.</p>
-<p id="progress" class="note" aria-live="polite">Loading the checker…</p>
-<div class="controls">
-<button id="run" disabled>Run</button>
-<span class="examples-label">Made-up examples:</span>
-<button id="ex1" disabled>Clean pass</button>
-<button id="ex2" disabled>False number</button>
-<button id="ex3" disabled>Leaked private term</button>
+<body data-state="loading">
+<h1>Check your AI agent's numbers</h1>
+<p>If your agent says it shipped 12 deploys and your records say 7, this page catches it.</p>
+<p>It's for anyone whose AI agent reports numbers. I built it to check my own agent before I read what it says.</p>
+<div class="card">
+<h2>Made-up example</h2>
+<p><strong>Your agent wrote</strong>: "Deploys reached 12 in November."</p>
+<p><strong>Your records say</strong>: November deploys: 7.</p>
 </div>
-<div class="panes">
+<div class="controls">
+<button id="example-check" class="primary" type="button">Check this example</button>
+</div>
+<p id="status" class="note" aria-live="polite">Getting the checker ready in your browser. The first visit downloads about 8 MB: about 3 seconds on a fast connection, 15 to 30 on a slow phone.</p>
+<p class="note">Everything runs on your machine: I load the checker once, then nothing you type is sent anywhere.</p>
+<div id="example-verdict" class="verdict" aria-live="polite"></div>
+<p><a href="#try-your-own">Try it on your own agent's words</a></p>
+<h2 id="try-your-own">Try your own</h2>
+<p>Paste what your agent wrote. Every sentence with a number gets checked.</p>
+<p>For each number, add a row with what your records say: a name that appears in the sentence, like deploys, and the number. One record per sentence.</p>
+<div>
+<label for="agent-text"><strong>What your agent wrote</strong></label>
+<textarea id="agent-text" spellcheck="true"></textarea>
+</div>
+<table id="records-table">
+<caption><strong>What your records say</strong></caption>
+<thead><tr><th scope="col">Name</th><th scope="col">Number</th></tr></thead>
+<tbody>
+<tr><td><input type="text" name="name" placeholder="e.g. deploys" aria-label="Record name"></td><td><input type="text" name="number" placeholder="e.g. 7" aria-label="Record number" inputmode="decimal"></td></tr>
+<tr><td><input type="text" name="name" aria-label="Record name"></td><td><input type="text" name="number" aria-label="Record number" inputmode="decimal"></td></tr>
+<tr><td><input type="text" name="name" aria-label="Record name"></td><td><input type="text" name="number" aria-label="Record number" inputmode="decimal"></td></tr>
+</tbody>
+</table>
+<div class="controls">
+<button id="row-add" type="button">Add a row</button>
+<button id="try-check" class="primary" type="button">Check</button>
+<button id="try-fill" type="button">Fill in the made-up example</button>
+</div>
+<div id="try-verdict" class="verdict" aria-live="polite"></div>
+<details>
+<summary>Show the JSON (for scripts)</summary>
+<pre id="try-json">The exact input the checker ran lands here.</pre>
+<p>The <a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">worked example</a> runs the same input on the command line.</p>
+</details>
+<h2>What this checks</h2>
+<p>Every word of a row's name must appear in the sentence, in any letter case, so deploy doesn't match deploys and synonyms don't count.</p>
+<p>Numbers are read as written: 1,200, 3.5 and twelve work. Dates and clock times aren't read as numbers. A percent sign is ignored.</p>
+<p>The number must equal the record. 3.5 and 3.50 are equal.</p>
+<p>A number with no record fails.</p>
+<p>A sentence that names more than one record isn't checked until it's split, one record per sentence. A sentence like "We shipped 12 deploys and closed 40 tickets" names two records, so split it into two sentences.</p>
+<p>Words like rose or fell aren't checked.</p>
+<p>It can't tell whether a sentence is true, only whether its numbers match what you typed.</p>
+<p>To see for yourself that nothing is sent: open your browser's network panel, then use the page. After loading, the page makes no more requests.</p>
+<details>
+<summary>Check JSON directly (for developers)</summary>
 <div>
 <label for="input"><strong>Input JSON</strong></label>
-<textarea id="input" spellcheck="false" placeholder='{"claims": [...], "facts": {...}, "metrics": {...}}'></textarea>
+<textarea id="input" class="mono" spellcheck="false" placeholder='{"claims": [...], "facts": {...}, "metrics": {...}}'></textarea>
 </div>
-<div>
-<strong>Report</strong>
-<pre id="report" aria-live="polite">The report lands here.</pre>
+<div class="controls">
+<button id="run">Run</button>
+<span class="examples-label">Made-up examples:</span>
+<button id="ex1">Clean pass</button>
+<button id="ex2">False number</button>
+<button id="ex3">Leaked private term</button>
 </div>
-</div>
-<p class="note">Source: <a href="https://github.com/macayaven/ikigai-loop">macayaven/ikigai-loop</a>. Bad input shows a short message and sends nothing.</p>
-<script type="application/json" id="ex-pass">{"claims": [{"id": "c1", "metric_refs": [{"metric_id": "deploys.oct", "value": 5}, {"metric_id": "deploys.nov", "value": 9}], "text": "Deploys rose from 5 in October to 9 in November"}, {"fact_ids": ["t1"], "id": "c2", "text": "The support queue note is filed under the ticket log"}], "facts": {"t1": "Support queue note filed on Monday"}, "labels": {"deploys.nov": ["deploys", "november"], "deploys.oct": ["deploys", "october"]}, "metrics": {"deploys.nov": 9, "deploys.oct": 5}, "order": [["deploys.oct", "deploys.nov"]]}</script>
-<script type="application/json" id="ex-false-number">{"claims": [{"id": "c1", "metric_refs": [{"metric_id": "deploys.nov", "value": 9}], "text": "Deploys reached 9 in November"}], "facts": {}, "labels": {"deploys.nov": ["deploys", "november"]}, "metrics": {"deploys.nov": 5}}</script>
-<script type="application/json" id="ex-leaked-term">{"claims": [{"id": "c1", "metric_refs": [{"metric_id": "deploys.nov", "value": 5}], "text": "Deploys reached 5 in November and the Harborlight Ledger note is attached"}], "deny_terms": ["harborlight ledger"], "facts": {}, "labels": {"deploys.nov": ["deploys", "november"]}, "metrics": {"deploys.nov": 5}}</script>
+<div id="json-verdict" class="verdict" aria-live="polite"></div>
+<p>This is what the full checker covers:</p>
+<p>This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.</p>
+<p><a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">Every field</a> is in the worked example, and <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/ADAPTER.md">the adapter recipe</a> maps another shape to it.</p>
+</details>
+<p class="note">The page and the checker it runs are open source in <a href="https://github.com/macayaven/ikigai-loop">macayaven/ikigai-loop</a>. Bad input shows a short message and sends nothing.</p>
+<script type="application/json" id="ex-pass">{
+  "claims": [
+    {
+      "id": "c1",
+      "metric_refs": [
+        {
+          "metric_id": "October deploys",
+          "value": 5
+        },
+        {
+          "metric_id": "November deploys",
+          "value": 7
+        }
+      ],
+      "text": "Deploys rose from 5 in October to 7 in November"
+    },
+    {
+      "fact_ids": [
+        "t1"
+      ],
+      "id": "c2",
+      "text": "The support queue note is filed under the ticket log"
+    }
+  ],
+  "facts": {
+    "t1": "Support queue note filed on Monday"
+  },
+  "labels": {
+    "November deploys": [
+      "deploys",
+      "november"
+    ],
+    "October deploys": [
+      "deploys",
+      "october"
+    ]
+  },
+  "metrics": {
+    "November deploys": 7,
+    "October deploys": 5
+  },
+  "order": [
+    [
+      "October deploys",
+      "November deploys"
+    ]
+  ]
+}</script>
+<script type="application/json" id="ex-false-number">{
+  "claims": [
+    {
+      "id": "c1",
+      "metric_refs": [
+        {
+          "metric_id": "November deploys",
+          "value": 12
+        }
+      ],
+      "text": "Deploys reached 12 in November"
+    }
+  ],
+  "facts": {},
+  "labels": {
+    "November deploys": [
+      "deploys",
+      "november"
+    ]
+  },
+  "metrics": {
+    "November deploys": 7
+  }
+}</script>
+<script type="application/json" id="ex-leaked-term">{
+  "claims": [
+    {
+      "id": "c1",
+      "metric_refs": [
+        {
+          "metric_id": "November deploys",
+          "value": 7
+        }
+      ],
+      "text": "Deploys reached 7 in November and the Harborlight Ledger note is attached"
+    }
+  ],
+  "deny_terms": [
+    "harborlight ledger"
+  ],
+  "facts": {},
+  "labels": {
+    "November deploys": [
+      "deploys",
+      "november"
+    ]
+  },
+  "metrics": {
+    "November deploys": 7
+  }
+}</script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
 <script>
 "use strict";
-const runBtn = document.getElementById("run");
-const progress = document.getElementById("progress");
-const input = document.getElementById("input");
-const report = document.getElementById("report");
-let render = null;
-function runCheck() {
-  try {
-    const raw = render(input.value);
-    const data = JSON.parse(raw);
-    report.textContent = String(data.text);
-  } catch (err) {
-    report.textContent = "The checker failed; nothing was sent.";
+const statusEl = document.getElementById("status");
+const LOADING_SENTENCE = "Getting the checker ready in your browser. The first visit downloads about 8 MB: about 3 seconds on a fast connection, 15 to 30 on a slow phone.";
+let checker = null;
+let pendingRun = null;
+let pendingArea = null;
+function pe(tag, text) {
+  const node = document.createElement(tag);
+  node.textContent = text;
+  return node;
+}
+function preBlock(text) {
+  const node = document.createElement("pre");
+  node.textContent = text;
+  return node;
+}
+function scrollVerdict(root) {
+  const rect = root.getBoundingClientRect();
+  if (rect.top < 0 || rect.bottom > window.innerHeight) {
+    root.scrollIntoView({block: "nearest"});
   }
 }
+function badge(pass) {
+  const node = document.createElement("span");
+  node.setAttribute("class", pass ? "badge badge-pass" : "badge badge-fail");
+  node.textContent = pass ? "PASS" : "FAIL";
+  return node;
+}
+function withChecker(area, fn) {
+  if (checker) {
+    fn();
+    return;
+  }
+  if (pendingArea !== null && pendingArea !== area) {
+    while (pendingArea.firstChild) {
+      pendingArea.removeChild(pendingArea.firstChild);
+    }
+  }
+  pendingArea = area;
+  pendingRun = fn;
+  while (area.firstChild) {
+    area.removeChild(area.firstChild);
+  }
+  area.append(pe("p", "The checker is getting ready in your browser. Your result will appear here by itself."));
+}
+function showVerdict(root, inputText, renderRaw, notesById, extraLines) {
+  while (root.firstChild) {
+    root.removeChild(root.firstChild);
+  }
+  let parsed = null;
+  try {
+    parsed = JSON.parse(renderRaw);
+  } catch (err) {
+    parsed = null;
+  }
+  if (!parsed || typeof parsed.exit_code !== "number" || typeof parsed.text !== "string") {
+    root.append(badge(false));
+    root.append(pe("p", "The checker failed; nothing was sent."));
+    scrollVerdict(root);
+    return;
+  }
+  const exact = parsed.text;
+  if (parsed.exit_code === 2) {
+    root.append(pe("p", "I could not check that. The checker says:"));
+    root.append(preBlock(exact));
+    scrollVerdict(root);
+    return;
+  }
+  const pass = parsed.exit_code === 0;
+  let explained = null;
+  try {
+    const data = JSON.parse(checker.explain(inputText));
+    if (data && !data.error) {
+      explained = data;
+    }
+  } catch (err) {
+    explained = null;
+  }
+  if (!explained) {
+    root.append(badge(pass));
+    root.append(preBlock(exact));
+    scrollVerdict(root);
+    return;
+  }
+  const overall = document.createElement("p");
+  overall.append(badge(pass));
+  overall.append(document.createTextNode(" " + explained.overall));
+  root.append(overall);
+  for (const claim of explained.claims) {
+    const block = document.createElement("div");
+    block.setAttribute("class", "claim");
+    block.append(badge(claim.passed));
+    let locator = claim.id;
+    if (claim.text === null || claim.text === undefined) {
+      if (/^s\d+$/.test(claim.id)) {
+        locator = "sentence " + claim.id.slice(1);
+      }
+    } else {
+      locator = '"' + claim.text + '"';
+    }
+    block.append(pe("p", locator));
+    const notes = notesById ? notesById[claim.id] : null;
+    if (notes && !claim.hidden) {
+      for (const line of notes) {
+        block.append(pe("p", line));
+      }
+    }
+    for (const finding of claim.findings) {
+      block.append(pe("p", finding.sentence));
+    }
+    root.append(block);
+  }
+  if (extraLines) {
+    for (const line of extraLines) {
+      root.append(pe("p", line));
+    }
+  }
+  const details = document.createElement("details");
+  details.append(pe("summary", "Technical details: codes, and the report the command line prints"));
+  for (const claim of explained.claims) {
+    for (const finding of claim.findings) {
+      details.append(pe("p", claim.id + " " + finding.code + ": " + finding.meaning));
+    }
+  }
+  details.append(preBlock(exact));
+  root.append(details);
+  scrollVerdict(root);
+}
 function fillPretty(id) {
-  input.value = JSON.stringify(JSON.parse(document.getElementById(id).textContent), null, 2);
+  document.getElementById("input").value = JSON.stringify(JSON.parse(document.getElementById(id).textContent), null, 2);
+}
+function runCheck() {
+  const area = document.getElementById("json-verdict");
+  const raw = document.getElementById("input").value;
+  withChecker(area, () => {
+    showVerdict(area, raw, checker.render(raw), null);
+  });
+}
+function runExample() {
+  const area = document.getElementById("example-verdict");
+  withChecker(area, () => {
+    const inputText = JSON.stringify(JSON.parse(document.getElementById("ex-false-number").textContent), null, 2);
+    showVerdict(area, inputText, checker.render(inputText), null);
+  });
+}
+function collectRows() {
+  const rows = [];
+  const trs = document.querySelectorAll("#records-table tbody tr");
+  for (const tr of trs) {
+    rows.push({
+      name: tr.querySelector('input[name="name"]').value,
+      number: tr.querySelector('input[name="number"]').value
+    });
+  }
+  return JSON.stringify(rows);
+}
+function runTryCheck() {
+  const area = document.getElementById("try-verdict");
+  const agentText = document.getElementById("agent-text").value;
+  const rowsJson = collectRows();
+  withChecker(area, () => {
+    while (area.firstChild) {
+      area.removeChild(area.firstChild);
+    }
+    let built = null;
+    try {
+      built = JSON.parse(checker.buildInput(agentText, rowsJson));
+    } catch (err) {
+      built = null;
+    }
+    if (!built || built.error) {
+      area.append(pe("p", "The checker failed; nothing was sent."));
+      scrollVerdict(area);
+      return;
+    }
+    if (built.problems) {
+      for (const problem of built.problems) {
+        area.append(pe("p", problem));
+      }
+    }
+    const uncheckedLines = [];
+    if (built.unchecked) {
+      for (const item of built.unchecked) {
+        uncheckedLines.push("Sentence " + item.sentence_id.slice(1) + " has no number in it, so it wasn't checked.");
+      }
+    }
+    if (!built.input) {
+      if (built.problems && built.problems.length) {
+        area.append(pe("p", "Fix the rows above and press Check again."));
+      } else if (!agentText.trim()) {
+        area.append(pe("p", "Paste what your agent wrote first."));
+      } else {
+        area.append(pe("p", "None of them has a number to check."));
+      }
+      for (const line of uncheckedLines) {
+        area.append(pe("p", line));
+      }
+      document.getElementById("try-json").textContent = "The latest check built nothing to show.";
+      scrollVerdict(area);
+    } else {
+      const notesById = {};
+      if (built.pairings) {
+        for (const pairing of built.pairings) {
+          notesById[pairing.sentence_id] = pairing.lines;
+        }
+      }
+      const verdict = document.createElement("div");
+      area.append(verdict);
+      showVerdict(verdict, built.input, checker.render(built.input), notesById, uncheckedLines);
+      document.getElementById("try-json").textContent = built.input;
+    }
+  });
+}
+function addRow(name, number) {
+  const tbody = document.querySelector("#records-table tbody");
+  const tr = document.createElement("tr");
+  const nameCell = document.createElement("td");
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.setAttribute("name", "name");
+  nameInput.setAttribute("aria-label", "Record name");
+  nameInput.value = name || "";
+  nameCell.append(nameInput);
+  const numberCell = document.createElement("td");
+  const numberInput = document.createElement("input");
+  numberInput.type = "text";
+  numberInput.setAttribute("name", "number");
+  numberInput.setAttribute("aria-label", "Record number");
+  numberInput.setAttribute("inputmode", "decimal");
+  numberInput.value = number || "";
+  numberCell.append(numberInput);
+  tr.append(nameCell);
+  tr.append(numberCell);
+  tbody.append(tr);
 }
 async function boot() {
+  document.body.dataset.state = "loading";
   try {
-    progress.textContent = "Loading the checker…";
+    statusEl.textContent = LOADING_SENTENCE;
     const pyodide = await loadPyodide();
-    progress.textContent = "Loading pydantic…";
+    statusEl.textContent = LOADING_SENTENCE + " Loading the checker…";
     await pyodide.loadPackage("pydantic");
-    progress.textContent = "Loading the checker bundle…";
+    statusEl.textContent = LOADING_SENTENCE + " Loading the checker bundle…";
     const res = await fetch("bundle.json");
     if (!res.ok) {
       throw new Error("bundle fetch failed");
@@ -99,25 +476,51 @@ async function boot() {
       pyodide.FS.mkdirTree(full.slice(0, full.lastIndexOf("/")));
       pyodide.FS.writeFile(full, bundle[names[i]]);
     }
-    progress.textContent = "Starting the checker…";
+    const pageRes = await fetch("verify_page.py");
+    if (!pageRes.ok) {
+      throw new Error("page helper fetch failed");
+    }
+    pyodide.FS.writeFile("/home/pyodide/verify_page.py", await pageRes.text());
+    statusEl.textContent = LOADING_SENTENCE + " Starting the checker…";
     await pyodide.runPythonAsync("from framework.verify.core import page_render");
-    render = pyodide.globals.get("page_render");
-    progress.textContent = "";
-    for (const el of [runBtn]) {
-      el.disabled = false;
-    }
-    for (const el of [document.getElementById("ex1"), document.getElementById("ex2"), document.getElementById("ex3")]) {
-      el.disabled = false;
-    }
-    if (input.value === "") {
-      fillPretty("ex-false-number");
-      runCheck();
+    await pyodide.runPythonAsync("from verify_page import build_checker_input, explain_report");
+    checker = {
+      render: pyodide.globals.get("page_render"),
+      buildInput: pyodide.globals.get("build_checker_input"),
+      explain: pyodide.globals.get("explain_report")
+    };
+    document.body.dataset.state = "ready";
+    statusEl.textContent = "The checker is ready. Press Check this example or try your own below.";
+    if (pendingRun !== null) {
+      const run = pendingRun;
+      pendingRun = null;
+      pendingArea = null;
+      run();
     }
   } catch (err) {
-    progress.textContent = "Loading failed; nothing was sent.";
+    document.body.dataset.state = "failed";
+    statusEl.textContent = "The checker could not load. Nothing was sent anywhere.";
+    if (pendingArea !== null) {
+      while (pendingArea.firstChild) {
+        pendingArea.removeChild(pendingArea.firstChild);
+      }
+      pendingArea.append(pe("p", "The checker could not load. Nothing was sent anywhere."));
+    }
   }
 }
-runBtn.addEventListener("click", runCheck);
+document.getElementById("example-check").addEventListener("click", runExample);
+document.getElementById("try-check").addEventListener("click", runTryCheck);
+document.getElementById("row-add").addEventListener("click", () => { addRow("", ""); });
+document.getElementById("try-fill").addEventListener("click", () => {
+  document.getElementById("agent-text").value = "Deploys reached 12 in November.";
+  const tbody = document.querySelector("#records-table tbody");
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
+  addRow("November deploys", "7");
+  runTryCheck();
+});
+document.getElementById("run").addEventListener("click", runCheck);
 document.getElementById("ex1").addEventListener("click", () => { fillPretty("ex-pass"); runCheck(); });
 document.getElementById("ex2").addEventListener("click", () => { fillPretty("ex-false-number"); runCheck(); });
 document.getElementById("ex3").addEventListener("click", () => { fillPretty("ex-leaked-term"); runCheck(); });

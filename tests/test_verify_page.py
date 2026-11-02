@@ -17,8 +17,8 @@ BUNDLE = ROOT / "docs" / "verify" / "bundle.json"
 EXAMPLES = ROOT / "docs" / "verify" / "examples"
 
 PINNED_HEADLINE = (
-    "Give it your agent's claims and your own records as JSON. "
-    "See which numbers and sources don't reconcile."
+    "If your agent says it shipped 12 deploys and your records say 7, "
+    "this page catches it."
 )
 PINNED_PYODIDE = "0.27.7"
 PINNED_JSDELIVR = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"
@@ -174,21 +174,30 @@ def test_adapter_prompt_byte_identical() -> None:
     assert prompt in doc
 
 
-RECORDS_PARAGRAPH = (
-    '<p class="note">The input holds your agent\'s claims plus your own records: '
-    "facts and metrics come from your system of record, never from the "
-    "agent's output. "
-    '<a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">'
-    "Every field</a> is in the worked example, and "
-    '<a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/ADAPTER.md">'
-    "the adapter recipe</a> maps another shape to it.</p>"
+PINNED_PRIVACY = (
+    "Everything runs on your machine: I load the checker once, "
+    "then nothing you type is sent anywhere."
+)
+PINNED_TRY_LINE_1 = (
+    "Paste what your agent wrote. Every sentence with a number gets checked."
+)
+PINNED_TRY_LINE_2 = (
+    "For each number, add a row with what your records say: "
+    "a name that appears in the sentence, like deploys, and the number. "
+    "One record per sentence."
 )
 
 
-def test_page_names_records_first() -> None:
+def test_privacy_line() -> None:
     page = PAGE.read_text()
-    machine = page.index("Everything runs on your machine")
-    assert page.index(RECORDS_PARAGRAPH) > machine
+    assert PINNED_PRIVACY in page
+
+
+def test_try_your_own_explanation() -> None:
+    page = PAGE.read_text()
+    assert PINNED_TRY_LINE_1 in page
+    assert PINNED_TRY_LINE_2 in page
+    assert "JSON" not in page.split(PINNED_TRY_LINE_2)[0].split("Try your own")[-1]
 
 
 def test_page_links_records_and_recipe() -> None:
@@ -217,46 +226,38 @@ def test_example_buttons_fill_and_run() -> None:
         assert "runCheck(" in body, button
 
 
-def test_report_pane_is_live_and_margins_line_up() -> None:
+def test_verdict_areas_are_polite_live_regions() -> None:
     page = PAGE.read_text()
-    assert "pre { margin: 0; }" in page
-    match = re.search(r'<pre id="report"([^>]*)>', page)
-    assert match is not None
-    assert 'aria-live="polite"' in match.group(1)
+    for verdict_id in ("example-verdict", "try-verdict", "json-verdict"):
+        match = re.search(r'<div id="' + verdict_id + r'"([^>]*)>', page)
+        assert match is not None, verdict_id
+        assert 'aria-live="polite"' in match.group(1), verdict_id
 
 
-PINNED_MADE_UP_LINE = (
-    "This example is made up: the claim says 9 and the records say 5. "
-    "Replace that JSON with your own, then press Run."
-)
-
-
-def test_page_names_made_up_example() -> None:
+def test_example_is_labelled_made_up() -> None:
     page = PAGE.read_text()
-    assert PINNED_MADE_UP_LINE in page
-    assert "Start here: press False number" not in page
+    lowered = page.lower()
+    assert "made up" in lowered or "made-up" in lowered
 
 
-def test_made_up_sentence_matches_false_number_example() -> None:
+def test_example_numbers_match_false_number_example() -> None:
     page = PAGE.read_text()
-    match = re.search(r"claim says (\d+) and the records say (\d+)", page)
-    assert match is not None, "made-up sentence must state both numbers"
-    claim_says = int(match.group(1))
-    records_say = int(match.group(2))
     data = json.loads(_embedded_examples(page)["ex-false-number"])
-    claim_value = data["claims"][0]["metric_refs"][0]["value"]
+    claim_text = data["claims"][0]["text"]
     metric_id = data["claims"][0]["metric_refs"][0]["metric_id"]
+    claim_value = data["claims"][0]["metric_refs"][0]["value"]
     metric_value = data["metrics"][metric_id]
-    assert claim_value == claim_says
-    assert metric_value == records_say
+    assert claim_text in page
+    assert str(claim_value) in page
+    assert f"{metric_id}: {metric_value}" in page
 
 
 def test_made_up_label_sits_before_examples_in_same_row() -> None:
     page = PAGE.read_text()
     assert "Made-up examples:" in page
-    controls = re.search(r'<div class="controls">(.*?)</div>', page, re.DOTALL)
-    assert controls is not None
-    row = controls.group(1)
+    rows = re.findall(r'<div class="controls">(.*?)</div>', page, re.DOTALL)
+    assert rows, "page must keep a controls row"
+    row = next(item for item in rows if "Made-up examples:" in item)
     assert "Made-up examples:" in row
     run_at = row.index('id="run"')
     label_at = row.index("Made-up examples:")
@@ -269,13 +270,250 @@ def test_made_up_label_sits_before_examples_in_same_row() -> None:
     assert "Leaked private term" in row
 
 
-def test_boot_preloads_false_number_only_when_input_empty() -> None:
+def test_primary_button_waits_for_checker_then_runs() -> None:
     page = PAGE.read_text()
-    boot = page[page.index("async function boot()") :]
-    assert 'fillPretty("ex-false-number")' in boot
-    assert "runCheck()" in boot
-    guard = re.search(r'if\s*\(\s*input\.value\s*===\s*""\s*\)', boot)
-    assert guard is not None
-    assert boot.index('input.value === ""') < boot.index(
-        'fillPretty("ex-false-number")'
+    match = re.search(r'<button id="example-check"([^>]*)>', page)
+    assert match is not None
+    assert "disabled" not in match.group(1)
+    assert "Your result will appear here by itself" in page
+    assert "pendingRun = fn" in page
+    boot = page.split("async function boot()")[1].split("document.getElementById")[0]
+    assert "pendingRun = null" in boot
+    assert "pendingRun !== null" in boot
+    assert "runExample()" not in boot
+    assert "runTryCheck()" not in boot
+    assert "runCheck()" not in boot
+
+
+JARGON_BEFORE_TRY_YOUR_OWN = (
+    "JSON",
+    "L1B_",
+    "claims",
+    "facts",
+    "metrics",
+    "metric_refs",
+    "Pyodide",
+    "pydantic",
+    "reconcile",
+    "snapshot",
+)
+
+
+def test_no_jargon_before_try_your_own() -> None:
+    page = PAGE.read_text()
+    head = page.split("Try your own")[0]
+    head = re.sub(r"<script.*?</script>", "", head, flags=re.DOTALL)
+    head = re.sub(r"<style.*?</style>", "", head, flags=re.DOTALL)
+    head = re.sub(r"<[^>]+>", "", head)
+    for word in JARGON_BEFORE_TRY_YOUR_OWN:
+        assert word not in head, word
+
+
+HYPE_WORDS = (
+    "thrilled",
+    "delighted",
+    "leverage",
+    "delve",
+    "tapestry",
+    "robust",
+    "seamless",
+)
+
+
+def test_no_hype_words_in_page_or_helper() -> None:
+    page = (ROOT / "docs" / "verify" / "index.html").read_text().lower()
+    helper = (ROOT / "docs" / "verify" / "verify_page.py").read_text().lower()
+    for word in HYPE_WORDS:
+        assert word not in page, word
+        assert word not in helper, word
+
+
+def test_page_fetches_helper_by_relative_path() -> None:
+    page = PAGE.read_text()
+    assert 'fetch("verify_page.py")' in page
+    assert "/home/pyodide/verify_page.py" in page
+    assert "build_checker_input" in page
+    assert "explain_report" in page
+
+
+def test_loading_line_names_size_and_time() -> None:
+    page = PAGE.read_text()
+    assert "8 MB" in page
+    assert "3 seconds" in page
+    assert "15 to 30" in page
+
+
+def test_loading_steps_keep_the_line() -> None:
+    page = PAGE.read_text()
+    assert "LOADING_SENTENCE" in page
+    definition = next(
+        line for line in page.splitlines() if "LOADING_SENTENCE =" in line
     )
+    assert "8 MB" in definition
+    assert "15 to 30" in definition
+    for line in page.splitlines():
+        if "Loading the checker" in line or "Starting the checker" in line:
+            assert "LOADING_SENTENCE" in line, line
+
+
+def test_replaced_waiting_area_is_cleared() -> None:
+    page = PAGE.read_text()
+    assert "pendingArea" in page
+    assert "Your result will appear here by itself" in page
+
+
+def test_failed_load_marks_the_waiting_area() -> None:
+    page = PAGE.read_text()
+    assert page.count("The checker could not load. Nothing was sent anywhere.") >= 2
+    assert "pendingArea" in page
+
+
+def test_made_up_example_is_a_card() -> None:
+    page = PAGE.read_text()
+    assert "Made-up example" in page
+    assert "Your agent wrote" in page
+    assert "Your records say" in page
+    assert 'class="card"' in page
+
+
+def test_verdict_has_word_and_colour_badges() -> None:
+    page = PAGE.read_text()
+    assert "badge badge-pass" in page
+    assert "badge badge-fail" in page
+    assert ".badge-pass" in page
+    assert ".badge-fail" in page
+    assert "claim-passed" not in page
+
+
+def test_try_verdict_shows_notes_under_each_claim() -> None:
+    page = PAGE.read_text()
+    assert "notesById" in page
+    assert "pairing.sentence_id" in page
+
+
+def test_unchecked_sentences_list_numbers_only() -> None:
+    page = PAGE.read_text()
+    assert "has no number in it, so it wasn't checked." in page
+    assert "item.sentence_id.slice(1)" in page
+
+
+def test_hidden_claim_shows_id_locator() -> None:
+    page = PAGE.read_text()
+    assert '"sentence " + claim.id.slice(1)' in page
+
+
+def test_json_box_reports_an_empty_build() -> None:
+    page = PAGE.read_text()
+    assert "The latest check built nothing to show." in page
+
+
+def test_what_this_checks_names_the_split_rule() -> None:
+    page = PAGE.read_text()
+    assert "more than one record" in page
+
+
+def test_verdict_disclosure_is_technical_details_last() -> None:
+    page = PAGE.read_text()
+    title = "Technical details: codes, and the report the command line prints"
+    assert title in page
+    assert "Codes and the exact report" not in page
+    body = page.split(title)[1].split("</body>")[0]
+    assert "examples/verify/README.md" in body or "Check JSON directly" in page
+
+
+def test_verdict_scrolls_minimally() -> None:
+    page = PAGE.read_text()
+    assert 'scrollIntoView({block: "nearest"})' in page or (
+        "scrollIntoView({ block:" in page and '"nearest"' in page
+    )
+    assert "root.scrollIntoView();" not in page
+
+
+def test_only_first_record_row_has_example_placeholders() -> None:
+    page = PAGE.read_text()
+    assert 'placeholder="e.g. deploys"' in page
+    assert 'placeholder="e.g. 7"' in page
+    assert page.count('placeholder="e.g. deploys"') == 1
+    assert page.count('placeholder="e.g. 7"') == 1
+    assert 'placeholder="deploys"' not in page
+    assert 'placeholder="7"' not in page
+
+
+def test_what_this_checks_plain_rules() -> None:
+    page = PAGE.read_text()
+    section = page.split("What this checks")[1].split("Check JSON directly")[0]
+    assert "Every word of a row" in section
+    assert "deploy doesn" in section
+    assert "synonyms" in section
+    assert "1,200" in section
+    assert "3.5" in section
+    assert "twelve" in section
+    assert (
+        "Dates and clock times" in section or "dates and clock times" in section.lower()
+    )
+    assert "percent sign" in section
+    assert "3.50" in section
+    assert "rose or fell" in section
+    assert "whether its numbers match what you typed" in section
+    assert "network panel" in section
+    assert "no more requests" in section
+
+
+def test_unchecked_lines_land_inside_verdict_before_details() -> None:
+    page = PAGE.read_text()
+    assert 'area.append(pe("p", "Sentence "' not in page
+    show_body = page.split("function showVerdict")[1].split("function fillPretty")[0]
+    assert "Technical details" in show_body
+    assert "extraLines" in show_body
+    assert show_body.index("extraLines") < show_body.index("Technical details")
+
+
+def test_limits_note_lives_in_json_details() -> None:
+    page = PAGE.read_text()
+    assert LIMITS_NOTE in page
+    details = page.split("Check JSON directly")[1].split("</details>")[0]
+    assert LIMITS_NOTE in details
+    assert "examples/verify/README.md" in details
+    assert "docs/ADAPTER.md" in details
+    before_try = page.split("Try your own")[0]
+    assert "cited sources" not in before_try
+    section = page.split("What this checks")[1].split("Check JSON directly")[0]
+    assert "cited sources" not in section
+    assert "labels and direction" not in section
+
+
+def test_ready_line_points_to_example_and_try() -> None:
+    page = PAGE.read_text()
+    assert (
+        "The checker is ready. Press Check this example or try your own below." in page
+    )
+    assert "Press a button to run it" not in page
+
+
+def test_try_empty_states_guide_next_step() -> None:
+    page = PAGE.read_text()
+    assert "Fix the rows above and press Check again." in page
+    assert "Paste what your agent wrote first." in page
+    assert "None of them has a number to check." in page
+    assert "There is nothing to check yet." not in page
+
+
+def test_split_rule_has_example() -> None:
+    page = PAGE.read_text()
+    section = page.split("What this checks")[1].split("Check JSON directly")[0]
+    assert "more than one record" in section
+    assert "We shipped 12 deploys and closed 40 tickets" in section
+    assert "so split it into two sentences" in section
+
+
+def test_json_summaries_name_audience() -> None:
+    page = PAGE.read_text()
+    assert "Show the JSON (for scripts)" in page
+    assert "Check JSON directly (for developers)" in page
+
+
+def test_source_line_names_open_source() -> None:
+    page = PAGE.read_text()
+    assert "The page and the checker it runs are open source in" in page
+    assert '<a href="https://github.com/macayaven/ikigai-loop">' in page
+    assert "Bad input shows a short message and sends nothing." in page
