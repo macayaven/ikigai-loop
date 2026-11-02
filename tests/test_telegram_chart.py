@@ -86,7 +86,10 @@ def recorded_texts(
 
 def expected_strings(payload: ChartData) -> set[str]:
     wanted = set(payload.period_labels)
-    for item in list(payload.screen) + [payload.pushes]:
+    present = list(payload.screen)
+    if payload.pushes is not None:
+        present.append(payload.pushes)
+    for item in present:
         wanted.add(item.label)
         wanted.add(format_value(item.last))
     for tally in payload.tally:
@@ -270,3 +273,57 @@ def test_non_freetype_font_raises(
     monkeypatch.setattr(PIL.ImageFont, "load_default", lambda *a, **k: BitmapStandIn())
     with pytest.raises(RuntimeError):
         chart_module.render_chart_png(data())
+
+
+def test_missing_panels_draw_only_their_no_data_lines(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = data(screen=[], pushes=None, tally=[], missing=["screen", "pushes + PRs"])
+    png, seen = recorded_texts(monkeypatch, payload)
+    assert png[:8] == b"\x89PNG\r\n\x1a\n"
+    drawn = {text for text, _ in seen}
+    assert drawn == {
+        "Morning",
+        "Midday",
+        "Evening",
+        "screen: no data",
+        "pushes + PRs: no data",
+    }
+
+
+def test_missing_period_draws_line_and_skips_its_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = data(
+        screen=[series("Build", 1.0, 2.0, 3.0)],
+        pushes=series("Pushes", 1.0, 2.0, 3.0),
+        tally=[],
+        missing=["screen earlier", "screen last"],
+    )
+    _, seen = recorded_texts(monkeypatch, payload)
+    drawn = {text for text, _ in seen}
+    assert "screen earlier: no data" in drawn
+    assert "screen last: no data" in drawn
+    # One screen row left plus the three untouched pushes rows.
+    assert ellipse_calls(monkeypatch, payload) == 4
+
+
+def test_fully_missing_chart_draws_no_bars(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = data(screen=[], pushes=None, tally=[], missing=["screen", "pushes + PRs"])
+    png = render_chart_png(payload)
+    assert png[:8] == b"\x89PNG\r\n\x1a\n"
+    assert ellipse_calls(monkeypatch, payload) == 0
+
+
+def test_sample_chart_renders_identically_with_all_strings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from framework.telegram.sample import SAMPLE_CHART
+
+    first = render_chart_png(SAMPLE_CHART)
+    assert first[:8] == b"\x89PNG\r\n\x1a\n"
+    assert render_chart_png(SAMPLE_CHART) == first
+    _, seen = recorded_texts(monkeypatch, SAMPLE_CHART)
+    assert {text for text, _ in seen} == expected_strings(SAMPLE_CHART)

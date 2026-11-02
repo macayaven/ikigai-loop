@@ -519,3 +519,44 @@ def test_chart_data_shape_rules() -> None:
             pushes=series,
             tally=tuple([TallyItem(label="t", count=0)] * 5),
         )
+
+
+def test_chart_data_missing_ties_pushes_to_no_data() -> None:
+    series = ChartSeries(label="ok", earlier=1.0, prior=1.0, last=1.0)
+    minimal = ChartData(
+        period_labels=("One", "Two", "Three"),
+        screen=(),
+        pushes=None,
+        tally=(),
+        missing=("screen", "pushes + PRs"),
+    )
+    assert minimal.pushes is None
+    with pytest.raises(ValidationError):
+        ChartData(
+            period_labels=("One", "Two", "Three"),
+            screen=(),
+            pushes=None,
+            tally=(),
+        )
+    with pytest.raises(ValidationError):
+        ChartData(
+            period_labels=("One", "Two", "Three"),
+            screen=(series,),
+            pushes=series,
+            tally=(),
+            missing=("pushes + PRs",),
+        )
+
+
+def test_chart_data_missing_refuses_unknown_entry() -> None:
+    series = ChartSeries(label="ok", earlier=1.0, prior=1.0, last=1.0)
+    with pytest.raises(ValidationError):
+        ChartData.model_validate(
+            {
+                "period_labels": ["One", "Two", "Three"],
+                "screen": [series],
+                "pushes": series,
+                "tally": [],
+                "missing": ["screen tomorrow"],
+            }
+        )

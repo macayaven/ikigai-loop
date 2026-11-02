@@ -3,7 +3,6 @@
 import logging
 import sqlite3
 import traceback
-import urllib.request
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote
@@ -19,6 +18,7 @@ from test_telegram_chart import data as chart_data
 from test_telegram_models import card as make_card
 
 from framework.store import EventStore
+from framework.telegram import client as client_module
 from framework.telegram.client import (
     TelegramApiError,
     TelegramClient,
@@ -42,7 +42,7 @@ def run_call(
 ) -> TelegramError:
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", token_value)
     monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
-    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    monkeypatch.setattr(client_module, "_open_url", fake)
     with pytest.raises(TelegramError) as info:
         TelegramClient().call(method, payload or {"text": "hi"}, attempts=1)
     return info.value
@@ -198,7 +198,7 @@ def test_bad_api_base_is_a_network_error_without_value(
     fake = FakeTelegram()
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", FAKE_BOT_VALUE)
     monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
-    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    monkeypatch.setattr(client_module, "_open_url", fake)
     with caplog.at_level("DEBUG"), pytest.raises(TelegramTransportError) as info:
         TelegramClient(api_base="not-a-url").call(
             "sendMessage", {"text": "hi"}, attempts=1
@@ -255,7 +255,7 @@ def test_inner_space_value_never_leaves(
     with caplog.at_level("DEBUG"):
         monkeypatch.setenv("TELEGRAM_BOT_TOKEN", INNER_SPACE_VALUE)
         monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
-        monkeypatch.setattr(urllib.request, "urlopen", fake)
+        monkeypatch.setattr(client_module, "_open_url", fake)
         with pytest.raises(TelegramConfigError) as info:
             TelegramClient().call("sendMessage", {"text": "hi"})
     assert_scrubbed(info.value, INNER_SPACE_VALUE)
@@ -273,7 +273,7 @@ def test_tables_clean_after_real_flow_with_echo_failure(
     fake = FakeTelegram()
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", FAKE_BOT_VALUE)
     monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
-    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    monkeypatch.setattr(client_module, "_open_url", fake)
     quiet = TelegramClient(sleep_fn=lambda _s: None)
     sent = send_card(make_card(), chart_data(), db_path=db_path, client=quiet)
     t0 = datetime(2026, 11, 2, 18, 0, tzinfo=UTC)
@@ -305,7 +305,7 @@ def test_debug_log_names_cause_without_value(
     fake.queue_script("getUpdates", "html-502", "timeout-urlopen", ("409",))
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", FAKE_BOT_VALUE)
     monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
-    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    monkeypatch.setattr(client_module, "_open_url", fake)
     db_path = tmp_path / "ikigai.db"
     calls = {"count": 0}
 
@@ -339,7 +339,7 @@ def test_malformed_chat_value_never_leaves(
     fake = FakeTelegram()
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", FAKE_BOT_VALUE)
     monkeypatch.setenv("TELEGRAM_CHAT_ID", bad_chat)
-    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    monkeypatch.setattr(client_module, "_open_url", fake)
     with caplog.at_level("DEBUG"), pytest.raises(TelegramConfigError) as info:
         poll_once()
     assert_scrubbed(info.value, bad_chat)

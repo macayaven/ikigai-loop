@@ -23,9 +23,9 @@ from framework.telegram.client import (
     TelegramClient,
     TelegramConfigError,
     TelegramConflict,
+    TelegramDeliveryUnknown,
     TelegramError,
     TelegramRateLimited,
-    TelegramTransportError,
     _allowed_chat_id,  # pyright: ignore[reportPrivateUsage]
 )
 from framework.telegram.ledger import CardLedger
@@ -146,10 +146,11 @@ def send_card(
         render_chart_png(chart),
         render_card_text(card),
         build_keyboard(card),
+        timeout_s=60.0,
     )
     message_id: Any = message.get("message_id")
     if not _is_int(message_id):
-        raise TelegramTransportError("sendPhoto invalid response")
+        raise TelegramDeliveryUnknown("sendPhoto invalid response")
     return SentCard(card_id=card.card_id, message_id=message_id)
 
 

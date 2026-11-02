@@ -23,5 +23,7 @@ What comes back is one of the eight words. A label is a guess, and I never check
 Titles live in process memory during a sweep. No code in this repo writes one down: not in the event store, a cursor, a log, or a prompt or response file.
 
 Two limits I state plainly. The shape check does not prove the network is mine. A literal tag in a title counts as a hand tag.
+## What goes to Meta to draft a card
+To draft a card, one prompt per goal goes to Meta through headless Muse Code on my subscription, with Contributor mode off. From what I read in `build_prompt` in `framework/proposal/prompt.py`, the prompt carries the fact statements, the metric values with their label words and periods, the deltas against the last delivered card, my commitment titles with their kind and dimension, and the policy block. Raw rows never go: no window titles, no commit messages, no calendar titles. The local model reads the filtered rows on my own machine. When a Muse Code run dies locally before any model request, its stderr is kept, masked, in the same database on my own machine, and nothing else keeps stderr.
 
 A review on Nov 1 sent two invented titles through the model server I use (llama-swap v249) and looked. By default it holds recent request and response bodies in memory until they age out or the service restarts, and they can be read through its API with its key. Its journal, its log endpoint and a search of recently changed files under my home, temp and log directories held no copy. So `captureBuffer: 0` goes in that server's config before I switch this on.

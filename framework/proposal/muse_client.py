@@ -17,6 +17,7 @@ import threading
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Protocol, cast
 
 from framework.briefing.gate import scan_outbound_text
@@ -33,6 +34,10 @@ TRANSPORT = "muse"
 DEFAULT_MUSE_BIN = "~/.local/bin/muse"
 MAX_MODEL_STEPS = 3
 TIMEOUT_S = 300
+LOCAL_START_THRESHOLD_S = 2.0
+LOCAL_START_THRESHOLD_MS = int(LOCAL_START_THRESHOLD_S * 1000)
+STDERR_HEAD_BYTES = 8 * 1024
+PRIVATE_TMP_DIRNAME = "ikigai-muse-tmp"
 
 _MODEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
@@ -60,6 +65,7 @@ class RunResult:
     returncode: int | None  # None when timed out
     stdout: bytes
     timed_out: bool
+    stderr: bytes = b""
 
 
 class Runner(Protocol):
@@ -73,10 +79,40 @@ class Runner(Protocol):
     ) -> RunResult: ...
 
 
+class LocalStartFailure(MetaUnavailableError):
+    """A call that failed in under 2 s, before any model request ran.
+
+    Carries the same closed reason as its message, the same
+    ``latency_ms``, the exit code when there is one, and the masked
+    stderr. The stderr lives on ``stderr_masked`` only: never in the
+    message, never in ``repr``, never chained.
+    """
+
+    def __init__(
+        self,
+        message: str = "",
+        *,
+        latency_ms: int = 0,
+        exit_code: int | None = None,
+        stderr_masked: str = "",
+    ) -> None:
+        super().__init__(message, latency_ms=latency_ms)
+        self.exit_code = exit_code
+        self.stderr_masked = stderr_masked
+
+
 def _child_env() -> dict[str, str]:
     env = dict(os.environ)
     env.pop("META_API_KEY", None)
     return env
+
+
+def _private_tmp_root() -> str:
+    """Private temp folder under the home's cache folder, made owner-only."""
+    root = Path.home() / ".cache" / PRIVATE_TMP_DIRNAME
+    root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(root, 0o700)
+    return str(root)
 
 
 def _kill_group(pid: int) -> None:
@@ -93,29 +129,43 @@ def _default_runner(
     timeout_s: float,
     cwd: str | None,
 ) -> RunResult:
-    """Run the binary; stderr is never read, the group always dies first."""
-    proc = subprocess.Popen(
-        list(argv),
-        env=dict(env),
-        cwd=cwd,
-        stdin=subprocess.DEVNULL,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        start_new_session=True,
-    )
-    try:
-        stdout_data, _ = proc.communicate(timeout=timeout_s)
-    except subprocess.TimeoutExpired:
-        _kill_group(proc.pid)
+    """Run the binary; stderr goes to an anonymous temp file, never a pipe.
+
+    The file is unlinked on creation, so nothing is left behind on any
+    path, even when the run is killed outright. It is read, at most the
+    first 8 KiB, only when the child exited non-zero; on success or a
+    timeout the result's stderr stays empty and the file is never read.
+    The stdout read stays exactly as it is, and the process group always
+    dies first.
+    """
+    with tempfile.TemporaryFile(prefix="ikigai-muse-stderr-") as err_handle:
+        proc = subprocess.Popen(
+            list(argv),
+            env=dict(env),
+            cwd=cwd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=err_handle,
+            start_new_session=True,
+        )
         try:
-            proc.communicate(timeout=5)
+            stdout_data, _ = proc.communicate(timeout=timeout_s)
         except subprocess.TimeoutExpired:
-            pass
-        return RunResult(None, b"", True)
-    except BaseException:
-        _kill_group(proc.pid)
-        raise
-    return RunResult(proc.returncode, stdout_data or b"", False)
+            _kill_group(proc.pid)
+            try:
+                proc.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+            return RunResult(None, b"", True)
+        except BaseException:
+            _kill_group(proc.pid)
+            raise
+        if proc.returncode != 0:
+            err_handle.seek(0)
+            stderr_data = err_handle.read(STDERR_HEAD_BYTES)
+        else:
+            stderr_data = b""
+        return RunResult(proc.returncode, stdout_data or b"", False, stderr_data)
 
 
 def _write_exclusive(path: str, data: bytes) -> None:
@@ -133,6 +183,64 @@ def _add_token(current: int | None, value: Any) -> int | None:
     if isinstance(value, int) and not isinstance(value, bool):
         return (current or 0) + value
     return current
+
+
+def _has_terminal_event(stdout: bytes) -> bool:
+    """Whether stdout holds any ``run_terminal`` payload at all."""
+    for raw_line in stdout.split(b"\n"):
+        line = raw_line.strip()
+        if not line:
+            continue
+        try:
+            decoded: Any = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(decoded, dict):
+            continue
+        payload: Any = cast("dict[str, Any]", decoded).get("payload")
+        if not isinstance(payload, dict):
+            continue
+        entry = cast("dict[str, Any]", payload)
+        if entry.get("kind") == "run_terminal":
+            return True
+    return False
+
+
+def _is_local_start(failure: str, stdout: bytes) -> bool:
+    """Whether a failure reason says the run never got anywhere.
+
+    A non-zero exit, an unrunnable binary and lost temp files always do.
+    An invalid response does only when stdout holds no terminal event;
+    a completed terminal that the client rejects is a real model answer.
+    Timeouts, contributor refusals, muse terminals and anything else keep
+    the plain class at any speed.
+    """
+    if failure.startswith("exit "):
+        return True
+    if failure in ("muse not runnable", "temp files"):
+        return True
+    if failure == "invalid response":
+        return not _has_terminal_event(stdout)
+    return False
+
+
+def _local_start(
+    reason: str,
+    latency_ms: int,
+    exit_code: int | None,
+    stderr_raw: bytes,
+    private_terms: tuple[str, ...],
+) -> LocalStartFailure:
+    # Imported here so the masking module can catch this class without
+    # a top-level cycle back into this module.
+    from framework.proposal.local_retry import mask_stderr
+
+    return LocalStartFailure(
+        reason,
+        latency_ms=latency_ms,
+        exit_code=exit_code,
+        stderr_masked=mask_stderr(stderr_raw, private_terms),
+    )
 
 
 def _first_version_line(stdout: bytes) -> str | None:
@@ -223,8 +331,14 @@ class MuseExecClient:
         model_reported = "unreported"
         latency_ms = 0
         temp_files_failed = False
+        exit_code: int | None = None
+        stdout_raw = b""
+        stderr_raw = b""
         try:
-            with tempfile.TemporaryDirectory(prefix="ikigai-muse-") as root:
+            private_tmp = _private_tmp_root()
+            with tempfile.TemporaryDirectory(
+                prefix="ikigai-muse-", dir=private_tmp
+            ) as root:
                 workspace = os.path.join(root, "workspace")
                 os.mkdir(workspace)
                 prompt_path = os.path.join(root, "prompt.txt")
@@ -264,10 +378,12 @@ class MuseExecClient:
                     "--prompt-file",
                     prompt_path,
                 ]
+                child_env = _child_env()
+                child_env["TMPDIR"] = private_tmp
                 try:
                     outcome = self._runner(
                         argv,
-                        env=_child_env(),
+                        env=child_env,
                         timeout_s=self._timeout_s,
                         cwd=workspace,
                     )
@@ -292,6 +408,9 @@ class MuseExecClient:
                     model_reported = "unreported"
                 elif outcome.returncode != 0:
                     failure = f"exit {outcome.returncode}"
+                    exit_code = outcome.returncode
+                    stdout_raw = outcome.stdout
+                    stderr_raw = outcome.stderr
                     text = ""
                     prompt_tokens = None
                     cached_tokens = None
@@ -299,6 +418,7 @@ class MuseExecClient:
                     reasoning_tokens = None
                     model_reported = "unreported"
                 else:
+                    stdout_raw = outcome.stdout
                     (
                         failure,
                         text,
@@ -315,10 +435,20 @@ class MuseExecClient:
             # A cleanup failure after a good response lands here too: the
             # files may still exist, so the response is never used.
             latency_ms = int((time.monotonic() - start) * 1000)
+            if latency_ms < LOCAL_START_THRESHOLD_MS:
+                raise _local_start(
+                    "temp files", latency_ms, None, b"", self._private_terms
+                )
             raise MetaUnavailableError("temp files", latency_ms=latency_ms)
         if failure is not None:
             # Raised outside the handler so runner detail stays out of
             # ``__context__`` and ``__cause__``; the reason never holds output.
+            if latency_ms < LOCAL_START_THRESHOLD_MS and _is_local_start(
+                failure, stdout_raw
+            ):
+                raise _local_start(
+                    failure, latency_ms, exit_code, stderr_raw, self._private_terms
+                )
             raise MetaUnavailableError(failure, latency_ms=latency_ms)
         return WonderResponse(
             text=text,
