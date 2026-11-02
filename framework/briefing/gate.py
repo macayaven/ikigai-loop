@@ -111,8 +111,12 @@ _DIRECTION_TOKEN_RE = re.compile(r"\w+(?:-\w+)*")
 _PERIOD_MESSAGE = "period words do not match the cited metrics"
 
 
-def _squashed_hit(normalized: str, term: str) -> bool:
-    """Token-aligned squashed match for terms of 5 or more characters."""
+def _squashed_hit(normalized: str, term: str, vocab: Collection[str] = ()) -> bool:
+    """Token-aligned squashed match for terms of 5 or more characters.
+
+    A hit that only joins two or more whole claim-vocabulary words does
+    not count; every other hit does.
+    """
     squashed: list[str] = []
     index_map: list[int] = []
     for pos, char in enumerate(normalized):
@@ -138,6 +142,11 @@ def _squashed_hit(normalized: str, term: str) -> bool:
         if not (before.isalnum() or before == "_") and not (
             after.isalnum() or after == "_"
         ):
+            if vocab and claim_text_lists.squashed_span_exempt(
+                normalized, first, last, vocab
+            ):
+                start = index + 1
+                continue
             return True
         start = index + 1
 
@@ -156,13 +165,17 @@ def text_check_codes(
     *,
     private_terms: tuple[str, ...] = (),
     forbidden_raw_literals: tuple[str, ...] = (),
+    label_words: Collection[str] = (),
 ) -> tuple[str, ...]:
     """L1 text verdicts for one text; never ``L1_ACTION_TARGETS_REPO``.
 
     Matching runs on the ``normalize_text`` copy (casefolded locally), so
     full-width, accented and confusable spellings read as their base
     letters. Unsafe characters are stripped for matching here and never
-    reported; the claim path rejects them outright instead.
+    reported; the claim path rejects them outright instead. ``label_words``
+    carries the snapshot's metric label words, so a squashed hit made
+    only by joining the claim's own vocabulary words does not count;
+    callers that pass none keep the older, stricter verdicts.
     """
     codes: list[str] = []
     if any(pattern.search(text) for pattern in _SECRET_PATTERNS):
@@ -174,6 +187,9 @@ def text_check_codes(
         _contains_token(normalized, phrase) for phrase in ADVICE_PHRASES
     ):
         codes.append("L1_ADVICE")
+    vocab = claim_text_lists.claim_vocab_words(
+        label_words
+    ) | claim_text_lists.number_word_tokens(normalized)
     for raw_term in private_terms:
         term = normalize_text(raw_term).casefold()
         if not term:
@@ -183,7 +199,7 @@ def text_check_codes(
         elif term in normalized:
             hit = True
         else:
-            hit = _squashed_hit(normalized, term)
+            hit = _squashed_hit(normalized, term, vocab)
         if hit:
             codes.append("L1_PRIVATE_TERM")
             break
@@ -493,6 +509,13 @@ def _l1_text_checks(briefing: Briefing, context: GateContext) -> list[Violation]
         check_terms = False
     else:
         check_terms = True
+    snapshot_label_words = tuple(
+        form
+        for group, _cited in claim_text_lists.snapshot_label_forms(
+            context.metrics.values, ()
+        )
+        for form in group
+    )
     for _kind, _owner, text, location in _iter_texts(briefing):
         if len(text) > _MAX_TEXT_LENGTH:
             violations.append(
@@ -508,6 +531,7 @@ def _l1_text_checks(briefing: Briefing, context: GateContext) -> list[Violation]
             text,
             private_terms=context.private_terms if check_terms else (),
             forbidden_raw_literals=context.forbidden_raw_literals,
+            label_words=snapshot_label_words,
         ):
             violations.append(Violation(code, "L1", location, _TEXT_MESSAGES[code]))
     return violations
@@ -1324,6 +1348,7 @@ def scan_outbound_text(
     private_terms: tuple[str, ...] = (),
     private_terms_available: bool,
     forbidden_raw_literals: tuple[str, ...] = (),
+    label_words: Collection[str] = (),
 ) -> tuple[str, ...]:
     """Pre-send verdicts for one outbound string; allowlisted codes only."""
     if not private_terms_available:
@@ -1334,6 +1359,7 @@ def scan_outbound_text(
             text,
             private_terms=private_terms,
             forbidden_raw_literals=forbidden_raw_literals,
+            label_words=label_words,
         )
         if code in _OUTBOUND_ALLOWLIST
     )

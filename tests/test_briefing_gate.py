@@ -1907,3 +1907,81 @@ def test_since_last_wording_fact_only_out_of_scope() -> None:
     assert "L1B_SINCE_LAST_WORDING" not in _codes(
         evaluate_briefing(briefing, case.context)
     )
+
+
+_SQUASH_S1 = (
+    "Code was lower in the last period, 0.5 hours, "
+    "than in the prior period, 3.25 hours."
+)
+_SQUASH_S2 = (
+    "Code was 0.5 hours in the last and lower than 3.25 hours in the prior period."
+)
+_SQUASH_CODE_REFS = [
+    ("period.prior.screen_hours.Work/Code", 3.25),
+    ("period.last.screen_hours.Work/Code", 0.5),
+]
+
+
+def _overall_state_code_claim(text: str) -> tuple[dict[str, Any], Any]:
+    briefing, context = _fresh()
+    _section(briefing, "overall_state")["claims"].append(
+        {
+            "id": "claim-o2",
+            "text": text,
+            "fact_ids": [],
+            "metric_refs": [
+                {"metric_id": metric_id, "value": value}
+                for metric_id, value in _SQUASH_CODE_REFS
+            ],
+        }
+    )
+    values = dict(context.metrics.values)
+    for metric_id, value in _SQUASH_CODE_REFS:
+        values[metric_id] = value
+    return briefing, context.model_copy(
+        update={"metrics": MetricSnapshot(values=values)}
+    )
+
+
+@pytest.mark.parametrize(
+    ("text", "term"),
+    [
+        (_SQUASH_S1, "lowerin"),
+        (_SQUASH_S1, "codewas"),
+        (_SQUASH_S1, "inthelast"),
+        (_SQUASH_S2, "codewas"),
+        (_SQUASH_S2, "inthelast"),
+    ],
+)
+def test_squashed_claim_vocab_join_passes_gate(text: str, term: str) -> None:
+    """Ticket 10d: a private-term match made only by joining the claim's
+    own vocabulary words (the joins of "lower in", "code was" and
+    "in the last") is not a private-term hit."""
+    briefing, context = _overall_state_code_claim(text)
+    context = context.model_copy(update={"private_terms": (term,)})
+    assert evaluate_briefing(briefing, context).passed is True
+
+
+@pytest.mark.parametrize(
+    ("term", "arm"),
+    [
+        ("2s", "digit-for-letter"),
+        ("0a5", "wildcard"),
+        ("lowed", "edit-distance-one"),
+        ("roirp", "reversed-token"),
+        ("perlod", "l-i-fold"),
+        ("odperi", "rotation-one-token"),
+        ("inlower", "rotation-two-words"),
+        ("lowerim", "near-join"),
+    ],
+)
+def test_fuzzy_vocab_match_passes_gate(term: str, arm: str) -> None:
+    """Ticket 10d widening: every fuzzy arm is vocabulary-gated.
+
+    Each made-up term matches the sentence today through one fuzzy arm
+    while consuming only claim-vocabulary words ("25", "0.5", "lower",
+    "prior", "period", "lower"+"in"); after the fix none of them fires.
+    """
+    briefing, context = _overall_state_code_claim(_SQUASH_S1)
+    context = context.model_copy(update={"private_terms": (term,)})
+    assert evaluate_briefing(briefing, context).passed is True, arm

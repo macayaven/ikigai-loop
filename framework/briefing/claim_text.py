@@ -2361,8 +2361,12 @@ def _rotation_hit(first: str, second: str) -> bool:
     )
 
 
-def _squashed_contains(normalized: str, term: str) -> bool:
-    """Shared-arm whole-term match skipping every non-alphanumeric character."""
+def _squashed_contains(normalized: str, term: str, vocab: Collection[str] = ()) -> bool:
+    """Shared-arm whole-term match skipping every non-alphanumeric character.
+
+    A hit that only joins two or more whole claim-vocabulary words does
+    not count (see ``squashed_span_exempt``); every other hit does.
+    """
     squashed: list[str] = []
     index_map: list[int] = []
     for pos, char in enumerate(normalized):
@@ -2388,8 +2392,128 @@ def _squashed_contains(normalized: str, term: str) -> bool:
         if not (before.isalnum() or before == "_") and not (
             after.isalnum() or after == "_"
         ):
+            if vocab and squashed_span_exempt(normalized, first, last, vocab):
+                start = index + 1
+                continue
             return True
         start = index + 1
+
+
+def claim_vocab_words(label_words: Collection[str] = ()) -> frozenset[str]:
+    """Every word the card itself may join around a private term.
+
+    The gate's closed word lists (period words, up/down/same/steady
+    words, the comparison vocabulary, the English stopwords), the unit
+    words ``hour`` and ``hours``, plus every label form of the snapshot's
+    metrics supplied by the caller. Number tokens come from the text
+    being checked (see ``number_word_tokens``).
+    """
+    vocab = (
+        set(PERIOD_WORDS)
+        | set(UP_WORDS)
+        | set(DOWN_WORDS)
+        | set(SAME_WORDS)
+        | set(STEADY_WORDS)
+        | set(COMPARISON_VOCABULARY)
+        | set(ENGLISH_STOPWORDS)
+        | {"hour", "hours"}
+    )
+    for label in label_words:
+        for form in label_forms(label):
+            vocab.update(re.findall(r"[a-z0-9]+", form.casefold()))
+    return frozenset(vocab)
+
+
+_LEET_READINGS = {
+    "0": "o",
+    "3": "e",
+    "4": "a",
+    "5": "s",
+    "7": "t",
+    "8": "b",
+    "9": "g",
+}
+
+
+def number_word_tokens(lower: str) -> set[str]:
+    """Pure-digit runs of ``lower``, and their readings.
+
+    A number token counts as vocabulary in every form a fuzzy arm
+    consumes it in, so each digit run also contributes its
+    digit-for-letter readings (``0`` reads as ``o``, ``5`` as ``s``).
+    Tokens that mix letters and digits are spellings, not numbers, and
+    stay outside the vocabulary, so the digit-for-letter arm keeps
+    catching them.
+    """
+    tokens = set(re.findall(r"[0-9]+", lower))
+    readings: set[str] = set()
+    for token in tokens:
+        if len(token) > 8:
+            continue
+        variants = {""}
+        for char in token:
+            if char in _LEET_READINGS:
+                reading = _LEET_READINGS[char]
+                variants = {v + c for v in variants for c in (char, reading)}
+            else:
+                variants = {v + char for v in variants}
+        readings.update(variants)
+    return tokens | readings
+
+
+_SQUASH_WORD_RE = re.compile(r"\w+")
+
+
+def squashed_span_exempt(
+    normalized: str, first: int, last: int, vocab: Collection[str]
+) -> bool:
+    """Whether a squashed hit from ``first`` to ``last`` only joins words.
+
+    True when the span covers two or more whole words end to end and
+    every word it covers belongs to ``vocab``. A match inside one word,
+    or across word fragments, is never exempt; neither is a
+    letter-by-letter spelling (every covered word a single character),
+    whatever separators it uses.
+    """
+    words = [
+        match
+        for match in _SQUASH_WORD_RE.finditer(normalized)
+        if match.start() >= first and match.end() <= last + 1
+    ]
+    if len(words) < 2:
+        return False
+    if words[0].start() != first or words[-1].end() != last + 1:
+        return False
+    tokens = [match.group() for match in words]
+    if not all(token in vocab for token in tokens):
+        return False
+    return any(len(token) >= 2 for token in tokens)
+
+
+def _pair_exempt(left: str, right: str, vocab: Collection[str]) -> bool:
+    """Whether two neighbouring words are both claim vocabulary."""
+    pieces = re.findall(r"[a-z0-9]+", left) + re.findall(r"[a-z0-9]+", right)
+    return bool(pieces) and all(piece in vocab for piece in pieces)
+
+
+def _ctoken_exempt(ctoken: str, vocab: Collection[str]) -> bool:
+    """Whether one consumed claim token is all claim vocabulary."""
+    pieces = re.findall(r"[a-z0-9]+", ctoken)
+    return bool(pieces) and all(piece in vocab for piece in pieces)
+
+
+def _span_exempt(lower: str, start: int, end: int, vocab: Collection[str]) -> bool:
+    """Whether ``lower[start:end]`` covers whole vocabulary words only."""
+    words = [
+        match
+        for match in _SQUASH_WORD_RE.finditer(lower)
+        if match.start() >= start and match.end() <= end
+    ]
+    if not words:
+        return False
+    if words[0].start() != start or words[-1].end() != end:
+        return False
+    return all(match.group() in vocab for match in words)
 
 
 def _term_word_gate(norm_term: str) -> tuple[bool, tuple[str, ...]]:
@@ -2412,7 +2536,10 @@ def _term_word_gate(norm_term: str) -> tuple[bool, tuple[str, ...]]:
     return False, qualified
 
 
-def _private_claim_hit(lower: str, private_terms: Collection[str]) -> bool:
+def _private_claim_hit(
+    lower: str, private_terms: Collection[str], vocab: Collection[str] = ()
+) -> bool:
+    _vocab: frozenset[str] = frozenset(vocab)
     terms = [t for t in private_terms if t]
     if not terms:
         return False
@@ -2423,7 +2550,12 @@ def _private_claim_hit(lower: str, private_terms: Collection[str]) -> bool:
             if form and form not in claim_tokens and form not in raw_pool:
                 raw_pool.append(form)
     pool = claim_tokens + raw_pool
-    pairs = ["".join(pair) for pair in itertools.pairwise(claim_tokens)]
+    token_pairs = list(itertools.pairwise(claim_tokens))
+    skipped: frozenset[str] = (
+        frozenset(token for token in pool if _ctoken_exempt(token, _vocab))
+        if _vocab
+        else frozenset()
+    )
     for term in terms:
         norm_term = normalize_text(term).casefold()
         if not norm_term:
@@ -2434,33 +2566,53 @@ def _private_claim_hit(lower: str, private_terms: Collection[str]) -> bool:
         whole_only, words = _term_word_gate(norm_term)
         if not whole_only:
             for ctoken in pool:
+                if ctoken in skipped:
+                    continue
                 for word in words:
                     if _leet_hit(ctoken, word):
                         return True
             for ctoken in pool:
+                if ctoken in skipped:
+                    continue
                 for word in words:
                     if len(word) >= 4 and _damerau_le1(ctoken, word):
                         return True
             for ctoken in pool:
+                if ctoken in skipped:
+                    continue
                 for word in words:
                     if len(word) >= 3 and ctoken == word[::-1]:
                         return True
             for word in words:
-                if len(word) >= 5 and _contains_token(lower, word[::-1]):
-                    return True
+                if len(word) < 5:
+                    continue
+                needle = word[::-1]
+                if not _contains_token(lower, needle):
+                    continue
+                if _vocab and all(
+                    _span_exempt(lower, start, end, _vocab)
+                    for start, end in _token_spans(lower, needle)
+                ):
+                    continue
+                return True
         if "-" not in norm_term and "." not in norm_term:
             target = re.sub(r"\s+", "", norm_term)
             if len(target) >= 6:
                 folded_target = _fold_li(target)
                 for ctoken in pool:
+                    if ctoken in skipped:
+                        continue
                     if len(ctoken) == len(target) and (
                         _fold_li(ctoken) == folded_target
                     ):
                         return True
                     if _rotation_hit(ctoken, target):
                         return True
-                for joined in pairs:
+                for left, right in token_pairs:
+                    joined = left + right
                     if not joined:
+                        continue
+                    if _vocab and _pair_exempt(left, right, _vocab):
                         continue
                     if joined[0] == target[0] and _damerau_le1(joined, target):
                         return True
@@ -2468,7 +2620,7 @@ def _private_claim_hit(lower: str, private_terms: Collection[str]) -> bool:
                         return True
         if len(norm_term) > 3 and norm_term in lower:
             return True
-        if _squashed_contains(lower, norm_term):
+        if _squashed_contains(lower, norm_term, _vocab):
             return True
         for raw in lower.split():
             stripped = raw.rstrip(".?")
@@ -2477,6 +2629,8 @@ def _private_claim_hit(lower: str, private_terms: Collection[str]) -> bool:
             if not any(c in _MASK_CHARS for c in stripped):
                 continue
             if sum(1 for c in stripped if c not in _MASK_CHARS) < 2:
+                continue
+            if stripped in skipped:
                 continue
             for ttoken in term_tokens:
                 pattern = "".join(
@@ -2954,7 +3108,9 @@ def _spelled_out_hit(norm: str, lower: str) -> bool:
     return False
 
 
-def _squashed_holds_private(lower: str, private_terms: Collection[str]) -> bool:
+def _squashed_holds_private(
+    lower: str, private_terms: Collection[str], vocab: Collection[str] = ()
+) -> bool:
     """Whether the claim's squashed text holds a private term outright."""
     for term in private_terms:
         if not term:
@@ -2966,7 +3122,7 @@ def _squashed_holds_private(lower: str, private_terms: Collection[str]) -> bool:
             return True
         if len(norm_term) > 3 and norm_term in lower:
             return True
-        if _squashed_contains(lower, norm_term):
+        if _squashed_contains(lower, norm_term, vocab):
             return True
     return False
 
@@ -3109,8 +3265,15 @@ def claim_text_codes(
     norm = normalize_text(text)
     lower = norm.casefold()
     folded = _fold(norm)
+    vocab = claim_vocab_words(
+        [
+            form
+            for group, _cited in snapshot_label_forms(snapshot_metric_ids, ())
+            for form in group
+        ]
+    ) | number_word_tokens(lower)
     spelled_out = _spelled_out_hit(norm, lower) and not _squashed_holds_private(
-        lower, private_terms if private_terms_available else ()
+        lower, private_terms if private_terms_available else (), vocab
     )
     if (
         has_unsafe_text(text)
@@ -3191,7 +3354,7 @@ def claim_text_codes(
             words = set(_tokens(lower))
             if words & (UP_WORDS | DOWN_WORDS | SAME_WORDS) or counted_periods(lower):
                 codes.append("L1B_NEGATED_CLAIM")
-    if private_terms_available and _private_claim_hit(lower, private_terms):
+    if private_terms_available and _private_claim_hit(lower, private_terms, vocab):
         codes.append("L1_PRIVATE_TERM")
     if _raw_bag_hit(lower, forbidden_raw_literals):
         codes.append("L1_RAW_VALUE")

@@ -861,3 +861,283 @@ def test_since_last_wording_needs_metric_refs() -> None:
         has_metric_refs=False,
     )
     assert "L1B_SINCE_LAST_WORDING" not in codes
+
+
+_SQUASH_S1 = (
+    "Code was lower in the last period, 0.5 hours, "
+    "than in the prior period, 3.25 hours."
+)
+_SQUASH_S2 = (
+    "Code was 0.5 hours in the last and lower than 3.25 hours in the prior period."
+)
+
+
+@pytest.mark.parametrize(
+    ("text", "term"),
+    [
+        (_SQUASH_S1, "lowerin"),
+        (_SQUASH_S1, "codewas"),
+        (_SQUASH_S1, "inthelast"),
+        (_SQUASH_S2, "codewas"),
+        (_SQUASH_S2, "inthelast"),
+    ],
+)
+def test_squashed_claim_vocab_join_passes_text_check(text: str, term: str) -> None:
+    """Ticket 10d: the same joins pass ``text_check_codes`` once the
+    snapshot's label word (``Code``) is supplied."""
+    from framework.briefing.gate import text_check_codes
+
+    assert text_check_codes(text, private_terms=(term,), label_words=("Code",)) == ()
+
+
+def test_squashed_claim_vocab_join_still_fires_without_labels() -> None:
+    """Ticket 10d: callers that pass no label words keep the old verdict."""
+    from framework.briefing.gate import text_check_codes
+
+    assert text_check_codes(_SQUASH_S1, private_terms=("codewas",)) == (
+        "L1_PRIVATE_TERM",
+    )
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The notes mention Zebra Finch today.",
+        "The notes mention Zebra; finch today.",
+        "The notes mention Zebra, finch today.",
+        "The notes mention Zebra-finch today.",
+        "The notes mention Z.e.b.r.a.f.i.n.c.h today.",
+        "The notes mention Z-e-b-r-a-f-i-n-c-h today.",
+    ],
+)
+def test_claim_join_with_outside_word_still_fires(text: str) -> None:
+    """Ticket 10d: a join that touches a word outside the claim
+    vocabulary ("finch"), or a letter-by-letter spelling, still stops."""
+    briefing, context = _fact_claim(text, text)
+    context = context.model_copy(update={"private_terms": ("Zebrafinch",)})
+    assert _codes(evaluate_briefing(briefing, context)) == ["L1_PRIVATE_TERM"], text
+
+
+def test_claim_join_of_vocab_and_outside_word_still_fires() -> None:
+    """Ticket 10d: "lower" is claim vocabulary but "finch" is not."""
+    text = "The lower finch notes today."
+    briefing, context = _fact_claim(text, text)
+    context = context.model_copy(update={"private_terms": ("lowerfinch",)})
+    assert _codes(evaluate_briefing(briefing, context)) == ["L1_PRIVATE_TERM"]
+
+
+def test_text_check_labelled_join_with_outside_word_still_fires() -> None:
+    """Ticket 10d: "code" is a supplied label word but "finch" is not."""
+    from framework.briefing.gate import text_check_codes
+
+    assert text_check_codes(
+        "Code finch notes today.",
+        private_terms=("codefinch",),
+        label_words=("Code",),
+    ) == ("L1_PRIVATE_TERM",)
+
+
+@pytest.mark.parametrize(
+    ("text", "term", "arm"),
+    [
+        ("The zebr@ notes today.", "zebra", "digit-for-letter"),
+        ("The zebr* notes today.", "zebra", "wildcard"),
+        ("The fincher notes today.", "finched", "edit-distance-one"),
+        ("The finch notes today.", "hcnif", "reversed-token"),
+        ("The floor notes today.", "fioor", "l-i-fold"),
+        ("The garden notes today.", "engard", "rotation-one-token"),
+        ("The zebra finch notes today.", "finchzebra", "rotation-two-words"),
+        ("The quetzal finch notes today.", "quetzalfinxh", "near-join"),
+    ],
+)
+def test_fuzzy_outside_word_still_fires(text: str, term: str, arm: str) -> None:
+    """Ticket 10d widening: a fuzzy match consuming a word outside the
+    claim vocabulary still stops the claim."""
+    briefing, context = _fact_claim(text, text)
+    context = context.model_copy(update={"private_terms": (term,)})
+    assert _codes(evaluate_briefing(briefing, context)) == ["L1_PRIVATE_TERM"], (
+        arm,
+        text,
+    )
+
+
+def test_reversed_word_vocab_match_passes() -> None:
+    """Ticket 10d widening: the reversed-word arm is vocabulary-gated.
+
+    "drawer" reversed is "reward", which the snapshot's labels supply,
+    so the claim passes once the label is present.
+    """
+    text = "The reward notes today."
+    briefing, context = _fact_claim(text, text)
+    values = dict(context.metrics.values)
+    values["screen_hours.Work/Reward"] = 1.0
+    context = context.model_copy(
+        update={
+            "metrics": MetricSnapshot(values=values),
+            "private_terms": ("drawer",),
+        }
+    )
+    assert evaluate_briefing(briefing, context).passed is True
+
+
+def test_reversed_word_outside_word_still_fires() -> None:
+    """Ticket 10d widening: without the label, "reward" is outside the
+    claim vocabulary and the reversed-word match still stops."""
+    text = "The reward notes today."
+    briefing, context = _fact_claim(text, text)
+    context = context.model_copy(update={"private_terms": ("drawer",)})
+    assert _codes(evaluate_briefing(briefing, context)) == ["L1_PRIVATE_TERM"]
+
+
+def _snapshot_label_forms(values: object) -> list[str]:
+    """Every label form of every metric in the snapshot."""
+    from framework.briefing.labels import label_forms, metric_label_binding
+
+    forms: list[str] = []
+    for metric_id in values:  # type: ignore[union-attr]
+        binding = metric_label_binding(metric_id)
+        if binding is not None:
+            for label in binding.labels:
+                forms.extend(label_forms(label))
+    return forms
+
+
+def _vocabulary_proof_corpus() -> list[tuple[str, tuple[str, ...], list[str]]]:
+    """Every private-term sentence the repository holds, with its terms.
+
+    briefing_cases mutants and known-good cases with private terms (claim
+    and action texts), the red-team round attacks and true-sentence files
+    with the runner's made-up terms, and the literal unit-test rows.
+    `evals/heldout/` is not opened.
+    """
+    import json
+    from pathlib import Path
+
+    from evals.briefing_cases import KNOWN_GOOD, MUTANTS
+
+    pairs: list[tuple[str, tuple[str, ...], list[str]]] = []
+    for case in list(MUTANTS) + list(KNOWN_GOOD):
+        terms = tuple(case.context.private_terms)
+        if not terms:
+            continue
+        labels = _snapshot_label_forms(case.context.metrics.values)
+        for section in case.briefing["sections"]:
+            for claim in section.get("claims", []):
+                pairs.append((claim["text"], terms, labels))
+            for action in section.get("actions", []):
+                pairs.append((action["text"], terms, labels))
+    root = Path(__file__).resolve().parents[1]
+    redteam_terms = ("Zebrafinch", "Quillon")
+    for name in ("round-1.json", "round-2.json"):
+        payload = json.loads((root / "docs" / "redteam" / name).read_text())
+        for attack in payload["attacks"]:
+            pairs.append((attack["claim"]["text"], redteam_terms, []))
+    for name in (
+        "true-sentences-wonder-rules.json",
+        "true-sentences-wonder-norules.json",
+        "true-sentences-spark-rules.json",
+    ):
+        payload = json.loads((root / "docs" / "redteam" / name).read_text())
+        for sentence in payload["sentences"]:
+            pairs.append((sentence["claim"]["text"], redteam_terms, []))
+    pairs.extend(
+        [
+            ("I like a chair", ("ikea",), []),
+            ("aquil lon chair", ("quillon",), []),
+            ("Q u i l l o n today", ("Quillon",), []),
+            ("The notes mention Zebraf1nch today.", ("Zebrafinch",), []),
+            ("The notes mention Zebraf*nch today.", ("Zebrafinch",), []),
+            ("The notes mention Zebrafinsh today.", ("Zebrafinch",), []),
+            ("The notes mention hcnifarbez today.", ("Zebrafinch",), []),
+            ("Zebraf1nch notes", ("Zebrafinch",), []),
+            ("Zebraf*nch notes", ("Zebrafinch",), []),
+            ("The notes mention Zebra Finch today.", ("Zebrafinch",), []),
+            ("The notes mention Zebra; finch today.", ("Zebrafinch",), []),
+            ("The notes mention Zebra, finch today.", ("Zebrafinch",), []),
+            ("The notes mention Zebra-finch today.", ("Zebrafinch",), []),
+            ("The notes mention Z.e.b.r.a.f.i.n.c.h today.", ("Zebrafinch",), []),
+            ("The notes mention Z-e-b-r-a-f-i-n-c-h today.", ("Zebrafinch",), []),
+            ("The lower finch notes today.", ("lowerfinch",), []),
+            ("The notes mention Q U I L L O N today.", ("Zebrafinch", "Quillon"), []),
+            ("The notes spell Q U I L L O N today.", ("Zebrafinch", "Quillon"), []),
+            ("The archive cites Finchzebra today.", ("Zebrafinch", "Quillon"), []),
+            ("The archive cites QuiIIon today.", ("Zebrafinch", "Quillon"), []),
+            ("The notes name Zebra Vinch today.", ("Zebrafinch", "Quillon"), []),
+            ("The archive cites Qu*llon today.", ("Zebrafinch", "Quillon"), []),
+            ("The notes mention Zebra today.", ("zebra finch",), []),
+            ("The notes mention Zebra finch today.", ("zebra finch",), []),
+            ("The archive cites Quetzal’s garden today.", ("quetzal's garden",), []),
+            ("A garden stroll fits the notes.", ("quetzal-garden",), []),
+            ("The notes mention Wrenfield today.", ("Wrenfield",), []),
+            ("Tend the synthetic garden plot", ("synthetic garden",), []),
+            ("Notes mention quetzal-garden here", ("quetzal-garden",), []),
+            ("Go for a run today", ("run",), []),
+            (
+                "The Harborlight Ledger note is attached",
+                ("harborlight ledger",),
+                [],
+            ),
+            ("The ledger note is attached", ("ledger",), []),
+            (
+                "The notes mention quetzalgarden today.",
+                ("quetzal\u200bgarden",),
+                [],
+            ),
+            (
+                "The notes mention quetzal\u200bgarden today.",
+                ("quetzalgarden",),
+                [],
+            ),
+            (
+                (
+                    "Code was lower in the last period, 0.5 hours, "
+                    "than in the prior period, 3.25 hours."
+                ),
+                ("lowerin", "codewas", "inthelast"),
+                ["Code"],
+            ),
+        ]
+    )
+    return pairs
+
+
+def test_vocabulary_only_discards_private_term_matches() -> None:
+    """Ticket 10d widening: the rule may only narrow.
+
+    Over every private-term sentence in the repository, a card-vocabulary
+    `L1_PRIVATE_TERM` never fires where the same match with an empty
+    vocabulary does not fire: with an empty vocabulary every arm returns
+    exactly what it returned before, and the vocabulary can only discard
+    a match, never add one.
+    """
+    from framework.briefing import claim_text as claim_text_module
+    from framework.briefing.gate import _squashed_hit, text_check_codes
+    from framework.briefing.normalize import normalize_text
+
+    for text, terms, labels in _vocabulary_proof_corpus():
+        lower = normalize_text(text).casefold()
+        card_vocab = claim_text_module.claim_vocab_words(
+            labels
+        ) | claim_text_module.number_word_tokens(lower)
+        assert not (
+            claim_text_module._private_claim_hit(lower, terms, card_vocab)
+            and not claim_text_module._private_claim_hit(lower, terms, ())
+        ), text
+        for term in terms:
+            norm_term = normalize_text(term).casefold()
+            if not norm_term:
+                continue
+            assert not (
+                claim_text_module._squashed_contains(lower, norm_term, card_vocab)
+                and not claim_text_module._squashed_contains(lower, norm_term, ())
+            ), (text, term)
+            assert not (
+                _squashed_hit(lower, norm_term, card_vocab)
+                and not _squashed_hit(lower, norm_term, ())
+            ), (text, term)
+        if "L1_PRIVATE_TERM" in text_check_codes(
+            text, private_terms=terms, label_words=labels
+        ):
+            assert "L1_PRIVATE_TERM" in text_check_codes(text, private_terms=terms), (
+                text
+            )
