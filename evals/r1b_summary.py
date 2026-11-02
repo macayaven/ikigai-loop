@@ -17,7 +17,10 @@ if str(_REPOS_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPOS_ROOT))
 
 CATEGORY_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("Unbacked number", ("L1B_NUMBER_WITHOUT_METRIC_REF",)),
+    (
+        "Unbacked number",
+        ("L1B_NUMBER_WITHOUT_METRIC_REF", "L1B_UNVERIFIABLE_QUANTITY"),
+    ),
     (
         "Wrong or unknown evidence",
         (
@@ -25,6 +28,8 @@ CATEGORY_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
             "L1B_UNKNOWN_FACT",
             "L1B_CLAIM_WITHOUT_EVIDENCE",
             "L1B_METRIC_VALUE_MISMATCH",
+            "L1B_UNIT_MISMATCH",
+            "L1B_VALUE_PERIOD_MISMATCH",
             "L1B_DELTA_MISMATCH",
             "L1_ACTION_NOT_COMMITTED",
         ),
@@ -36,6 +41,12 @@ CATEGORY_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
         (
             "L1B_METRIC_LABEL_MISSING",
             "L1B_METRIC_LABEL_UNKNOWN",
+            "L1B_METRIC_LABEL_MISMATCH",
+            "L1B_COMPARISON_WORD_UNKNOWN",
+            "L1B_NEGATED_CLAIM",
+            "L1_CLAIM_LANGUAGE",
+            "L1_TEXT_TOO_LONG",
+            "L1_UNSAFE_TEXT",
             "L1B_PERIOD_WORD_MISSING",
             "L1B_TOO_MANY_METRICS",
             "L1_ACTION_TEXT_MISMATCH",

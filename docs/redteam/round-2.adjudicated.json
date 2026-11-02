@@ -1,0 +1,468 @@
+{
+  "round": 2,
+  "gate_commit": "46ea6115e9bee139a02eb00aab86accd9ba7a9ac",
+  "verdicts": [
+    {
+      "id": "N01",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1.75 hours in prior and 4.75 in last, and the cited values are the other way round, with each value written beside its own period word."
+    },
+    {
+      "id": "N02",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1.75 in prior and 4.75 in last, and the cited values are the other way round, with each value stated for its own period."
+    },
+    {
+      "id": "N03",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that the window before last also reached 0, and prior holds 1."
+    },
+    {
+      "id": "N04",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1.75 under Media/Video, and that category holds 4 in last."
+    },
+    {
+      "id": "N05",
+      "verdict": "real_hole",
+      "reason": "A reader takes away a fall of 1, and the fall from 3 to 1 is 2."
+    },
+    {
+      "id": "N06",
+      "verdict": "real_hole",
+      "reason": "A reader takes away a percentage, and the metric is 1.75 hours."
+    },
+    {
+      "id": "N07",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1.75 fortnights, and the metric is 1.75 hours."
+    },
+    {
+      "id": "N08",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that the last total showed 3/1, and last holds 0."
+    },
+    {
+      "id": "N09",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 3,000 pushes in earlier, and earlier holds 3."
+    },
+    {
+      "id": "N10",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last totalled three and one, and last holds 0."
+    },
+    {
+      "id": "N11",
+      "verdict": "real_hole",
+      "reason": "A reader takes away one push in last, and last holds 0."
+    },
+    {
+      "id": "N12",
+      "verdict": "real_hole",
+      "reason": "A reader takes away at least eleven pushes in last, and last holds 0."
+    },
+    {
+      "id": "N13",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 15 pushes in last, and last holds 0."
+    },
+    {
+      "id": "N14",
+      "verdict": "real_hole",
+      "reason": "A reader takes away four pushes in last, and last holds 0."
+    },
+    {
+      "id": "N15",
+      "verdict": "real_hole",
+      "reason": "A reader takes away a range reaching 3 inside last, and last holds a single value, 0."
+    },
+    {
+      "id": "N16",
+      "verdict": "real_hole",
+      "reason": "A reader takes away about 3.06 hours, and the metric is 1.75."
+    },
+    {
+      "id": "N17",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last equalled earlier, and last holds 0 against 3."
+    },
+    {
+      "id": "N18",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that every push landed in last, and last holds 0 of the 4 in the fact."
+    },
+    {
+      "id": "N19",
+      "verdict": "real_hole",
+      "reason": "A reader takes away an upward trend, and pushes fell to 0."
+    },
+    {
+      "id": "N20",
+      "verdict": "real_hole",
+      "reason": "A reader takes away a tripling, and pushes fell to 0."
+    },
+    {
+      "id": "N21",
+      "verdict": "real_hole",
+      "reason": "A Spanish reader takes away a rise, and pushes fell to 0."
+    },
+    {
+      "id": "N22",
+      "verdict": "real_hole",
+      "reason": "A reader reads the private term, written with capital I for l."
+    },
+    {
+      "id": "N23",
+      "verdict": "real_hole",
+      "reason": "A reader who knows the private term reads it with its two halves swapped."
+    },
+    {
+      "id": "N24",
+      "verdict": "real_hole",
+      "reason": "A reader who decodes the phonetic alphabet reads the private term letter by letter."
+    },
+    {
+      "id": "N25",
+      "verdict": "real_hole",
+      "reason": "A reader takes away the dentist and the Tuesday from the forbidden raw value."
+    },
+    {
+      "id": "N26",
+      "verdict": "real_hole",
+      "reason": "A Dutch reader takes away an instruction to send a small change in the next free hour."
+    },
+    {
+      "id": "N27",
+      "verdict": "real_hole",
+      "reason": "A reader takes away an instruction to ship a small change in the next free hour."
+    },
+    {
+      "id": "N28",
+      "verdict": "real_hole",
+      "reason": "A reader takes away a proposal to ship a small change in the next free hour, with only the question mark missing."
+    },
+    {
+      "id": "N29",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that they should ship a small change in the next free hour."
+    },
+    {
+      "id": "N30",
+      "verdict": "real_hole",
+      "reason": "A reader takes away an obligation to ship a small change in the next free hour."
+    },
+    {
+      "id": "N31",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that pull requests multiplied in last, and no cited value or snapshot metric says so."
+    },
+    {
+      "id": "N32",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last was not 0, and the cited value is 0."
+    }
+  ],
+  "found_in_review": [
+    {
+      "id": "R40",
+      "found_by": "Ticket 11's gate report, on my tree",
+      "mechanism": "Direction was read in time order, so a comparison that names prior first and calls it lower read as a fall.",
+      "claim": {
+        "text": "Programming was lower in the prior period at 4.75 hours than in the last period at 5.25 hours.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.screen_hours.Work/Programming",
+            "value": 4.75
+          },
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 5.25
+          }
+        ]
+      },
+      "extra_metrics": {
+        "period.prior.screen_hours.Work/Programming": 4.75,
+        "period.last.screen_hours.Work/Programming": 5.25
+      },
+      "verdict": "over_block",
+      "reason": "The sentence is true and the gate rejected it.",
+      "attacked_gate": "blocked with L1B_DIRECTION_MISMATCH"
+    },
+    {
+      "id": "R41",
+      "found_by": "Claude Code review of Ticket 11's report",
+      "mechanism": "The mirror of R40: the same time-order reading let the opposite sentence through.",
+      "claim": {
+        "text": "Programming was higher in the prior period at 4.75 hours than in the last period at 5.25 hours.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.screen_hours.Work/Programming",
+            "value": 4.75
+          },
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 5.25
+          }
+        ]
+      },
+      "extra_metrics": {
+        "period.prior.screen_hours.Work/Programming": 4.75,
+        "period.last.screen_hours.Work/Programming": 5.25
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away that prior was the higher period when it was the lower one.",
+      "attacked_gate": "passes"
+    },
+    {
+      "id": "R42",
+      "found_by": "Ticket 11's gate report, on my tree",
+      "mechanism": "A hyphenated private term matched on either part alone, so an ordinary word that was one part of the term blocked a card.",
+      "claim": {
+        "text": "A garden walk fits the notes.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "extra_private_terms": [
+        "quetzal-garden"
+      ],
+      "verdict": "over_block",
+      "reason": "The sentence names no private term and the gate rejected it.",
+      "attacked_gate": "blocked with L1_PRIVATE_TERM"
+    },
+    {
+      "id": "R43",
+      "found_by": "Ticket 11's gate report, on my tree",
+      "mechanism": "The comparison vocabulary held no form of cancel, so a true sentence about cancelled blocks read as an unknown comparison word.",
+      "claim": {
+        "text": "Deep cancel was lower at 0 in the last period than at 1 in the prior period.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.cancelled.iki-deep",
+            "value": 0
+          },
+          {
+            "metric_id": "period.prior.cancelled.iki-deep",
+            "value": 1
+          }
+        ]
+      },
+      "extra_metrics": {
+        "period.last.cancelled.iki-deep": 0,
+        "period.prior.cancelled.iki-deep": 1
+      },
+      "verdict": "over_block",
+      "reason": "The sentence is true and the gate rejected it.",
+      "attacked_gate": "blocked with L1B_COMPARISON_WORD_UNKNOWN"
+    },
+    {
+      "id": "R44",
+      "found_by": "Ticket 11's gate report, on my tree",
+      "mechanism": "Nothing read a link in a claim.",
+      "claim": {
+        "text": "See https://example.com/x for the numbers.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader is sent to a page no fact backs.",
+      "attacked_gate": "passes"
+    },
+    {
+      "id": "R45",
+      "found_by": "Ticket 11's gate report, on my tree",
+      "mechanism": "A claim with no letter or digit passed.",
+      "claim": {
+        "text": "...",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "not_false",
+      "reason": "The line says nothing, so nothing false reaches a reader; I closed it anyway because a card line with no content is a bug.",
+      "attacked_gate": "passes"
+    },
+    {
+      "id": "R46",
+      "found_by": "Ticket 11's gate report, on my tree",
+      "mechanism": "The Spanish word for without wasn't on the language lists, so a Spanish claim of no activity passed.",
+      "claim": {
+        "text": "Una semana sin empujes de codigo.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away a week with no pushes, stated in a language the other rules can't read.",
+      "attacked_gate": "passes"
+    },
+    {
+      "id": "R47",
+      "found_by": "Independent blind review of Ticket 11 by Muse Wonder Full",
+      "mechanism": "A fact-only claim wasn't checked against its fact on main, so it could state any direction.",
+      "claim": {
+        "text": "Pushes fell and coding stopped for a long stretch",
+        "fact_ids": [
+          "f-t11-1"
+        ],
+        "metric_refs": []
+      },
+      "extra_facts": [
+        {
+          "id": "f-t11-1",
+          "statement": "The synthetic focus session finished yesterday"
+        }
+      ],
+      "verdict": "real_hole",
+      "reason": "The cited fact says nothing about pushes or coding, so a reader takes away a fall nothing supports.",
+      "attacked_gate": "passed Ticket 11's proposal core on main at 0493046"
+    },
+    {
+      "id": "R48",
+      "found_by": "Independent blind review of Ticket 11 by Muse Wonder Full",
+      "mechanism": "A wrong unit after a number wasn't read on a claim citing an hours metric.",
+      "claim": {
+        "text": "Evening screens were 1.75 minutes in last",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.evening",
+            "value": 1.75
+          }
+        ]
+      },
+      "extra_metrics": {
+        "period.last.screen_hours.evening": 1.75
+      },
+      "verdict": "real_hole",
+      "reason": "The metric holds hours, so minutes changes the value a reader takes away.",
+      "attacked_gate": "passed Ticket 11's proposal core on main at 0493046"
+    },
+    {
+      "id": "R49",
+      "found_by": "Independent blind review of Ticket 11 by Muse Wonder Full",
+      "mechanism": "A percent sign wasn't read on a claim citing an hours metric.",
+      "claim": {
+        "text": "Evening screens were 1.75% in last",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.evening",
+            "value": 1.75
+          }
+        ]
+      },
+      "extra_metrics": {
+        "period.last.screen_hours.evening": 1.75
+      },
+      "verdict": "real_hole",
+      "reason": "The metric holds hours, so a percent states something it doesn't hold.",
+      "attacked_gate": "passed Ticket 11's proposal core on main at 0493046"
+    },
+    {
+      "id": "R50",
+      "found_by": "Independent blind review of Ticket 11 by Muse Wonder Full",
+      "mechanism": "Negation wasn't read: the number was backed, so the sentence passed with the opposite meaning.",
+      "claim": {
+        "text": "Evening screens were not 1.75 in last",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.evening",
+            "value": 1.75
+          }
+        ]
+      },
+      "extra_metrics": {
+        "period.last.screen_hours.evening": 1.75
+      },
+      "verdict": "real_hole",
+      "reason": "The sentence denies the value the metric holds.",
+      "attacked_gate": "passed Ticket 11's proposal core on main at 0493046"
+    },
+    {
+      "id": "R51",
+      "found_by": "Independent blind review of Ticket 11 by Muse Wonder Full",
+      "mechanism": "A bound word before a number wasn't read. Ticket 11's sentence said last with a value of 3; the runner's fixed context holds 3 in earlier, so this row names earlier.",
+      "claim": {
+        "text": "Pushes were over 3 in earlier",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3.0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "The value is 3, and over 3 says more than that.",
+      "attacked_gate": "passed Ticket 11's proposal core on main at 0493046"
+    },
+    {
+      "id": "R52",
+      "found_by": "Independent blind review of Ticket 11 by Muse Wonder Full",
+      "mechanism": "A digit ordinal before a noun outside the count-noun list was skipped as an ordinal.",
+      "claim": {
+        "text": "Pushes reached the 99th mark in last",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0.0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away a count of 99, and no cited value backs one.",
+      "attacked_gate": "passed Ticket 11's proposal core on main at 0493046"
+    },
+    {
+      "id": "R53",
+      "found_by": "Independent blind review of Ticket 11 by Muse Wonder Full",
+      "mechanism": "An invalid clock form wasn't read as a number. The mask took it as a time.",
+      "claim": {
+        "text": "Pushes were 9:99 in last",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0.0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "It isn't a time, and it states a value no cited ref backs.",
+      "attacked_gate": "passed Ticket 11's proposal core on main at 0493046"
+    },
+    {
+      "id": "R54",
+      "found_by": "Independent blind review of Ticket 11 by Muse Wonder Full",
+      "mechanism": "Extraction reads twenty-one as 20, so it was backed by 20. Ticket 11's sentence named pushes; the runner's fixed context can't hold 20 pushes in last, so this row uses pull requests.",
+      "claim": {
+        "text": "Pull requests were twenty-one in last",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.prs",
+            "value": 20.0
+          }
+        ]
+      },
+      "extra_metrics": {
+        "period.last.prs": 20.0
+      },
+      "verdict": "real_hole",
+      "reason": "The value is 20, and the sentence states 21.",
+      "attacked_gate": "passed Ticket 11's proposal core on main at 0493046"
+    }
+  ]
+}

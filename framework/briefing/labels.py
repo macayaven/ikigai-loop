@@ -10,6 +10,23 @@ from dataclasses import dataclass
 _PUSH_LABELS = frozenset({"push", "pushes", "pushed", "pushing"})
 _PR_LABELS = frozenset({"pr", "prs", "pull request", "pull requests"})
 _FEED_LABELS = frozenset({"feed", "feeds"})
+_BUSY_LABELS = frozenset({"busy"})
+
+_PINNED_FORM_SETS = (_PUSH_LABELS, _PR_LABELS, _FEED_LABELS, _BUSY_LABELS)
+
+
+def label_forms(label: str) -> frozenset[str]:
+    """All accepted prose forms of one label (casefolded match set).
+
+    Labels from a pinned family return the whole family set; anything
+    else returns just the label itself.
+    """
+    folded = label.casefold()
+    for forms in _PINNED_FORM_SETS:
+        if folded in forms:
+            return forms
+    return frozenset({label})
+
 
 _PERIODS = ("earlier", "prior", "last")
 _FEED_PREFIX = "feed.item.count"
@@ -43,6 +60,41 @@ def _tag_labels(tag: str) -> frozenset[str] | None:
             return None
         return frozenset({tag, word})
     return frozenset({tag})
+
+
+def metric_unit_class(metric_id: str) -> str | None:
+    """Return the unit class (``hours`` or ``count``) for ``metric_id``.
+
+    Derived from the same family parse as ``metric_label_binding``;
+    unknown families give ``None``.
+    """
+    remainder = metric_id
+    for name in _PERIODS:
+        prefix = f"period.{name}."
+        if metric_id.startswith(prefix):
+            remainder = metric_id[len(prefix) :]
+            break
+    else:
+        if metric_id.startswith("period."):
+            return None
+    if remainder.startswith("screen_hours."):
+        return "hours" if _screen_labels(remainder[len("screen_hours.") :]) else None
+    if remainder.startswith("tag_hours."):
+        return "hours" if _tag_labels(remainder[len("tag_hours.") :]) else None
+    if remainder.startswith("cancelled."):
+        return "count" if _tag_labels(remainder[len("cancelled.") :]) else None
+    if remainder in ("pushes", "prs"):
+        return "count"
+    if remainder in (
+        "github.push.count",
+        "github.pr.count",
+        "calendar.busy_hours",
+        _FEED_PREFIX,
+    ):
+        return "hours" if remainder == "calendar.busy_hours" else "count"
+    if remainder.startswith(_FEED_PREFIX + "."):
+        return "count" if remainder[len(_FEED_PREFIX) + 1 :].strip() else None
+    return None
 
 
 def metric_label_binding(metric_id: str) -> MetricBinding | None:

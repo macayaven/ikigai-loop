@@ -557,10 +557,7 @@ def test_gate_direction_swap_and_third_period_rejected() -> None:
     )
     failed = evaluate_briefing(briefing, context)
     assert [v.code for v in failed.violations] == ["L1B_PERIOD_WORD_MISSING"]
-    # Known gate limit, documented not asserted as a rejection: exchanging
-    # the two cited period words with each other still passes, because the
-    # gate compares the named set with the cited set and reads direction
-    # from the refs ordered by period.
+    # Closed: exchanging the two cited period words with each other is rejected by the value-period check.
 
 
 def test_gate_screen_to_zero_needs_its_zero_key() -> None:

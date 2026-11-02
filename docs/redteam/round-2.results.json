@@ -1,0 +1,442 @@
+{
+  "review_rows": [
+    {
+      "codes": [],
+      "id": "R40",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "R41",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "R42",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "R43",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_UNSAFE_TEXT"
+      ],
+      "id": "R44",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_UNSAFE_TEXT"
+      ],
+      "id": "R45",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_CLAIM_LANGUAGE"
+      ],
+      "id": "R46",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH",
+        "L1B_METRIC_LABEL_MISMATCH"
+      ],
+      "id": "R47",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "R48",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "R49",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "id": "R50",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R51",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R52",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "R53",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R54",
+      "passed": false,
+      "raised": null
+    }
+  ],
+  "rows": [
+    {
+      "codes": [
+        "L1B_VALUE_PERIOD_MISMATCH"
+      ],
+      "id": "N01",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_VALUE_PERIOD_MISMATCH"
+      ],
+      "id": "N02",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "N03",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_METRIC_LABEL_MISMATCH"
+      ],
+      "id": "N04",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_VALUE_PERIOD_MISMATCH"
+      ],
+      "id": "N05",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "N06",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "N07",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N08",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH",
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N09",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_VALUE_PERIOD_MISMATCH"
+      ],
+      "id": "N10",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "N11",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N12",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N13",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N14",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N15",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N16",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "N17",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N18",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "N19",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N20",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1_CLAIM_LANGUAGE"
+      ],
+      "id": "N21",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1_PRIVATE_TERM"
+      ],
+      "id": "N22",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_PRIVATE_TERM"
+      ],
+      "id": "N23",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_UNSAFE_TEXT"
+      ],
+      "id": "N24",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_RAW_VALUE"
+      ],
+      "id": "N25",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_CLAIM_LANGUAGE"
+      ],
+      "id": "N26",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "N27",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "N28",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "N29",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "N30",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "N31",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "id": "N32",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    }
+  ]
+}

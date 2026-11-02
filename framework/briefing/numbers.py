@@ -1,24 +1,34 @@
-"""Ticket 10: number-token extraction.
+"""Ticket 10b: number-token extraction.
 
 Mask-then-extract, strict by default: when in doubt the gate rejects. The
 gate now checks that claim prose names the metric it cites (label, and
 period word for period metrics) and that direction words agree with the
-cited values.
+cited values. Direction on fact-only claims is checked against the cited
+fact statements, and a value written beside its period word is checked
+against that period's ref (side-by-side binding).
 
 What is still not caught, all of it: a claim can name the right metric,
 period and direction and still say something false in its other words,
-including comparison words outside the pinned lists (``climbed``,
-``declined``, ``below``, ``above``); in a multi ref claim the values are
-not bound to their order in the sentence; a claim with only ``fact_ids``
-has no metric binding, so its direction words are not checked; ``eight
-and a half hours`` backs as 8; ``twenty-one`` backs as 20 whatever
-follows, because a ``one`` joined to the word before it is not a token;
-two metrics that share a label can swap,
-since a feed source and the feed total both read as ``feed``; a digit or
-number word inside a category or tag name, such as ``3D``, reads as a
-number and is rejected unless a ref backs it. Backing still compares
-absolute values. Direction is checked separately by the binding rule, not
-by backing.
+including comparison words outside the pinned lists in single-ref and
+fact-only claims, and evaluative prose; in a multi ref claim, a value is
+bound to a period where a clause holds exactly one period word and one
+value, and a value placed any other way is not bound; ``eight and a half
+hours`` backs as 8; two metrics that share a label can swap, since a feed
+source and the feed total both read as ``feed``; a digit or number word
+inside a category or tag name, such as ``seven-tower`` or ``3D``, reads
+as a number and is rejected unless a cited fact evidences the name; a
+single-decimal rounding to a token's stated places stays for tokens with
+decimals, and signed or absolute-value backing inside ``since_last``
+stays as pinned. Backing compares absolute values inside ``since_last``
+only; outside it a minus-signed token needs a negative cited ref, and a
+token with no decimal places needs an integral cited value (up to float
+noise). Direction is checked separately by the binding rule, not by
+backing.
+
+A number with a letter glued to it still extracts as the bare digits, an
+ordinal extracts as nothing, and dates and clock times are masked away:
+the gate's quantity rule rejects the first two on a metric claim, and
+``verify_claims`` doesn't run that rule.
 """
 
 from __future__ import annotations
@@ -26,7 +36,7 @@ from __future__ import annotations
 import re
 from collections.abc import Collection
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 # Month names match only when capitalized, so "may 9" is not a date.
 _MONTHS = (
@@ -55,8 +65,11 @@ _MONTH_DATE_RE = re.compile(
     rf"|\b(?:{_MONTHS})\s+{_YEAR}\b)(?!\s*(?i:{_UNMASK})\b)"
 )
 # A clock time followed by a measure or plural count word is a quantity.
+# D16: only valid clock times (hour 0-23, minute/second 00-59) are masked;
+# ``3:99`` is not a time, so its digits tokenise as numbers.
 _TIME_RE = re.compile(
-    rf"\b\d{{1,2}}:\d{{2}}(?::\d{{2}})?\s*(?:am|pm)?(?!\s*(?i:{_UNMASK})\b)",
+    r"\b(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\s*(?:am|pm)?"
+    rf"(?!\s*(?i:{_UNMASK})\b)",
     re.IGNORECASE,
 )
 _REF_RE = re.compile(r"[A-Za-z][A-Za-z0-9_-]*:[A-Za-z0-9_.-]+")
@@ -96,6 +109,8 @@ _NUMBER_WORDS: dict[str, int] = {
     "hundred": 100,
     "thousand": 1000,
     "million": 1000000,
+    "billion": 1000000000,
+    "trillion": 1000000000000,
     "dozen": 12,
 }
 # Every spelled-out number except "one" is a token whatever word follows.
@@ -128,6 +143,11 @@ class NumberToken:
     start: int
     places: int
 
+    @property
+    def end(self) -> int:
+        """Offset just past the token in the normalised copy."""
+        return self.start + len(self.raw)
+
 
 def _mask(text: str, pattern: re.Pattern[str]) -> str:
     return pattern.sub(lambda match: " " * len(match.group(0)), text)
@@ -144,16 +164,118 @@ def _mask_known(text: str, pattern: re.Pattern[str], known_ids: Collection[str])
     return pattern.sub(repl, text)
 
 
+def token_backed_by(
+    value: float,
+    places: int,
+    token_abs: Decimal,
+    *,
+    signed: bool = False,
+    section_type: str = "working",
+) -> bool:
+    """Whether ``value`` backs a token of ``token_abs`` at ``places``.
+
+    Inside ``since_last`` backing compares absolute values, as pinned.
+    Outside it a minus-signed token needs a negative cited ref. A token
+    with no decimal places is backed exactly when ``value`` rounded
+    half-up to two places (as ``format_metric_value`` prints it) equals
+    the token. An ``InvalidOperation`` from rounding means no backing,
+    never a raise.
+    """
+    import decimal
+
+    token_abs = Decimal(str(token_abs))
+    try:
+        if places == 0:
+            rounded = Decimal(str(value)).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
+        else:
+            quantum = Decimal(1).scaleb(-places)
+            rounded = Decimal(str(value)).quantize(quantum, rounding=ROUND_HALF_UP)
+    except decimal.InvalidOperation:
+        return False
+    if abs(rounded) != token_abs:
+        return False
+    if section_type == "since_last":
+        return True
+    sign_ok = not signed or Decimal(str(value)) < 0
+    return bool(sign_ok)
+
+
+_NAME_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9_.\-/]*[-_/][A-Za-z0-9_.\-/]*")
+
+
+def blank_known_names(text: str, known_names: Collection[str]) -> str:
+    """Blank every ``known_names`` occurrence with spaces (length kept)."""
+    names = [name for name in known_names if name]
+    if not names:
+        return text
+    lowered = text.casefold()
+    chars = list(text)
+    for name in names:
+        needle = name.casefold()
+        start = 0
+        while True:
+            index = lowered.find(needle, start)
+            if index < 0:
+                break
+            for pos in range(index, index + len(needle)):
+                if pos < len(chars):
+                    chars[pos] = " "
+            start = index + len(needle)
+    return "".join(chars)
+
+
+def find_known_names(statements: Collection[str]) -> frozenset[str]:
+    """Casefolded name tokens from cited statements (D22).
+
+    A name is a maximal run of letters, digits, ``_``, ``.``, ``-`` and
+    ``/`` that starts with a letter and holds at least one of ``-``,
+    ``_``, ``/`` or a digit; for a ``/`` path each qualifying segment
+    counts alone as well.
+    """
+    from framework.briefing.normalize import normalize_text
+
+    found: set[str] = set()
+    for statement in statements:
+        for match in _NAME_PATTERN.finditer(normalize_text(statement)):
+            name = match.group(0)
+            found.add(name.casefold())
+            for segment in name.split("/"):
+                if (
+                    segment
+                    and segment[0].isalpha()
+                    and any(c.isdigit() or c in "-_/" for c in segment)
+                ):
+                    found.add(segment.casefold())
+    return frozenset(found)
+
+
 def extract_number_tokens(
-    text: str, known_ids: Collection[str] = ()
+    text: str,
+    known_ids: Collection[str] = (),
+    known_names: Collection[str] = (),
 ) -> tuple[NumberToken, ...]:
     """Extract quantity tokens left to right after masking non-quantities.
 
     ``known_ids`` holds the fact/metric IDs cited on the claim being
     scanned: an identifier or colon reference is masked only when it
-    exactly equals one of them.
+    exactly equals one of them. ``known_names`` holds casefolded names
+    from the cited facts' statements (D22): a number word inside an
+    evidenced name reads as a name, not a number. Both are normalised
+    the same way as the text before masking, so an accented id or name
+    written in a claim still masks. With the default the function
+    returns exactly what it returned before, and ``known_ids`` keeps its
+    exact-match meaning. Offsets refer to the normalised copy.
     """
-    masked = _mask(text, _ISO_DATE_RE)
+    from framework.briefing.normalize import normalize_text
+
+    normalized = normalize_text(text)
+    normalized = blank_known_names(
+        normalized, [normalize_text(name) for name in known_names]
+    )
+    known_ids = {normalize_text(known_id) for known_id in known_ids}
+    masked = _mask(normalized, _ISO_DATE_RE)
     masked = _mask(masked, _DAY_FIRST_RE)
     masked = _mask(masked, _MONTH_DATE_RE)
     masked = _mask(masked, _TIME_RE)

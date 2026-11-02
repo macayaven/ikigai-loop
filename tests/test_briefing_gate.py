@@ -560,7 +560,7 @@ def test_number_backing_unbacked_fires() -> None:
 def test_number_backing_rounded_passes() -> None:
     briefing, context = _fresh()
     claim = _section(briefing, "working")["claims"][0]
-    claim["text"] = "Programming quality sits at 21.2 this week"
+    claim["text"] = "Programming quality sits at 21.2"
     claim["metric_refs"] = [
         {"metric_id": "screen_hours.Work/Programming", "value": 21.1544}
     ]
@@ -573,7 +573,7 @@ def test_number_backing_rounded_passes() -> None:
 def test_rounding_snapshot_wrong_still_fails() -> None:
     briefing, context = _fresh()
     claim = _section(briefing, "working")["claims"][0]
-    claim["text"] = "Programming quality sits at 21.2 this week"
+    claim["text"] = "Programming quality sits at 21.2"
     claim["metric_refs"] = [
         {"metric_id": "screen_hours.Work/Programming", "value": 21.1544}
     ]
@@ -716,10 +716,11 @@ def test_number_backing_rejects_bare_quantities(case_id: str, text: str) -> None
     claim = _section(briefing, "working")["claims"][0]
     claim["text"] = text
     result = evaluate_briefing(briefing, context)
-    assert (case_id, _codes(result)) == (
-        case_id,
-        ["L1B_NUMBER_WITHOUT_METRIC_REF"],
-    )
+    # colon-h fires the Sleep imperative, lower-month the "you may" phrase.
+    expected = ["L1B_NUMBER_WITHOUT_METRIC_REF"]
+    if case_id in ("colon-h", "lower-month"):
+        expected = ["L1_ADVICE", "L1B_NUMBER_WITHOUT_METRIC_REF"]
+    assert (case_id, _codes(result)) == (case_id, expected)
 
 
 def test_number_backing_still_passes_dates_and_ordinals() -> None:
@@ -890,14 +891,20 @@ def test_advice_pinned_entry_fires(entry: str) -> None:
     claim = _section(briefing, "working")["claims"][0]
     claim["text"] += f" Notes on {entry} timing here"
     result = evaluate_briefing(briefing, context)
-    assert _codes(result) == ["L1_ADVICE"], entry
+    # "rest more" also carries the direction word "more" on the fact arm.
+    expected = (
+        ["L1_ADVICE", "L1B_DIRECTION_MISMATCH"]
+        if entry == "rest more"
+        else ["L1_ADVICE"]
+    )
+    assert _codes(result) == expected, entry
     assert entry not in result.violations[0].message
 
 
 def test_advice_rest_alone_passes() -> None:
     briefing, context = _fresh()
     claim = _section(briefing, "working")["claims"][0]
-    claim["text"] = "Rest with quiet music"
+    claim["text"] = "Rest beside quiet water"
     assert evaluate_briefing(briefing, context).passed is True
 
 
@@ -915,7 +922,13 @@ def test_advice_spacing_and_case_variants_fire() -> None:
         claim = _section(briefing, "working")["claims"][0]
         claim["text"] = text
         result = evaluate_briefing(briefing, context)
-        assert _codes(result) == ["L1_ADVICE"], text
+        # The upper-case "REST MORE" variant also carries "more" as direction.
+        expected = (
+            ["L1_ADVICE", "L1B_DIRECTION_MISMATCH"]
+            if "REST MORE" in text
+            else ["L1_ADVICE"]
+        )
+        assert _codes(result) == expected, text
 
 
 def test_advice_curly_apostrophe_fires() -> None:
@@ -982,9 +995,9 @@ def test_label_dotted_category_is_known() -> None:
 
 def test_period_word_whole_word_only() -> None:
     for text in (
-        "Priority pushes reached 3 today",
-        "Pushes reached 3 lastly today",
-        "Earliest push logs reached 3 today",
+        "Priority pushes reached 3",
+        "Pushes reached 3 lastly",
+        "Earliest push logs reached 3",
     ):
         briefing, context = _label_fresh(text, "github.push.count", 3.0)
         assert evaluate_briefing(briefing, context).passed is True, text
@@ -1475,7 +1488,7 @@ def test_direction_every_listed_word(word: str) -> None:
 
     def _run(prior_value: float, last_value: float) -> list[str]:
         briefing, context = _two_ref_fresh(
-            f"Pushes {word} from 1 in prior to 3 in last",
+            f"Pushes {word} from {prior_value:g} in prior to {last_value:g} in last",
             ("period.prior.pushes", prior_value),
             ("period.last.pushes", last_value),
         )
@@ -1541,6 +1554,113 @@ def test_commitment_unavailable_skips_unknown_ids() -> None:
     result = evaluate_briefing(briefing, context)
     assert _codes(result) == ["L1_COMMITMENTS_UNAVAILABLE"]
     assert result.violations[0].location == "briefing"
+
+
+def test_crash_guard_long_decimal_is_verdict_not_raise() -> None:
+    briefing, context = _label_fresh(
+        "Pushes in earlier totalled 3.000000000000000000000000000000.",
+        "period.earlier.pushes",
+        3.0,
+    )
+    result = evaluate_briefing(briefing, context)
+    assert _codes(result) == ["L1B_NUMBER_WITHOUT_METRIC_REF"]
+
+
+def test_float_noise_backs_integral_token() -> None:
+    briefing, context = _label_fresh(
+        "Programming ran 17 hours.",
+        "screen_hours.Work/Programming",
+        17.000000000000004,
+    )
+    assert evaluate_briefing(briefing, context).passed is True
+    for text, value in (
+        ("Programming screen hours came to 5 in prior.", 4.75),
+        ("Programming screen hours came to 5 in prior.", 4.99),
+        ("Programming screen hours came to 2 in prior.", 1.75),
+        ("Programming screen hours came to 17 in prior.", 17.5),
+    ):
+        briefing, context = _fresh()
+        claim = _section(briefing, "working")["claims"][0]
+        claim["text"] = text
+        claim["metric_refs"] = [
+            {
+                "metric_id": "period.prior.screen_hours.Work/Programming",
+                "value": value,
+            }
+        ]
+        values = dict(context.metrics.values)
+        values["period.prior.screen_hours.Work/Programming"] = value
+        context = context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+        assert _codes(evaluate_briefing(briefing, context)) == [
+            "L1B_NUMBER_WITHOUT_METRIC_REF"
+        ], (text, value)
+
+
+def test_signed_token_needs_negative_ref() -> None:
+    briefing, context = _label_fresh(
+        "Pushes in earlier were -3.", "period.earlier.pushes", 3.0
+    )
+    assert _codes(evaluate_briefing(briefing, context)) == [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+    ]
+
+
+def test_percent_on_non_busy_metric_fires() -> None:
+    briefing, context = _label_fresh(
+        "Programming screen hours in last were 50%.",
+        "period.last.screen_hours.Work/Programming",
+        50.0,
+    )
+    assert _codes(evaluate_briefing(briefing, context)) == ["L1B_UNIT_MISMATCH"]
+
+
+def test_held_before_count_is_containment() -> None:
+    briefing, context = _label_fresh(
+        "Pushes held 3 in last.", "period.last.pushes", 3.0
+    )
+    assert evaluate_briefing(briefing, context).passed is True
+
+
+def test_phrasal_particle_not_direction_on_fact_arm() -> None:
+    briefing, context = _fresh()
+    claim = _section(briefing, "working")["claims"][0]
+    claim["text"] = "The evening walk lined up nicely."
+    claim["fact_ids"] = ["fact:synthetic-2"]
+    claim["metric_refs"] = []
+    assert evaluate_briefing(briefing, context).passed is True
+
+
+def test_plan_ahead_ranks_nothing() -> None:
+    briefing, context = _label_fresh(
+        "Busy was 6.5 hours, leaving this hour a clear opening to plan ahead.",
+        "calendar.busy_hours",
+        6.5,
+    )
+    assert evaluate_briefing(briefing, context).passed is True
+
+
+def test_commitment_titles_and_actions_ignore_claim_rules() -> None:
+    import json
+    from pathlib import Path
+
+    titles = [
+        commitment["title"]
+        for commitment in json.loads(
+            Path("profiles/commitments.example.json").read_text(encoding="utf-8")
+        )
+    ]
+    assert titles
+    for title in titles:
+        assert text_check_codes(title) == (), title
+    for title in (
+        "Ship one small change",
+        "Walk the synthetic garden loop",
+        "Read half the chapter",
+        "Review daily notes",
+        "Plan\u00adtomorrow",
+    ):
+        assert "L1_ADVICE" not in text_check_codes(title), title
+        assert "L1_UNSAFE_TEXT" not in text_check_codes(title), title
 
 
 def test_text_check_codes_verdicts() -> None:
@@ -1635,3 +1755,22 @@ def test_action_window_codes_verdicts() -> None:
     assert _window(
         _iso_dt(31, 12, 0), _iso_dt(31, 15, 30), slot=slot, busy=busy, free=free
     ) == ("L1_ACTION_BEFORE_SLOT", "L1_ACTION_IN_BUSY_INTERVAL")
+
+
+def test_since_last_last_card_names_last_period() -> None:
+    case = base_case_with_parent("builder")
+    briefing = copy.deepcopy(case.briefing)
+    claim = _section(briefing, "since_last")["claims"][2]
+    claim["text"] = "Pushes dropped since the last card"
+    claim["metric_refs"] = [{"metric_id": "period.last.pushes", "value": -1.0}]
+    values = dict(case.context.metrics.values)
+    values["period.last.pushes"] = 4.0
+    parent_values = dict(case.context.parent_metrics.values)  # type: ignore[union-attr]
+    parent_values["period.last.pushes"] = 5.0
+    context = case.context.model_copy(
+        update={
+            "metrics": MetricSnapshot(values=values),
+            "parent_metrics": MetricSnapshot(values=parent_values),
+        }
+    )
+    assert _codes(evaluate_briefing(briefing, context)) == []

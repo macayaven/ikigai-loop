@@ -10,7 +10,14 @@ from __future__ import annotations
 from collections import Counter
 
 from evals.briefing_cases import KNOWN_GOOD, MUTANTS, Case
-from framework.briefing.gate import ADVICE_WORDS, evaluate_briefing
+from framework.briefing.gate import (
+    ADVICE_WORDS,
+    CLAIM_ADVICE_PHRASES,
+    collapse_text,
+    contains_token,
+    evaluate_briefing,
+    word_list_hit,
+)
 from framework.briefing.labels import metric_label_binding
 from framework.verify import verify_claims
 
@@ -58,6 +65,21 @@ EXPRESSIBLE_MUTANTS = (
     "M33-too-many-metrics",
     "M36-direction-single-ref",
     "M37-direction-mixed-changes",
+    "M41-growth-synonym",
+    "M42-exceeded-synonym",
+    "M56-rounded-integer",
+    "M63-fullwidth-term",
+    "M64-spaced-term",
+    "M67-deontic-phrase",
+    "M69-rhetorical-question",
+    "M71-crash-decimals",
+    "M85-R20-hyphen-direction",
+    "M88-R23-punctuated-term",
+    "M91-R26-suggestion-phrase",
+    "M92-R27-commitment-object",
+    "M97-R35-hour-is-for",
+    "M100-R38-scale-word",
+    "M101-R39-curly-term",
 )
 
 EXCLUDED_MUTANTS = (
@@ -81,6 +103,74 @@ EXCLUDED_MUTANTS = (
     ("M34-unknown-metric-family", "generic id has no public counterpart"),
     ("M35-commitments-unavailable", "commitments unavailable, L1"),
     ("M38-uncited-period-word", "reserved period vocabulary is product-only"),
+    ("M39-negated-direction", "negation is claim-path-only"),
+    ("M40-negated-zero", "negation is claim-path-only"),
+    ("M43-spanish-direction", "claim language is claim-path-only"),
+    ("M44-doubled", "multiplier words are claim-path-only"),
+    ("M45-half", "fractions are claim-path-only"),
+    ("M46-vulgar-fraction", "vulgar fractions are claim-path-only"),
+    ("M47-tally-marks", "tally marks are claim-path-only"),
+    ("M48-roman-numeral", "roman numerals are claim-path-only"),
+    ("M49-french-number", "claim language is claim-path-only"),
+    ("M50-digit-ordinal", "ordinals are a stated verify limit"),
+    ("M51-clock-duration", "clock durations are claim-path-only"),
+    ("M52-invalid-clock", "comparison vocabulary is claim-path-only"),
+    ("M53-tenfold", "multiplier words are claim-path-only"),
+    ("M54-a-couple", "vague counts are claim-path-only"),
+    ("M55-one-oh", "spoken number forms are claim-path-only"),
+    ("M57-wrong-unit", "units are a stated verify limit"),
+    ("M58-period-compound", "period compounds are claim-path-only"),
+    ("M59-conflicting-category", "conflicting categories are claim-path-only"),
+    ("M60-rank-ordinal", "rank words are claim-path-only"),
+    ("M61-rate-word", "rate words are claim-path-only"),
+    ("M62-hidden-char-term", "unsafe text is claim-path-only"),
+    ("M65-confusable-term", "claim language is claim-path-only"),
+    ("M66-punctuated-literal", "raw literals are claim-path-only"),
+    ("M68-bare-imperative", "bare imperatives are claim-path-only"),
+    ("M70-french-imperative", "claim language is claim-path-only"),
+    ("M72-swapped-periods", "value-period binding is claim-path-only"),
+    ("M73-N01-value-beside-wrong-period", "value-period binding is claim-path-only"),
+    (
+        "M74-R09-spelled-beside-wrong-period",
+        "value-period binding is claim-path-only",
+    ),
+    ("M75-N07-wrong-duration-word", "units are a stated verify limit"),
+    ("M76-R11-magnitude-word", "units are a stated verify limit"),
+    ("M77-R12-glued-letter", "glued letters are claim-path-only"),
+    ("M78-R13-trailing-qualifier", "trailing qualifiers are claim-path-only"),
+    ("M79-R14-single", "vague counts are claim-path-only"),
+    ("M80-R15-lower-roman", "roman numerals are claim-path-only"),
+    ("M81-R16-share-word", "rank words are claim-path-only"),
+    ("M82-R17-universal-label", "universal words are claim-path-only"),
+    ("M83-R18-negated-one-word", "negation is claim-path-only"),
+    ("M84-R19-fact-both-directions", "fact-only period word is product-only"),
+    ("M86-R21-period-other-sense", "period words in another sense are claim-path-only"),
+    ("M87-R22-spaced-negation", "unsafe text is claim-path-only"),
+    ("M89-R24-misspelled-literal", "raw literals are claim-path-only"),
+    ("M90-R25-opener-imperative", "bare imperatives are claim-path-only"),
+    ("M93-R28-strong-verb", "bare imperatives are claim-path-only"),
+    ("M94-R32-exactness-limit", "integers past 2^53 are claim-path-only"),
+    ("M95-R33-and-imperative", "bare imperatives are claim-path-only"),
+    ("M96-R34-dash-imperative", "bare imperatives are claim-path-only"),
+    ("M98-R36-named-not-cited", "uncited metrics are claim-path-only"),
+    ("M99-R37-time-word-periodless", "time-scope words are claim-path-only"),
+    ("M102-N12-spelled-ordinal", "ordinals are a stated verify limit"),
+    ("M103-N14-tally", "tally marks are claim-path-only"),
+    ("M104-N08-slash-fraction", "fractions are claim-path-only"),
+    ("M105-N15-range-one-period", "range words are claim-path-only"),
+    ("M106-N05-wrong-change", "stated changes are claim-path-only"),
+    ("M107-R41-periods-wrong-way", "time-order than-comparisons are claim-path-only"),
+    ("M108-N04-joined-label", "joined labels are claim-path-only"),
+    ("M109-N06-percent-word", "units are a stated verify limit"),
+    ("M110-R52-digit-ordinal-noun", "ordinals are a stated verify limit"),
+    ("M111-N22-lookalike-I", "term variants are claim-path-only"),
+    ("M112-N23-halves-swapped", "term variants are claim-path-only"),
+    ("M113-N24-phonetic-term", "unsafe text is claim-path-only"),
+    ("M114-N25-stretched-literal", "raw literals are claim-path-only"),
+    ("M115-N26-dutch", "claim language is claim-path-only"),
+    ("M116-N28-question-no-mark", "questions are claim-path-only"),
+    ("M117-R44-link", "unsafe text is claim-path-only"),
+    ("M118-R45-no-letters-digits", "unsafe text is claim-path-only"),
 )
 
 EXPRESSIBLE_KNOWN_GOOD = (
@@ -101,6 +191,34 @@ EXPRESSIBLE_KNOWN_GOOD = (
     "G17-model-wording-screen",
     "G18-model-wording-pushes",
     "G19-model-wording-segment",
+    "G21-n1-stood",
+    "G22-n2-went-down",
+    "G23-n3-value-first",
+    "G24-n4-busy-over",
+    "G25-n5-stated-zero",
+    "G27-n7-spent",
+    "G30-n10-about",
+    "G31-n11-moved",
+    "G32-n12-totaled",
+    "G33-n13-clock-the",
+    "G34-n14-period-list",
+    "G35-n15-unit-pairs",
+    "G36-n16-roman-free",
+    "G37-n17-up-to",
+    "G40-n20-backticks",
+    "G41-n21-you-spent",
+    "G44-n24-github-pushes",
+    "G45-n25-cancelled-zero",
+    "G47-n27-slashed-category",
+    "G49-R04-whole-over-noise",
+    "G50-R05-held-count",
+    "G51-R06-phrasal-particle",
+    "G52-R07-ahead",
+    "G53-R31-short-word-value",
+    "G54-R42-hyphen-part-alone",
+    "G55-R40-later-period-first",
+    "G56-R43-cancel-comparison",
+    "G57-range-two-periods",
 )
 
 EXCLUDED_KNOWN_GOOD = (
@@ -113,6 +231,15 @@ EXCLUDED_KNOWN_GOOD = (
         "G20-negative-delta-absolute",
         "parent and since_last the public shape cannot say",
     ),
+    ("G26-n6-absent", "fact-only period word is product-only"),
+    ("G28-n8-shipped", "fact-only period word is product-only"),
+    ("G29-n9-review-notes", "fact-only period word is product-only"),
+    ("G38-n18-use-of", "fact-only period word is product-only"),
+    ("G39-n19-focus-dropped", "fact-only period word is product-only"),
+    ("G42-n22-godel", "fact-only period word is product-only"),
+    ("G43-n23-due", "fact-only period word is product-only"),
+    ("G46-n26-glimmer-fact", "fact-only period word is product-only"),
+    ("G48-r2-name-with-number", "fact-only period word is product-only"),
 )
 
 
@@ -121,6 +248,34 @@ def _claim_text_names_period_word(text: str) -> set[str]:
 
     collapsed = collapse_text(text)
     return {word for word in PERIOD_WORDS if contains_token(collapsed, word)}
+
+
+def _term_variant_hit(text: str, term: str) -> bool:
+    """Whether ``text`` holds an li-fold or rotation of ``term``, not exact.
+
+    The claim path reads ``l``/``i`` as one letter and halves-swapped
+    rotations of spaceless terms (the M111/M112 shapes); the public
+    subset leaves those arms out, so such a case is not expressible.
+    """
+    import re
+
+    from framework.briefing.normalize import normalize_text
+
+    target = "".join(c for c in normalize_text(term).casefold() if c.isalnum())
+    if len(target) < 6:
+        return False
+    folded = target.replace("l", "i")
+    for token in re.findall(r"\w+", normalize_text(text).casefold()):
+        token = "".join(c for c in token if c.isalnum())
+        if len(token) != len(target) or token == target:
+            continue
+        if token.replace("l", "i") == folded:
+            return True
+        if any(
+            target[index:] + target[:index] == token for index in range(1, len(target))
+        ):
+            return True
+    return False
 
 
 def _is_expressible(case: Case) -> bool:
@@ -135,8 +290,49 @@ def _is_expressible(case: Case) -> bool:
         return False
     if any(code not in SHARED_CODES for code in case.expected):
         return False
+    if "L1_ADVICE" in case.expected:
+        public_advice = list(ADVICE_WORDS) + list(CLAIM_ADVICE_PHRASES)
+        texts = [
+            claim["text"]
+            for section in briefing.get("sections", [])
+            for claim in section.get("claims", [])
+        ]
+        if not any(word_list_hit(text, public_advice) for text in texts):
+            # The gate's imperative rule fires with no listed advice word
+            # (the M68 shape): the public subset leaves that rule out.
+            return False
     for section in briefing.get("sections", []):
         for claim in section.get("claims", []):
+            collapsed = collapse_text(claim["text"])
+            if "to-last" in collapsed or "penultimate" in collapsed:
+                # The gate's period-phrase rule reads compounds like
+                # second-to-last (the M58 shape): the public subset
+                # leaves that rule out.
+                return False
+            if "at last" in collapsed:
+                # A period word in another sense (the M86 shape): the
+                # public subset leaves that reading out.
+                return False
+            if contains_token(collapsed, "than"):
+                import re
+
+                tokens = re.findall(r"[a-z0-9_]+", collapsed)
+                if (
+                    "prior" in tokens
+                    and "last" in tokens
+                    and tokens.index("prior") < tokens.index("last")
+                ):
+                    # A than-comparison naming prior first (the M107
+                    # shape): the public subset reads it in time order.
+                    return False
+            if "L1_PRIVATE_TERM" in case.expected and any(
+                _term_variant_hit(claim["text"], term)
+                for term in case.context.private_terms
+            ):
+                # An li-fold or rotation of a private term (the
+                # M111/M112 shapes): the public subset leaves those
+                # arms out.
+                return False
             for ref in claim.get("metric_refs", []):
                 metric_id = ref["metric_id"]
                 if (
@@ -145,6 +341,16 @@ def _is_expressible(case: Case) -> bool:
                 ):
                     return False
                 if metric_label_binding(metric_id) is None:
+                    return False
+                value = ref["value"]
+                if (
+                    isinstance(value, (int, float))
+                    and not isinstance(value, bool)
+                    and abs(value) >= 2**53
+                ):
+                    # Integers past 2^53 (the M94 shape): floats cannot
+                    # tell them apart, so the public subset leaves that
+                    # rule out.
                     return False
             cited_periods = [
                 b.period
@@ -218,7 +424,7 @@ def _translate(case: Case) -> dict[str, object]:
         "metrics": metrics,
         "labels": labels,
         "deny_terms": list(context.private_terms),
-        "advice_words": list(ADVICE_WORDS),
+        "advice_words": list(ADVICE_WORDS) + list(CLAIM_ADVICE_PHRASES),
     }
     if order:
         payload["order"] = order
@@ -226,22 +432,22 @@ def _translate(case: Case) -> dict[str, object]:
 
 
 def test_pinned_lists_match_the_predicate() -> None:
-    assert len(MUTANTS) == 38
-    assert len(KNOWN_GOOD) == 20
+    assert len(MUTANTS) == 38 + 34 + 46 == 118
+    assert len(KNOWN_GOOD) == 20 + 28 + 9 == 57
     computed_mutants = sorted(c.name for c in MUTANTS if _is_expressible(c))
     assert computed_mutants == sorted(EXPRESSIBLE_MUTANTS)
-    assert len(EXPRESSIBLE_MUTANTS) == 18
+    assert len(EXPRESSIBLE_MUTANTS) == 33
     assert sorted(n for n, _ in EXCLUDED_MUTANTS) == sorted(
         c.name for c in MUTANTS if not _is_expressible(c)
     )
-    assert len(EXCLUDED_MUTANTS) == 20
+    assert len(EXCLUDED_MUTANTS) == 85
     computed_good = sorted(c.name for c in KNOWN_GOOD if _is_expressible(c))
     assert computed_good == sorted(EXPRESSIBLE_KNOWN_GOOD)
-    assert len(EXPRESSIBLE_KNOWN_GOOD) == 17
+    assert len(EXPRESSIBLE_KNOWN_GOOD) == 45
     assert sorted(n for n, _ in EXCLUDED_KNOWN_GOOD) == sorted(
         c.name for c in KNOWN_GOOD if not _is_expressible(c)
     )
-    assert len(EXCLUDED_KNOWN_GOOD) == 3
+    assert len(EXCLUDED_KNOWN_GOOD) == 12
 
 
 def _gate_codes(case: Case) -> tuple[Counter[str], bool]:

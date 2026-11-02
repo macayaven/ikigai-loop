@@ -12,18 +12,43 @@ from __future__ import annotations
 import itertools
 import re
 from collections import Counter
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 from typing import Any, Literal, cast
 from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
+import framework.briefing.claim_text as claim_text_lists
+from framework.briefing.claim_text import (
+    STEADY_WORDS,
+    claim_text_codes,
+    counted_periods,
+    direction_side,
+    drop_tied_to,
+    fact_claim_codes,
+    has_negator,
+    hyphen_directions,
+    stated_zero_code,
+    steady_same_counts,
+    without_count_held,
+)
+
+UP_WORDS = claim_text_lists.UP_WORDS
+DOWN_WORDS = claim_text_lists.DOWN_WORDS
+PERIOD_WORDS = claim_text_lists.PERIOD_WORDS
+ADVICE_PHRASES = claim_text_lists.ADVICE_PHRASES
 from framework.briefing.context import GateContext, ProfileLimits, TimeInterval
 from framework.briefing.labels import MetricBinding, metric_label_binding
-from framework.briefing.numbers import extract_number_tokens
+from framework.briefing.normalize import normalize_text
+from framework.briefing.numbers import (
+    blank_known_names,
+    extract_number_tokens,
+    find_known_names,
+    token_backed_by,
+)
 from framework.briefing.schemas import Action, Briefing, Claim
 
 Layer = Literal["L0", "L1", "L1b"]
@@ -81,53 +106,49 @@ _ADVICE_SINGLES = frozenset(
         "mustn't",
     ]
 )
-_ADVICE_PHRASES = ("push harder", "rest more")
-_PERIOD_WORDS = ("earlier", "prior", "last")
-_UP_WORDS = frozenset(
-    [
-        "up",
-        "rose",
-        "rise",
-        "rises",
-        "rising",
-        "risen",
-        "increase",
-        "increased",
-        "increases",
-        "increasing",
-        "more",
-        "higher",
-        "grew",
-        "grow",
-        "grows",
-        "growing",
-        "grown",
-    ]
-)
-_DOWN_WORDS = frozenset(
-    [
-        "down",
-        "fell",
-        "fall",
-        "falls",
-        "falling",
-        "fallen",
-        "decrease",
-        "decreased",
-        "decreases",
-        "decreasing",
-        "less",
-        "fewer",
-        "lower",
-        "dropped",
-        "drop",
-        "drops",
-        "dropping",
-    ]
-)
 _PERIOD_ORDER = {"earlier": 0, "prior": 1, "last": 2}
 _DIRECTION_TOKEN_RE = re.compile(r"\w+(?:-\w+)*")
 _PERIOD_MESSAGE = "period words do not match the cited metrics"
+
+
+def _squashed_hit(normalized: str, term: str) -> bool:
+    """Token-aligned squashed match for terms of 5 or more characters."""
+    squashed: list[str] = []
+    index_map: list[int] = []
+    for pos, char in enumerate(normalized):
+        if not char.isalnum():
+            continue
+        squashed.append(char)
+        index_map.append(pos)
+    if not squashed:
+        return False
+    squashed_term = "".join(c for c in term if c.isalnum())
+    if len(squashed_term) < 5:
+        return False
+    joined = "".join(squashed)
+    start = 0
+    while True:
+        index = joined.find(squashed_term, start)
+        if index < 0:
+            return False
+        first = index_map[index]
+        last = index_map[index + len(squashed_term) - 1]
+        before = normalized[first - 1] if first > 0 else ""
+        after = normalized[last + 1] if last + 1 < len(normalized) else ""
+        if not (before.isalnum() or before == "_") and not (
+            after.isalnum() or after == "_"
+        ):
+            return True
+        start = index + 1
+
+
+def _sequence_hit(normalized: str, literal: str) -> bool:
+    """Token-sequence match of ``literal`` ignoring punctuation between."""
+    want = _DIRECTION_TOKEN_RE.findall(literal)
+    if not want:
+        return False
+    got = _DIRECTION_TOKEN_RE.findall(normalized)
+    return any(got[i : i + len(want)] == want for i in range(len(got) - len(want) + 1))
 
 
 def text_check_codes(
@@ -136,35 +157,41 @@ def text_check_codes(
     private_terms: tuple[str, ...] = (),
     forbidden_raw_literals: tuple[str, ...] = (),
 ) -> tuple[str, ...]:
-    """L1 text verdicts for one text; never ``L1_ACTION_TARGETS_REPO``."""
+    """L1 text verdicts for one text; never ``L1_ACTION_TARGETS_REPO``.
+
+    Matching runs on the ``normalize_text`` copy (casefolded locally), so
+    full-width, accented and confusable spellings read as their base
+    letters. Unsafe characters are stripped for matching here and never
+    reported; the claim path rejects them outright instead.
+    """
     codes: list[str] = []
     if any(pattern.search(text) for pattern in _SECRET_PATTERNS):
         codes.append("L1_SECRET")
     if _EMAIL_RE.search(text) or _PHONE_RE.search(text):
         codes.append("L1_PII")
-    normalized = _collapse(text).replace("\u2019", "'").replace("\u2018", "'")
+    normalized = normalize_text(text).casefold()
     if any(_contains_token(normalized, word) for word in _ADVICE_SINGLES) or any(
-        _contains_token(normalized, phrase) for phrase in _ADVICE_PHRASES
+        _contains_token(normalized, phrase) for phrase in ADVICE_PHRASES
     ):
         codes.append("L1_ADVICE")
-    collapsed_terms = [_collapse(term) for term in private_terms]
-    collapsed = _collapse(text)
-    for term in collapsed_terms:
+    for raw_term in private_terms:
+        term = normalize_text(raw_term).casefold()
         if not term:
             continue
         if len(term) <= 3:
-            hit = _contains_token(collapsed, term)
+            hit = _contains_token(normalized, term)
+        elif term in normalized:
+            hit = True
         else:
-            hit = term in collapsed
+            hit = _squashed_hit(normalized, term)
         if hit:
             codes.append("L1_PRIVATE_TERM")
             break
-    if any(
-        _contains_token(collapsed, _collapse(literal))
-        for literal in forbidden_raw_literals
-        if _collapse(literal)
-    ):
-        codes.append("L1_RAW_VALUE")
+    for raw_literal in forbidden_raw_literals:
+        literal = normalize_text(raw_literal).casefold()
+        if literal and _sequence_hit(normalized, literal):
+            codes.append("L1_RAW_VALUE")
+            break
     return tuple(codes)
 
 
@@ -412,6 +439,44 @@ _TEXT_MESSAGES = {
     "L1_RAW_VALUE": "raw source value",
 }
 
+_CLAIM_MESSAGES = {
+    "L1_UNSAFE_TEXT": (
+        "write the text plainly, with no invisible characters "
+        "and no words spelled out letter by letter"
+    ),
+    "L1_CLAIM_LANGUAGE": "write the claim in English so it can be checked",
+    "L1_ADVICE": (
+        "state what the data shows, with no question, instruction or suggestion"
+    ),
+    "L1_PRIVATE_TERM": "private term",
+    "L1_RAW_VALUE": "raw source value",
+    "L1B_UNVERIFIABLE_QUANTITY": (
+        "state the digits from the cited metric instead of a quantity word"
+    ),
+    "L1B_NEGATED_CLAIM": "state the value or direction positively",
+    "L1B_COMPARISON_WORD_UNKNOWN": (
+        "write the comparison with a pinned direction word, the cited "
+        "label, its periods and its values only"
+    ),
+    "L1B_UNIT_MISMATCH": "use the unit of the cited metric",
+    "L1B_METRIC_LABEL_MISMATCH": "name only the metric the claim cites",
+    "L1B_VALUE_PERIOD_MISMATCH": ("write each cited value next to its own period word"),
+    "L1_TEXT_TOO_LONG": "text is too long to check",
+    "L1B_NUMBER_WITHOUT_METRIC_REF": "number token has no backing metric ref",
+    "L1B_DIRECTION_MISMATCH": ("direction words disagree with the cited values"),
+    "L1B_PERIOD_WORD_MISSING": _PERIOD_MESSAGE,
+    "L1B_METRIC_LABEL_MISSING": "claim does not name the cited metric",
+}
+
+_CLAIM_LAYERS: dict[str, Layer] = {
+    "L1_UNSAFE_TEXT": "L1",
+    "L1_CLAIM_LANGUAGE": "L1",
+    "L1_ADVICE": "L1",
+    "L1_PRIVATE_TERM": "L1",
+    "L1_RAW_VALUE": "L1",
+    "L1_TEXT_TOO_LONG": "L1",
+}
+
 
 def _l1_text_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
     violations: list[Violation] = []
@@ -428,6 +493,16 @@ def _l1_text_checks(briefing: Briefing, context: GateContext) -> list[Violation]
     else:
         check_terms = True
     for _kind, _owner, text, location in _iter_texts(briefing):
+        if len(text) > _MAX_TEXT_LENGTH:
+            violations.append(
+                Violation(
+                    "L1_TEXT_TOO_LONG",
+                    "L1",
+                    location,
+                    _CLAIM_MESSAGES["L1_TEXT_TOO_LONG"],
+                )
+            )
+            continue
         for code in text_check_codes(
             text,
             private_terms=context.private_terms if check_terms else (),
@@ -533,18 +608,150 @@ def _l1_slot_and_interval_checks(
     return violations
 
 
-def _ref_backs_token(value: float, places: int, token_abs: Decimal) -> bool:
-    quantum = Decimal(1).scaleb(-places)
-    rounded = Decimal(str(value)).quantize(quantum, rounding=ROUND_HALF_UP)
-    return abs(rounded) == token_abs
+_MAX_TEXT_LENGTH = 2000
+_TWO_POW_53 = Decimal(2**53)
+
+
+def _ref_value_mismatch(ref_value: float, snapshot_value: float) -> bool:
+    """Whether a ref value differs from the snapshot value.
+
+    Compares exact decimals of the shortest printed forms, and treats any
+    ref value at or above 2 to the 53rd in magnitude as a mismatch: two
+    integers up there can share one float.
+    """
+    ref_dec = Decimal(repr(ref_value))
+    if abs(ref_dec) >= _TWO_POW_53:
+        return True
+    return ref_dec != Decimal(repr(snapshot_value))
+
+
+def _ref_backs_token(
+    value: float,
+    places: int,
+    token_abs: Decimal,
+    *,
+    signed: bool = False,
+    section_type: str = "working",
+) -> bool:
+    """Whether ``value`` backs a token; a failed rounding backs nothing."""
+    return token_backed_by(
+        value, places, token_abs, signed=signed, section_type=section_type
+    )
 
 
 def _is_raw_ref(metric_id: str, context: GateContext) -> bool:
     return metric_id in context.raw_metric_ids or metric_id.startswith("raw.")
 
 
-def _label_in_text(binding: MetricBinding, collapsed: str) -> bool:
-    return any(_contains_token(collapsed, _collapse(label)) for label in binding.labels)
+def _binding_label_hit(binding: MetricBinding, lower: str) -> bool:
+    return any(
+        _contains_token(lower, normalize_text(label).casefold())
+        for label in binding.labels
+    )
+
+
+def _than_sentences(lower: str) -> list[str]:
+    """Split ``lower`` at sentence ends; a decimal point is not one."""
+    bounds: list[int] = [0]
+    for match in re.finditer(r"[.!?]", lower):
+        if (
+            match.group(0) == "."
+            and match.start() > 0
+            and lower[match.start() - 1].isdigit()
+            and match.end() < len(lower)
+            and lower[match.end()].isdigit()
+        ):
+            continue
+        bounds.append(match.end())
+    bounds.append(len(lower))
+    return [lower[bounds[i] : bounds[i + 1]] for i in range(len(bounds) - 1)]
+
+
+def _than_decision(
+    lower: str,
+    side: str,
+    remaining: list[Any],
+    known: list[MetricBinding],
+) -> bool | None:
+    """Up/down verdict from ``A ... than ... B`` naming order, if present.
+
+    With exactly two refs in two different periods and text naming period
+    A, then ``than``, then period B inside one sentence, the up side agrees
+    only when A's value is above B's and the down side only when A's value
+    is below B's. Any other shape returns ``None`` for time-order logic.
+    """
+    from framework.briefing.claim_text import remove_period_phrases
+
+    if side not in ("up", "down") or len(remaining) != 2:
+        return None
+    periods = [binding.period for binding in known]
+    if any(period is None for period in periods) or periods[0] == periods[1]:
+        return None
+    by_period = {
+        binding.period: Decimal(str(ref.value))
+        for binding, ref in zip(known, remaining)
+        if binding.period is not None
+    }
+    for sentence in _than_sentences(remove_period_phrases(lower)):
+        mentioned: list[tuple[int, str]] = []
+        for period in PERIOD_WORDS:
+            for match in re.finditer(r"(?<!\w)" + period + r"(?!\w)", sentence):
+                mentioned.append((match.start(), period))
+        mentioned.sort()
+        than = next(
+            (match.start() for match in re.finditer(r"(?<!\w)than(?!\w)", sentence)),
+            None,
+        )
+        if than is None:
+            continue
+        before = [period for pos, period in mentioned if pos < than]
+        after = [period for pos, period in mentioned if pos > than]
+        if not before or not after or before[-1] == after[0]:
+            continue
+        if before[-1] not in by_period or after[0] not in by_period:
+            continue
+        first, second = by_period[before[-1]], by_period[after[0]]
+        return first > second if side == "up" else first < second
+    return None
+
+
+def _direction_mismatch(
+    section_type: str,
+    side: str,
+    remaining: list[Any],
+    known: list[MetricBinding],
+    lower: str = "",
+) -> bool:
+    if side == "mixed":
+        return True
+    if section_type == "since_last":
+        if side == "same":
+            return any(ref.value != 0 for ref in remaining)
+        signs = {
+            (Decimal(str(ref.value)) > 0, Decimal(str(ref.value)) < 0)
+            for ref in remaining
+        }
+        return signs != ({(True, False)} if side == "up" else {(False, True)})
+    decision = _than_decision(lower, side, remaining, known)
+    if decision is not None:
+        return not decision
+    if len(remaining) == 1:
+        return True
+    pairs = [
+        (binding.period, ref.value)
+        for binding, ref in zip(known, remaining)
+        if binding.period is not None
+    ]
+    ordered = sorted(pairs, key=lambda pair: _PERIOD_ORDER[pair[0]])
+    diffs = [
+        Decimal(str(later)) - Decimal(str(earlier))
+        for (_, earlier), (_, later) in itertools.pairwise(ordered)
+    ]
+    if side == "same":
+        return not all(diff == 0 for diff in diffs)
+    if side == "up":
+        return not all(diff > 0 for diff in diffs)
+    return not all(diff < 0 for diff in diffs)
 
 
 def _binding_violations(
@@ -570,10 +777,20 @@ def _binding_violations(
         )
         return violations
     known = [binding for binding in bindings if binding is not None]
-    collapsed = _collapse(claim.text)
+    lower = normalize_text(claim.text).casefold()
+    held = without_count_held(claim.text).casefold()
+    # In a since_last claim the delta is the change since the last card,
+    # so there `last card` names the last period; everywhere else it stays
+    # a non-period sense.
+    period_text = (
+        re.sub(r"(?<!\w)last card(?!\w)", "last", lower)
+        if section_type == "since_last"
+        else lower
+    )
+    named = counted_periods(period_text)
     if len(remaining) == 1:
         binding = known[0]
-        if not _label_in_text(binding, collapsed):
+        if not _binding_label_hit(binding, lower):
             violations.append(
                 Violation(
                     "L1B_METRIC_LABEL_MISSING",
@@ -582,9 +799,7 @@ def _binding_violations(
                     "claim does not name the cited metric",
                 )
             )
-        if binding.period is not None and not _contains_token(
-            collapsed, binding.period
-        ):
+        if binding.period is not None and binding.period not in named:
             violations.append(
                 Violation(
                     "L1B_PERIOD_WORD_MISSING",
@@ -593,7 +808,7 @@ def _binding_violations(
                     _PERIOD_MESSAGE,
                 )
             )
-        if binding.requires_cancel and "cancel" not in collapsed:
+        if binding.requires_cancel and "cancel" not in lower:
             violations.append(
                 Violation(
                     "L1B_METRIC_LABEL_MISSING",
@@ -621,7 +836,7 @@ def _binding_violations(
                 )
             )
             return violations
-        if not _label_in_text(known[0], collapsed):
+        if not _binding_label_hit(known[0], lower):
             violations.append(
                 Violation(
                     "L1B_METRIC_LABEL_MISSING",
@@ -632,7 +847,7 @@ def _binding_violations(
             )
         for period in periods:
             assert period is not None
-            if not _contains_token(collapsed, period):
+            if period not in named:
                 violations.append(
                     Violation(
                         "L1B_PERIOD_WORD_MISSING",
@@ -644,7 +859,6 @@ def _binding_violations(
                 break
     if section_type != "since_last":
         cited = {binding.period for binding in known if binding.period is not None}
-        named = {word for word in _PERIOD_WORDS if _contains_token(collapsed, word)}
         if named != cited:
             violations.append(
                 Violation(
@@ -654,39 +868,34 @@ def _binding_violations(
                     _PERIOD_MESSAGE,
                 )
             )
-    label_tokens: set[str] = set()
-    for binding in known:
-        for label in binding.labels:
-            label_tokens.update(_DIRECTION_TOKEN_RE.findall(_collapse(label)))
-    tokens = set(_DIRECTION_TOKEN_RE.findall(collapsed)) - label_tokens
-    up_hit = bool(tokens & _UP_WORDS)
-    down_hit = bool(tokens & _DOWN_WORDS)
-    if up_hit and down_hit:
-        violations.append(
-            Violation(
-                "L1B_DIRECTION_MISMATCH",
-                "L1b",
-                location,
-                "direction words disagree with the cited values",
-            )
+    negator_ids = [ref.metric_id for ref in remaining]
+    stated_zero = (
+        has_negator(lower, negator_ids)
+        and stated_zero_code(
+            lower,
+            [(ref.metric_id, ref.value) for ref in remaining],
+            {label.casefold() for binding in known for label in binding.labels},
         )
-    elif up_hit or down_hit:
-        side = "up" if up_hit else "down"
-        if section_type == "since_last":
-            signs = {
-                (Decimal(str(ref.value)) > 0, Decimal(str(ref.value)) < 0)
-                for ref in remaining
-            }
-            if signs != ({(True, False)} if side == "up" else {(False, True)}):
-                violations.append(
-                    Violation(
-                        "L1B_DIRECTION_MISMATCH",
-                        "L1b",
-                        location,
-                        "direction words disagree with the cited values",
-                    )
+        is None
+    )
+    if not has_negator(lower, negator_ids) or stated_zero:
+        label_tokens: set[str] = set()
+        for binding in known:
+            for label in binding.labels:
+                label_tokens.update(
+                    _DIRECTION_TOKEN_RE.findall(normalize_text(label).casefold())
                 )
-        elif len(remaining) == 1:
+        held = drop_tied_to(held)
+        tokens = set(_DIRECTION_TOKEN_RE.findall(held)) - label_tokens
+        tokens |= hyphen_directions(held)
+        if tokens & STEADY_WORDS and not steady_same_counts(
+            held, [label for binding in known for label in binding.labels]
+        ):
+            tokens -= STEADY_WORDS
+        side = direction_side(tokens, metric_claim=True)
+        if side is not None and _direction_mismatch(
+            section_type, side, remaining, known, lower
+        ):
             violations.append(
                 Violation(
                     "L1B_DIRECTION_MISMATCH",
@@ -695,38 +904,37 @@ def _binding_violations(
                     "direction words disagree with the cited values",
                 )
             )
-        else:
-            pairs = [
-                (binding.period, ref.value)
-                for binding, ref in zip(known, remaining)
-                if binding.period is not None
-            ]
-            ordered = sorted(pairs, key=lambda pair: _PERIOD_ORDER[pair[0]])
-            diffs = [
-                Decimal(str(later)) - Decimal(str(earlier))
-                for (_, earlier), (_, later) in itertools.pairwise(ordered)
-            ]
-            agree = (
-                all(diff > 0 for diff in diffs)
-                if side == "up"
-                else all(diff < 0 for diff in diffs)
-            )
-            if not agree:
-                violations.append(
-                    Violation(
-                        "L1B_DIRECTION_MISMATCH",
-                        "L1b",
-                        location,
-                        "direction words disagree with the cited values",
-                    )
-                )
     return violations
+
+
+def _signed_tokens(
+    text: str, known_names: Collection[str], tokens: Any
+) -> dict[int, bool]:
+    """Whether each number token carries a minus sign (D8 sign rule).
+
+    A ``-`` directly before the token counts as a sign unless it sits
+    between two digits (a range dash, as in G12's ``3-5``).
+    """
+    blanked = blank_known_names(normalize_text(text), known_names)
+    signed: dict[int, bool] = {}
+    for token in tokens:
+        at_sign = blanked[token.start : token.start + 1] == "-"
+        before_sign = (
+            token.start > 0
+            and blanked[token.start - 1 : token.start] == "-"
+            and (token.start < 2 or not blanked[token.start - 2].isdigit())
+        )
+        signed[token.start] = at_sign or before_sign
+    return signed
 
 
 def _l1b_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
     violations: list[Violation] = []
+    snapshot_ids = tuple(context.metrics.values.keys())
     for section_type, claim in _iter_claims(briefing):
         location = _claim_location(section_type, claim.id)
+        if len(claim.text) > _MAX_TEXT_LENGTH:
+            continue
         known_ids = set(claim.fact_ids) | {ref.metric_id for ref in claim.metric_refs}
         if not claim.fact_ids and not claim.metric_refs:
             violations.append(
@@ -737,6 +945,7 @@ def _l1b_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
                     "claim has no fact or metric evidence",
                 )
             )
+        statements: list[str] = []
         for fact_id in claim.fact_ids:
             fact = context.facts.get(fact_id)
             if fact is None or fact.subject_id != briefing.subject_id:
@@ -748,17 +957,76 @@ def _l1b_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
                         "fact is unknown or belongs to another subject",
                     )
                 )
-        for token in extract_number_tokens(claim.text, known_ids):
-            if not any(
-                _ref_backs_token(ref.value, token.places, abs(token.value))
+            else:
+                statements.append(fact.statement)
+        known_names = find_known_names(statements)
+        tokens = extract_number_tokens(claim.text, known_ids, known_names)
+        signed = _signed_tokens(claim.text, known_names, tokens)
+        backed: dict[int, bool] = {}
+        for token in tokens:
+            token_backed = any(
+                _ref_backs_token(
+                    ref.value,
+                    token.places,
+                    abs(token.value),
+                    signed=signed[token.start],
+                    section_type=section_type,
+                )
                 for ref in claim.metric_refs
-            ):
+            )
+            backed[token.start] = token_backed
+            if not token_backed:
                 violations.append(
                     Violation(
                         "L1B_NUMBER_WITHOUT_METRIC_REF",
                         "L1b",
                         location,
                         "number token has no backing metric ref",
+                    )
+                )
+        has_backed_fifty = any(
+            float(token.value) == 50 and backed[token.start] for token in tokens
+        )
+        cited_refs = [(ref.metric_id, ref.value) for ref in claim.metric_refs]
+        for code in claim_text_codes(
+            claim.text,
+            section_type=section_type,
+            has_metric_refs=bool(claim.metric_refs),
+            cited_refs=cited_refs,
+            cited_fact_statements=tuple(statements),
+            has_backed_fifty=has_backed_fifty,
+            snapshot_metric_ids=snapshot_ids,
+            known_names=known_names,
+            private_terms=(
+                context.private_terms if context.private_terms_available else ()
+            ),
+            private_terms_available=context.private_terms_available,
+            forbidden_raw_literals=tuple(context.forbidden_raw_literals),
+            number_tokens=tokens,
+            cited_ids=tuple(known_ids),
+            titles=tuple(commitment.title for commitment in context.commitments),
+        ):
+            violations.append(
+                Violation(
+                    code,
+                    _CLAIM_LAYERS.get(code, "L1b"),
+                    location,
+                    _CLAIM_MESSAGES[code],
+                )
+            )
+        if claim.fact_ids and not claim.metric_refs:
+            for code in fact_claim_codes(
+                claim.text,
+                tuple(statements),
+                snapshot_metric_ids=snapshot_ids,
+                known_ids=tuple(claim.fact_ids),
+            ):
+                violations.append(
+                    Violation(
+                        code,
+                        "L1b",
+                        location,
+                        _CLAIM_MESSAGES[code],
                     )
                 )
         violations.extend(_binding_violations(section_type, claim, context, location))
@@ -774,9 +1042,7 @@ def _l1b_checks(briefing: Briefing, context: GateContext) -> list[Violation]:
                         "metric is absent from the snapshot",
                     )
                 )
-            elif Decimal(str(ref.value)) != Decimal(
-                str(context.metrics.values[ref.metric_id])
-            ):
+            elif _ref_value_mismatch(ref.value, context.metrics.values[ref.metric_id]):
                 violations.append(
                     Violation(
                         "L1B_METRIC_VALUE_MISMATCH",
@@ -976,18 +1242,15 @@ def contains_token(text: str, literal: str) -> bool:
     return _contains_token(text, literal)
 
 
-def ref_backs_token(value: float, places: int, token_abs: Decimal) -> bool:
+def ref_backs_token(value: float, places: int, signed_token: Decimal) -> bool:
     """Ticket 17a: public wrapper over ``_ref_backs_token``.
 
-    Fail closed: an ``InvalidOperation`` from rounding means no backing,
-    never a traceback.
+    ``signed_token`` carries the token's own sign: ``-7`` is not backed
+    by ``7``, while ``7`` is backed by ``-7``. Bad decimals fail closed
+    inside the backing function itself, never as a traceback.
     """
-    import decimal
-
-    try:
-        return _ref_backs_token(value, places, token_abs)
-    except decimal.InvalidOperation:
-        return False
+    signed = bool(signed_token.is_signed() and signed_token != 0)
+    return _ref_backs_token(value, places, abs(signed_token), signed=signed)
 
 
 def word_list_hit(text: str, words: tuple[str, ...] | list[str]) -> bool:
@@ -1005,26 +1268,34 @@ def word_list_hit(text: str, words: tuple[str, ...] | list[str]) -> bool:
 def direction_sides(
     text: str, *, exclude_words: tuple[str, ...] | list[str]
 ) -> frozenset[str]:
-    """Ticket 17a: direction sides named in ``text``, minus label tokens."""
+    """Ticket 17a: direction sides named in ``text``, minus label tokens.
+
+    Reads the same tokens as the gate's own direction arm over the
+    normalised text: the ``held`` containment guard applies first, then
+    hyphen compounds add their side. Same-direction words name no side
+    here.
+    """
     excluded: set[str] = set()
     for word in exclude_words:
-        excluded.update(_DIRECTION_TOKEN_RE.findall(_collapse(word)))
-    tokens = set(_DIRECTION_TOKEN_RE.findall(_collapse(text))) - excluded
-    sides: set[str] = set()
-    if tokens & _UP_WORDS:
-        sides.add("up")
-    if tokens & _DOWN_WORDS:
-        sides.add("down")
-    return frozenset(sides)
+        excluded.update(_DIRECTION_TOKEN_RE.findall(normalize_text(word).casefold()))
+    held = drop_tied_to(without_count_held(text))
+    tokens = set(_DIRECTION_TOKEN_RE.findall(held.casefold())) - excluded
+    tokens |= hyphen_directions(held)
+    if tokens & STEADY_WORDS and not steady_same_counts(held.casefold(), exclude_words):
+        tokens -= STEADY_WORDS
+    side = direction_side(tokens, metric_claim=True)
+    if side == "mixed":
+        return frozenset({"up", "down"})
+    if side in ("up", "down"):
+        return frozenset({side})
+    return frozenset()
 
 
-ADVICE_WORDS: tuple[str, ...] = tuple(sorted(_ADVICE_SINGLES)) + tuple(_ADVICE_PHRASES)
+ADVICE_WORDS: tuple[str, ...] = tuple(sorted(_ADVICE_SINGLES)) + tuple(ADVICE_PHRASES)
 """Ticket 17a: the gate's pinned advice list, for callers replicating it."""
 
-ADVICE_PHRASES = _ADVICE_PHRASES
-UP_WORDS = _UP_WORDS
-DOWN_WORDS = _DOWN_WORDS
-PERIOD_WORDS = _PERIOD_WORDS
+CLAIM_ADVICE_PHRASES = claim_text_lists.CLAIM_ADVICE_PHRASES
+"""Ticket 10b: the claim path's whole advice phrase list, with ``ADVICE_WORDS``."""
 
 _SLOT_MESSAGES = {
     "L1_SLOT_OUTSIDE_ALLOWED_HOURS": "slot outside allowed hours",

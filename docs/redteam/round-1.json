@@ -1,0 +1,509 @@
+{
+  "attacks": [
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.prior.pushes", "value": 1 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes did not fall from 3 in earlier to 1 in prior and to 0 in last."
+      },
+      "code_citation": "gate.py:662 gate.py:674 gate.py:706",
+      "id": "A01",
+      "mechanism": "Negating a listed direction word reverses what the reader understands, but the checker sees only that the direction-word side matches the sign of the cited deltas.",
+      "predicted_passes": true,
+      "target": "C"
+    ,
+      "why_false": "Pushes did fall 3 -> 1 -> 0, so saying they did not fall is false."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last were not 0."
+      },
+      "code_citation": "gate.py:752",
+      "id": "A02",
+      "mechanism": "The token 0 is accepted because a cited ref backs its absolute value; the leading \"not\" that negates it is ignored.",
+      "predicted_passes": true,
+      "target": "A"
+    ,
+      "why_false": "Last pushes is exactly 0."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes showed growth from 3 in earlier to 0 in last."
+      },
+      "code_citation": "gate.py:86 gate.py:107",
+      "id": "A03",
+      "mechanism": "\"growth\" is a direction noun absent from the token lists whose members are specific verb/adjective forms.",
+      "predicted_passes": true,
+      "target": "C"
+    ,
+      "why_false": "Pushes went from 3 to 0, the opposite of growth."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.prior.screen_hours.Work/Programming", "value": 4.75 },
+          { "metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75 }
+        ],
+        "text": "Programming screen hours in last exceeded those in prior."
+      },
+      "code_citation": "gate.py:86 gate.py:107",
+      "id": "A04",
+      "mechanism": "\"exceeded\" conveys up-direction but is not one of the pinned up tokens, so no direction comparison ever runs.",
+      "predicted_passes": true,
+      "target": "C"
+    ,
+      "why_false": "1.75 is less than 4.75, so last did not exceed prior."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes subieron from 3 in earlier to 0 in last."
+      },
+      "code_citation": "gate.py:86 gate.py:107",
+      "id": "A05",
+      "mechanism": "A Spanish direction word meaning \"went up\" is not in the English up list.",
+      "predicted_passes": true,
+      "target": "C"
+    ,
+      "why_false": "A Spanish reader reads that pushes rose, but they fell from 3 to 0."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.prior.screen_hours.Work/Programming", "value": 4.75 },
+          { "metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75 }
+        ],
+        "text": "Work/Programming screen hours doubled from 4.75 in prior to 1.75 in last."
+      },
+      "code_citation": "gate.py:662 gate.py:674",
+      "id": "A06",
+      "mechanism": "\"doubled\" is neither a number token nor a listed direction token, yet asserts multiplication times two and upward movement.",
+      "predicted_passes": true,
+      "target": "C"
+    ,
+      "why_false": "Hours fell to about 37 percent of their prior value; they did not double."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes fell by half from 3 in earlier to 0 in last."
+      },
+      "code_citation": "numbers.py:67 numbers.py:102",
+      "id": "A07",
+      "mechanism": "\"half\" is not in the English number-word table, so it carries an unexamined quantity of one half.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "Pushes fell from 3 to 0, a fall of 100 percent, not one half."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last were \u00BE of the pushes in earlier."
+      },
+      "code_citation": "numbers.py:65",
+      "id": "A08",
+      "mechanism": "The unicode vulgar fraction is not an \\d digit or a spelled number word, so no token is produced.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "Last pushes is 0, which is 0 of earlier, not three quarters of it."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last reached this tally: ||||, with earlier named for comparison."
+      },
+      "code_citation": "numbers.py:65 numbers.py:112",
+      "id": "A09",
+      "mechanism": "Tally marks encode four using strokes no numeric pattern reads.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "The four-stroke tally claims four pushes in last, whose value is 0."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last reached IV."
+      },
+      "code_citation": "numbers.py:65 numbers.py:112",
+      "id": "A10",
+      "mechanism": "Roman numeral IV is not a \\d digit and not an English number word.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "IV is four, but last pushes is 0."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last reached quatre."
+      },
+      "code_citation": "numbers.py:67 numbers.py:112",
+      "id": "A11",
+      "mechanism": "The French word for four is outside the English number-word table.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "A French reader reads four; last pushes is 0."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last hit their 99th push."
+      },
+      "code_citation": "numbers.py:64 numbers.py:162",
+      "id": "A12",
+      "mechanism": "Ordinals are masked as non-quantities before number extraction, so 99 is never extracted.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "Having a 99th push implies at least 99 pushes, but last has 0."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75 }
+        ],
+        "text": "Programming screen hours in last ran for 14:30."
+      },
+      "code_citation": "numbers.py:58 numbers.py:159",
+      "id": "A13",
+      "mechanism": "Clock-time syntax is masked as a non-quantity, and \"ran for 14:30\" makes that masked value read as a duration.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "Read as a duration, 14:30 is fourteen and a half hours, not 1.75 hours."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes split 3:99 between earlier and last."
+      },
+      "code_citation": "numbers.py:58 numbers.py:159",
+      "id": "A14",
+      "mechanism": "\"3:99\" is read as a split ratio by a reader but matched as a clock time and blanked before extraction, so neither side is checked against the cited values.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "Last has 0 pushes, so an earlier-to-last split of 3:99 is wrong."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last were tenfold the pushes in earlier."
+      },
+      "code_citation": "numbers.py:112",
+      "id": "A15",
+      "mechanism": "The whole-word boundary after \"ten\" fails inside \"tenfold\", so the multiplier never tokenizes.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "Tenfold claims last equals ten times earlier; 0 is not ten times 3."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last came to a couple."
+      },
+      "code_citation": "numbers.py:67 numbers.py:99",
+      "id": "A16",
+      "mechanism": "\"a couple\" colloquially means two, but \"couple\" is not in the number-word table.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "Last pushes is 0, not two."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last reached one-oh."
+      },
+      "code_citation": "numbers.py:104 numbers.py:116",
+      "id": "A17",
+      "mechanism": "\"one\" is tokenized only before listed unit or count words, and \"oh\" is not one, so the spoken ten never tokenizes.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "\"one-oh\" reads as ten, but last pushes is 0."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.prior.screen_hours.Work/Programming", "value": 4.75 }
+        ],
+        "text": "Programming screen hours were 5 in prior."
+      },
+      "code_citation": "gate.py:537 gate.py:540",
+      "id": "A18",
+      "mechanism": "A token with zero decimal places is backed when the cited value rounds to it HALF_UP, so 5 is backed by 4.75.",
+      "predicted_passes": true,
+      "target": "A"
+    ,
+      "why_false": "The measured value is 4.75 hours, not 5 hours."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75 }
+        ],
+        "text": "Programming screen hours in last totalled 1.75 minutes."
+      },
+      "code_citation": "gate.py:752",
+      "id": "A19",
+      "mechanism": "Only the number value is reconciled; the unit word that follows the token, which changes hours to minutes, is ignored.",
+      "predicted_passes": true,
+      "target": "B"
+    ,
+      "why_false": "The cited metric is 1.75 hours, whereas 1.75 minutes is a factor-of-60 different quantity."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 }
+        ],
+        "text": "GitHub pushes reached 3 in earlier."
+      },
+      "code_citation": "labels.py:72 labels.py:85",
+      "id": "A20",
+      "mechanism": "Two distinct metrics share the same accepted prose label \"pushes\", and the \"GitHub\" attribution in the text is not part of the binding.",
+      "predicted_passes": true,
+      "target": "B"
+    ,
+      "why_false": "github.push.count is 4 in the fixed snapshot, not 3."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in the second-to-last window reached 0."
+      },
+      "code_citation": "gate.py:278",
+      "id": "A21",
+      "mechanism": "A hyphen is a non-alphanumeric boundary, so the period-word check finds the token \"last\" inside the compound \"second-to-last\".",
+      "predicted_passes": true,
+      "target": "B"
+    ,
+      "why_false": "A reader takes second-to-last as the prior window, whose pushes is 1, not 0."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.screen_hours.Work/Programming", "value": 1.75 }
+        ],
+        "text": "Media/Video Programming screen hours in last reached 1.75."
+      },
+      "code_citation": "labels.py:28 labels.py:34 gate.py:547",
+      "id": "A22",
+      "mechanism": "A screen category binds by its last segment alone, and the label check succeeds if any one accepted label appears, so an extra \"Media/Video\" category in the text is never rejected.",
+      "predicted_passes": true,
+      "target": "B"
+    ,
+      "why_false": "Media/Video screen hours in last is 4, not 1.75."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.earlier.pushes", "value": 3 },
+          { "metric_id": "period.prior.pushes", "value": 1 },
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes ranked first in last, ahead of earlier and prior."
+      },
+      "code_citation": "gate.py:86 gate.py:107 numbers.py:64",
+      "id": "A23",
+      "mechanism": "\"first\" is an ordinal word not an \\d ordinal and not a listed up/down token, so the rank assertion is unexamined.",
+      "predicted_passes": true,
+      "target": "C"
+    ,
+      "why_false": "Last has 0 pushes, so it ranks last, not first."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last happened daily."
+      },
+      "code_citation": "numbers.py:67 numbers.py:102",
+      "id": "A24",
+      "mechanism": "\"daily\" encodes a rate per day but is not a number token in any table.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "A value of 0 means no pushes occurred at all, so none occurred daily."},
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          { "metric_id": "period.last.pushes", "value": 0 }
+        ],
+        "text": "Pushes in last hit the usual target."
+      },
+      "code_citation": "schemas.py:57 gate.py:752",
+      "id": "A25",
+      "mechanism": "A threshold claim is made with no numeric token; the gate checks tokens, facts and refs, never whether a target was met.",
+      "predicted_passes": true,
+      "target": "F"
+    ,
+      "why_false": "With 0 pushes there is no cited basis for having hit any target; the threshold and its attainment are unbacked."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "The notes mention Zebra\u200Bfinch today."
+      },
+      "code_citation": "gate.py:274 gate.py:155 gate.py:158",
+      "id": "A26",
+      "mechanism": "A zero-width space inside the term survives collapse, so the longer-term substring test never finds the contiguous term.",
+      "predicted_passes": true,
+      "target": "D"
+    ,
+      "why_false": "The private term Zebrafinch is readable in the claim once the invisible character is ignored by the eye."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "The notes mention \uFF31\uFF55\uFF49\uFF4C\uFF4C\uFF4F\uFF4E today."
+      },
+      "code_citation": "gate.py:274 gate.py:158",
+      "id": "A27",
+      "mechanism": "There is no unicode normalization; casefold lowers full-width letters to full-width forms, not to ASCII, so the ASCII term is not a substring.",
+      "predicted_passes": true,
+      "target": "D"
+    ,
+      "why_false": "The full-width spelling of Quillon is visually readable as the private term."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "The notes spell Q u i l l o n today."
+      },
+      "code_citation": "gate.py:274 gate.py:158",
+      "id": "A28",
+      "mechanism": "Collapse only squeezes runs of whitespace to single spaces, so letters separated by spaces never become the contiguous term.",
+      "predicted_passes": true,
+      "target": "D"
+    ,
+      "why_false": "Reading the spaced letters in sequence gives Quillon, the private term."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "The notes mention Zebr\u0430finch today."
+      },
+      "code_citation": "gate.py:274 gate.py:158",
+      "id": "A29",
+      "mechanism": "One Cyrillic look-alike replaces a latin letter; casefold does not fold cross-script homoglyphs, so the ASCII term is absent as bytes.",
+      "predicted_passes": true,
+      "target": "D"
+    ,
+      "why_false": "The term renders identically to Zebrafinch to a reader."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "The calendar note reads Dentist, on Tuesday."
+      },
+      "code_citation": "gate.py:162 gate.py:163",
+      "id": "A30",
+      "mechanism": "The forbidden literal is searched as one contiguous token string; a comma inserted between words breaks that string while leaving the naming readable.",
+      "predicted_passes": true,
+      "target": "D"
+    ,
+      "why_false": "A reader still reads the exact raw literal Dentist on Tuesday from the sentence."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "You ought to ship one small change during the next free hour."
+      },
+      "code_citation": "gate.py:55 gate.py:84 gate.py:146",
+      "id": "A31",
+      "mechanism": "\"ought to\" is a deontic instruction marker missing from the single-word list and phrase list.",
+      "predicted_passes": true,
+      "target": "E"
+    ,
+      "why_false": "It instructs the reader to take an action, which references advice-giving the gate is meant to reject."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "Ship one small change during the next free hour."
+      },
+      "code_citation": "gate.py:55 gate.py:146",
+      "id": "A32",
+      "mechanism": "A bare imperative sentence carries the instruction with none of the pinned advice words.",
+      "predicted_passes": true,
+      "target": "E"
+    ,
+      "why_false": "It is a direct instruction to the reader, matching the commitment being pushed."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "Why not ship a small change during the next free hour?"
+      },
+      "code_citation": "gate.py:55 gate.py:84 gate.py:146",
+      "id": "A33",
+      "mechanism": "Advice posed as a rhetorical question contains neither listed word nor phrase.",
+      "predicted_passes": true,
+      "target": "E"
+    ,
+      "why_false": "Functionally it recommends the same action to the reader."},
+    {
+      "claim": {
+        "fact_ids": ["f1"],
+        "metric_refs": [],
+        "text": "Exp\u00E9diez un petit changement pendant la prochaine heure libre."
+      },
+      "code_citation": "gate.py:55 gate.py:79 gate.py:84",
+      "id": "A34",
+      "mechanism": "The advice lists are English-only; a French imperative contains no matching token or phrase.",
+      "predicted_passes": true,
+      "target": "E"
+    ,
+      "why_false": "French reads as \"Ship a small change during the next free hour\", a direct instruction."}
+  ]
+}

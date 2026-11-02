@@ -1,0 +1,934 @@
+{
+  "round": 1,
+  "gate_commit": "8419879e0f3afab67433fe6c8905067da5366af8",
+  "verdicts": [
+    {
+      "id": "A01",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that pushes did not fall, and the cited values fall from 3 to 1 to 0."
+    },
+    {
+      "id": "A02",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last held some pushes, and the cited value is 0."
+    },
+    {
+      "id": "A03",
+      "verdict": "real_hole",
+      "reason": "A reader takes away growth, and the cited values go from 3 to 0."
+    },
+    {
+      "id": "A04",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last was above prior, and 1.75 is below 4.75."
+    },
+    {
+      "id": "A05",
+      "verdict": "real_hole",
+      "reason": "A reader of Spanish takes away a rise, and the cited values go from 3 to 0."
+    },
+    {
+      "id": "A06",
+      "verdict": "real_hole",
+      "reason": "A reader takes away a doubling, and the cited hours fall from 4.75 to 1.75."
+    },
+    {
+      "id": "A07",
+      "verdict": "real_hole",
+      "reason": "A reader takes away a fall of one half, and the cited values fall from 3 to 0, which is all of it."
+    },
+    {
+      "id": "A08",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last was three quarters of earlier, and the cited values are 0 against 3."
+    },
+    {
+      "id": "A09",
+      "verdict": "real_hole",
+      "reason": "A reader counts four strokes for last, and the cited value is 0."
+    },
+    {
+      "id": "A10",
+      "verdict": "real_hole",
+      "reason": "A reader takes IV as 4 for last, and the cited value is 0."
+    },
+    {
+      "id": "A11",
+      "verdict": "real_hole",
+      "reason": "A reader of French takes quatre as 4 for last, and the cited value is 0."
+    },
+    {
+      "id": "A12",
+      "verdict": "real_hole",
+      "reason": "A reader takes a 99th push to mean at least 99 pushes in last, and the cited value is 0."
+    },
+    {
+      "id": "A13",
+      "verdict": "real_hole",
+      "reason": "A reader takes 14:30 after ran for as a duration of fourteen and a half hours, and the cited value is 1.75 hours."
+    },
+    {
+      "id": "A14",
+      "verdict": "real_hole",
+      "reason": "A reader takes 3:99 as a split of 3 to 99, and the cited values are 3 and 0."
+    },
+    {
+      "id": "A15",
+      "verdict": "real_hole",
+      "reason": "A reader takes tenfold as ten times earlier, and the cited values are 0 against 3."
+    },
+    {
+      "id": "A16",
+      "verdict": "real_hole",
+      "reason": "A reader takes a couple as about two, and the cited value is 0."
+    },
+    {
+      "id": "A17",
+      "verdict": "real_hole",
+      "reason": "A reader takes one-oh as ten or as one point zero, and the cited value is 0."
+    },
+    {
+      "id": "A18",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 5 hours with nothing saying the figure is rounded, and the cited value is 4.75."
+    },
+    {
+      "id": "A19",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1.75 minutes, and the cited metric is 1.75 hours, a factor of 60 away."
+    },
+    {
+      "id": "A20",
+      "verdict": "not_false",
+      "reason": "Earlier pushes are 3 and these are GitHub pushes, so the sentence is true, and the 4 the attacker sets against it is the total across all three periods."
+    },
+    {
+      "id": "A21",
+      "verdict": "real_hole",
+      "reason": "A reader takes second-to-last as the prior window, whose value is 1, and the sentence says 0."
+    },
+    {
+      "id": "A22",
+      "verdict": "real_hole",
+      "reason": "A reader takes away a value for Media/Video, which is 4, and the sentence says 1.75."
+    },
+    {
+      "id": "A23",
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last ranked first, and last has the fewest pushes of the three."
+    },
+    {
+      "id": "A24",
+      "verdict": "real_hole",
+      "reason": "A reader takes daily as at least one push a day, and the cited value is 0."
+    },
+    {
+      "id": "A25",
+      "verdict": "disclosed_limit",
+      "reason": "The sentence names the right metric and period, states no number and no direction, and is false only in its other words, which is the first disclosed limit."
+    },
+    {
+      "id": "A26",
+      "verdict": "real_hole",
+      "reason": "A reader sees the private term intact, because a zero-width space inside a word doesn't show."
+    },
+    {
+      "id": "A27",
+      "verdict": "real_hole",
+      "reason": "A reader reads the private term straight through the full-width letters."
+    },
+    {
+      "id": "A28",
+      "verdict": "real_hole",
+      "reason": "A reader reads the private term straight through the spaces between its letters."
+    },
+    {
+      "id": "A29",
+      "verdict": "real_hole",
+      "reason": "A reader sees the private term intact, because one Cyrillic letter looks identical to the Latin one."
+    },
+    {
+      "id": "A30",
+      "verdict": "real_hole",
+      "reason": "A reader reads the raw literal straight through the inserted comma."
+    },
+    {
+      "id": "A31",
+      "verdict": "real_hole",
+      "reason": "The sentence tells the reader what to do, in words the advice list doesn't hold."
+    },
+    {
+      "id": "A32",
+      "verdict": "real_hole",
+      "reason": "The sentence is a direct instruction to the reader, with none of the pinned advice words."
+    },
+    {
+      "id": "A33",
+      "verdict": "real_hole",
+      "reason": "A rhetorical question is still a recommendation to the reader to take the action."
+    },
+    {
+      "id": "A34",
+      "verdict": "real_hole",
+      "reason": "A reader of French gets a direct instruction, and the gate can't read it."
+    }
+  ],
+  "found_in_review": [
+    {
+      "id": "R1",
+      "found_by": "Ticket 9 review",
+      "mechanism": "A number token with 29 or more decimal places makes the backing check raise instead of returning a verdict.",
+      "claim": {
+        "text": "Pushes in earlier were 3.000000000000000000000000000000.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3
+          }
+        ]
+      },
+      "unfixed_gate": "raises decimal.InvalidOperation out of evaluate_briefing",
+      "verdict": "real_hole",
+      "reason": "A raised exception is no verdict at all, so the card path has no code to retry against, and a gate must return violations on any model text."
+    },
+    {
+      "id": "R2",
+      "found_by": "Ticket 9 review",
+      "mechanism": "A number word inside a hyphenated name reads as a number, because only cited ids holding a digit are masked.",
+      "claim": {
+        "text": "Pushes to example-user/seven-tower happened in last.",
+        "fact_ids": [
+          "f3"
+        ],
+        "metric_refs": []
+      },
+      "extra_facts": [
+        {
+          "id": "f3",
+          "statement": "Pushes to example-user/seven-tower happened in last."
+        }
+      ],
+      "unfixed_gate": "blocked with L1B_NUMBER_WITHOUT_METRIC_REF",
+      "verdict": "over_block",
+      "reason": "The sentence is true and its cited fact says the same, and the gate rejects it because it reads seven in the repo name as the number 7."
+    },
+    {
+      "id": "R3",
+      "found_by": "Ticket 9 review",
+      "mechanism": "Period labels swap around the right two values, because values and period words are checked as two sets and never paired.",
+      "claim": {
+        "text": "Pushes fell from 1 in last to 0 in prior.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          },
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "unfixed_gate": "passes with no violation",
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1 in last and 0 in prior, the cited values are 0 in last and 1 in prior, and the sentence writes each value beside its period, so the gate can read the pair; only the positional form stays under the second disclosed limit."
+    },
+    {
+      "id": "R4",
+      "found_by": "Claude Code review, replaying Ticket 11's stored live drafts",
+      "mechanism": "A token with no decimals is refused because a value summed as floats carries noise in its last digits, so 17.000000000000004 is not integral.",
+      "claim": {
+        "text": "Programming was 17 hours.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "screen_hours.Work/Programming",
+            "value": 17.000000000000004
+          }
+        ]
+      },
+      "verdict": "over_block",
+      "reason": "The sentence is true, a live draft wrote it, and Stage 2's rule against rounding a decimal to an integer rejected it over float noise.",
+      "extra_metrics": {
+        "screen_hours.Work/Programming": 17.000000000000004
+      },
+      "unfixed_gate": "passes",
+      "stage_2_gate": "blocked with L1B_NUMBER_WITHOUT_METRIC_REF"
+    },
+    {
+      "id": "R5",
+      "found_by": "Ticket 10's pinned tests, run on the Stage 2 gate",
+      "mechanism": "The same-direction word held also means contained, so a count sentence reads as a direction claim on one ref.",
+      "claim": {
+        "text": "Feeds held 9.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "feed.item.count",
+            "value": 9
+          }
+        ]
+      },
+      "verdict": "over_block",
+      "reason": "The sentence is true and Ticket 10 pins it as good, and Stage 2 added held to the same-direction list without guarding the count sense.",
+      "extra_metrics": {
+        "feed.item.count": 9
+      },
+      "unfixed_gate": "passes",
+      "stage_2_gate": "blocked with L1B_DIRECTION_MISMATCH"
+    },
+    {
+      "id": "R6",
+      "found_by": "Claude Code review, replaying Ticket 11's stored live drafts",
+      "mechanism": "On a fact-only claim the particle up in a phrasal verb counts as a direction word the cited statement doesn't hold.",
+      "claim": {
+        "text": "Pull request and push activity lined up recently, so building fits this hour.",
+        "fact_ids": [
+          "f3"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "over_block",
+      "reason": "The sentence says what its cited fact says, a live draft wrote it, and lined up states no change in any value.",
+      "extra_facts": [
+        {
+          "id": "f3",
+          "statement": "In last, a GitHub pull request opening and 4 GitHub pushes occurred in the same period."
+        }
+      ],
+      "unfixed_gate": "passes",
+      "stage_2_gate": "blocked with L1B_DIRECTION_MISMATCH"
+    },
+    {
+      "id": "R7",
+      "found_by": "Claude Code review, replaying Ticket 11's stored live drafts",
+      "mechanism": "The rank word ahead fires on plan ahead, which ranks nothing.",
+      "claim": {
+        "text": "Busy was 6.5 hours, making this hour a clear opening to plan ahead.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "calendar.busy_hours",
+            "value": 6.5
+          }
+        ]
+      },
+      "verdict": "over_block",
+      "reason": "The number and label are right, a live draft wrote the same shape, and plan ahead makes no ranking claim.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "blocked with L1B_UNVERIFIABLE_QUANTITY"
+    },
+    {
+      "id": "R8",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "The value-period pairing only reads a value after a bare period word, so the form a live draft uses, in the last period at 1, isn't paired.",
+      "claim": {
+        "text": "Pushes were lower in the last period at 1 than in the prior period at 0.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          },
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1 in last and 0 in prior, and the cited values are 0 in last and 1 in prior.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R9",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "The value-period pairing reads digits only, so spelled values escape it.",
+      "claim": {
+        "text": "Pushes fell from one in last to zero in prior.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          },
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1 in last and 0 in prior, and the cited values are the other way round.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R10",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "The unit arm's next-word check splits a decimal at its point, so the fraction digits take the place of the unit word and a day unit after a decimal goes unseen.",
+      "claim": {
+        "text": "Programming screen hours in last were 1.75 days.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 1.75
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1.75 days, and the cited value is 1.75 hours.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R11",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "A magnitude or foreign unit word after a backed number isn't read at all.",
+      "claim": {
+        "text": "Programming screen hours in last were 1.75 km.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 1.75
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away a distance, and the cited value is 1.75 hours.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R12",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "A backed digit glued to letters still counts as the digit alone, so the letters change the number a reader sees.",
+      "claim": {
+        "text": "Pushes in earlier were 3O.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 30, and the cited value is 3.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R13",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "A qualifier written around a backed number isn't read: the approximator list only looks before the number.",
+      "claim": {
+        "text": "Pushes in earlier were 3 or so.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away an estimate that could be off, and the cited value is exactly 3.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R14",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "Quantity words outside the closed lists state a count with no digit to back.",
+      "claim": {
+        "text": "A single push landed in last.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away one push, and the cited value is 0.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R15",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "Lowercase Roman numerals stay free, because the arm only reads capitals.",
+      "claim": {
+        "text": "Pushes in last were iii.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 3, and the cited value is 0.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R16",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "Rank and share words outside the list state a position with no digit to back.",
+      "claim": {
+        "text": "The majority of pushes landed in last.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last held most pushes, and the cited value is 0.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R17",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "A universal quantifier before the cited label states a share with no digit to back.",
+      "claim": {
+        "text": "All pushes landed in last.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away that every push landed in last, and the cited value is 0.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R18",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "A negated number written as one word or a non- prefix isn't a negator, and the zero inside it is backed.",
+      "claim": {
+        "text": "Pushes in last were non-zero.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last held some pushes, and the cited value is 0.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R19",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "A fact-only claim passes when any one of its direction words matches the cited statement, so a second, false direction rides along.",
+      "claim": {
+        "text": "Pushes fell in prior and rose in last.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away a rise in last, and the cited fact says pushes fell to 0 in last.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R20",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "A direction word inside a hyphen compound built on than is one token and isn't read as direction.",
+      "claim": {
+        "text": "Pushes in last were higher-than-usual.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away a rise against a baseline nothing cites, and the cited value is 0.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R21",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "A period word in another sense still satisfies the period check.",
+      "claim": {
+        "text": "Pushes reached 0 in last place.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away a ranking, and the claim only looks like it names the last period.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R22",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "Words spelled out in single letters read to a person and match nothing, so a negation or a term walks through.",
+      "claim": {
+        "text": "Pushes in last were N O T 0.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away that last held some pushes, and the cited value is 0.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R23",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "The squashed term match only removes spaces and hyphens, so other punctuation inside a private term breaks it.",
+      "claim": {
+        "text": "The notes mention Zebra, finch today.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader still reads the private term.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R24",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "The raw-literal match needs exact tokens, so one edit or an abbreviation hides the literal.",
+      "claim": {
+        "text": "The notes mention Dentst on Tuesday.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader still reads the raw literal.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R25",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "The imperative arm reads only the first word of a sentence, so an opener word or a comma clause hides the verb.",
+      "claim": {
+        "text": "Now ship one small change.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away an instruction.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R26",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "Advice written as a modal or an evaluation isn't on the phrase list.",
+      "claim": {
+        "text": "It would help to ship one small change.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away an instruction.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R27",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "Naming the commitment's own object in any frame reads as telling the reader to do it, and nothing compares claims with the commitment titles.",
+      "claim": {
+        "text": "This hour calls for one small change.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away an instruction to do the commitment.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R28",
+      "found_by": "Claude Code review of the Stage 2 gate",
+      "mechanism": "The imperative verb list is short, so common action verbs outside it pass.",
+      "claim": {
+        "text": "Polish the draft.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away an instruction.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes"
+    },
+    {
+      "id": "R29",
+      "found_by": "External code review by GPT Sol 6.1, run through Codex, on main e85d91d",
+      "mechanism": "A label binding checks category and period and carries no unit, so a time unit other than the metric's own goes unread.",
+      "claim": {
+        "text": "Code screen time was 2 minutes in last.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.code",
+            "value": 2
+          }
+        ]
+      },
+      "extra_metrics": {
+        "period.last.screen_hours.code": 2
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 2 minutes when the cited value is 2 hours, which is 120 minutes.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "blocked with L1B_UNIT_MISMATCH: the fix for attack A19 already closes it",
+      "verify_claims": "passes: it has no units, so this stays a limit its docs state, and a caller can list the unit as a label word"
+    },
+    {
+      "id": "R30",
+      "found_by": "External code review by GPT Sol 6.1, run through Codex, on main e85d91d",
+      "surface": "verify_claims",
+      "mechanism": "In verify_claims an unlabelled ref supplies the number for a claim that a labelled ref passes the label check for.",
+      "claim": {
+        "text": "Code screen time was 100 hours in last.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "code.last",
+            "value": 2
+          },
+          {
+            "metric_id": "other",
+            "value": 100
+          }
+        ]
+      },
+      "extra_metrics": {
+        "code.last": 2,
+        "other": 100
+      },
+      "verdict": "real_hole",
+      "reason": "verify_claims passed a false number taken from another metric; the gate has no such path, because a cited metric with no binding is rejected there, so the fix lands in verify_claims.",
+      "unfixed_gate": "blocked with L1B_METRIC_LABEL_UNKNOWN",
+      "unfixed_verify_claims": "passes"
+    },
+    {
+      "id": "R31",
+      "found_by": "Claude Code review of the Stage 2 gate, replaying Ticket 11's stored drafts against the real private terms and reporting counts only",
+      "mechanism": "One word of a private term of several words fires on its own, so a term with a one-character word blocks any claim holding that character as a value.",
+      "claim": {
+        "text": "Pushes in prior were 1.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          }
+        ]
+      },
+      "verdict": "over_block",
+      "reason": "The sentence is true, and the claim arm blocked 28 of 182 claims in Ticket 11's taught drafts this way, which would have turned live cards into fallbacks.",
+      "unfixed_gate": "passes",
+      "stage_2_gate": "blocked with L1_PRIVATE_TERM when the private terms hold such a term, which the runner's fixed context doesn't, so this row passes there and known-good case G53 pins it"
+    },
+    {
+      "id": "R32",
+      "found_by": "Ticket 17a's review of the gate",
+      "mechanism": "The gate reads every value as a float, and at or above 2^53 two different integers are the same float, so a wrong ref compares equal to the snapshot.",
+      "claim": {
+        "text": "GitHub pushes reached 9007199254740992.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "github.push.count",
+            "value": 9007199254740992
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away a number the snapshot doesn't hold, and verify_claims, which compares exact numbers, rejects the same input. No live metric reaches that size, so failing closed costs no true sentence.",
+      "extra_metrics": {
+        "github.push.count": 9007199254740993
+      },
+      "unfixed_gate": "passes"
+    },
+    {
+      "id": "R33",
+      "found_by": "Claude Code review of the fixed gate",
+      "mechanism": "A strong verb after and, but or or inside one clause isn't at a clause start, so the imperative rule doesn't read it.",
+      "claim": {
+        "text": "Pushes fell in last and ship the parser.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away an instruction.",
+      "unfixed_gate": "passes"
+    },
+    {
+      "id": "R34",
+      "found_by": "Claude Code review of the fixed gate",
+      "mechanism": "A dash or a bracket joins two clauses, and the imperative rule splits clauses only at commas and sentence marks.",
+      "claim": {
+        "text": "Pushes fell in last - ship the parser.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away an instruction.",
+      "unfixed_gate": "passes"
+    },
+    {
+      "id": "R35",
+      "found_by": "Claude Code review of the fixed gate",
+      "mechanism": "The advice phrases held no form that says what an hour or a fix is for.",
+      "claim": {
+        "text": "This hour is for a short walk.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away an instruction.",
+      "unfixed_gate": "passes"
+    },
+    {
+      "id": "R36",
+      "found_by": "Independent review by Muse Wonder Full, on main 45326d8",
+      "mechanism": "One cited metric backs the same numeral for a second metric the claim names without citing it.",
+      "claim": {
+        "text": "Pushes were 1 in prior, and pull requests were 1 in prior.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 1 pull request in prior when the snapshot holds 9.",
+      "extra_metrics": {
+        "period.prior.prs": 9
+      },
+      "unfixed_gate": "passes",
+      "stage_2_gate": "blocked with L1B_METRIC_LABEL_MISMATCH: the fix for attack A22 already closes it",
+      "unfixed_verify_claims": "passes"
+    },
+    {
+      "id": "R37",
+      "found_by": "Independent review by Muse Wonder Full, on main 45326d8",
+      "mechanism": "A time word on a metric claim changes the window the number covers, and nothing read it: a period-less metric holds the total over the whole window.",
+      "claim": {
+        "text": "Programming was 90 today.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "screen_hours.Work/Programming",
+            "value": 90
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 90 hours today when the value is the whole window's total.",
+      "extra_metrics": {
+        "screen_hours.Work/Programming": 90
+      },
+      "unfixed_gate": "passes",
+      "stage_2_gate": "passes; last week was already blocked on a period metric, and hours a day by the rate words",
+      "unfixed_verify_claims": "passes"
+    },
+    {
+      "id": "R38",
+      "found_by": "Independent review by Muse Wonder Full, on main 45326d8",
+      "mechanism": "Number words stopped at million, so a larger scale word beside a backed number went unread.",
+      "claim": {
+        "text": "Pushes reached 3 billion.",
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "github.push.count",
+            "value": 3
+          }
+        ]
+      },
+      "verdict": "real_hole",
+      "reason": "A reader takes away 3 billion pushes when the value is 3.",
+      "extra_metrics": {
+        "github.push.count": 3
+      },
+      "unfixed_gate": "passes",
+      "unfixed_verify_claims": "passes"
+    },
+    {
+      "id": "R39",
+      "found_by": "Independent review by Muse Wonder Full, on main 45326d8",
+      "mechanism": "Private terms were compared with the raw text, so a curly apostrophe, a decomposed accent or a zero-width character hid a term.",
+      "claim": {
+        "text": "The notes mention Quetzal’s garden today.",
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": []
+      },
+      "verdict": "real_hole",
+      "reason": "A private term reaches the reader.",
+      "extra_private_terms": [
+        "quetzal's garden"
+      ],
+      "unfixed_gate": "passes",
+      "stage_2_gate": "blocked with L1_PRIVATE_TERM: normalize_text, from the fix for attacks A26 to A29, already closes every form",
+      "unfixed_verify_claims": "passes"
+    }
+  ]
+}

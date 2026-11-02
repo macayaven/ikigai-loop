@@ -758,7 +758,676 @@ def _build_mutants() -> tuple[Case, ...]:
     )
 
 
-MUTANTS: tuple[Case, ...] = _build_mutants()
+def _install(
+    briefing: dict[str, Any],
+    context: GateContext,
+    text: str,
+    refs: list[tuple[str, float]],
+    claim_id: str = "claim-w1",
+) -> GateContext:
+    """Point the working claim at ``text``/``refs`` and price them."""
+    claim = _get_claim(_section(briefing, "working"), claim_id)
+    claim["text"] = text
+    claim["fact_ids"] = []
+    claim["metric_refs"] = [_ref(metric_id, value) for metric_id, value in refs]
+    values = dict(context.metrics.values)
+    for metric_id, value in refs:
+        values[metric_id] = value
+    return context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+
+def _install_fact_only(
+    briefing: dict[str, Any],
+    context: GateContext,
+    text: str,
+    fact_id: str = "fact:synthetic-1",
+    claim_id: str = "claim-w1",
+) -> GateContext:
+    """Point the working claim at fact-only ``text`` citing ``fact_id``."""
+    claim = _get_claim(_section(briefing, "working"), claim_id)
+    claim["text"] = text
+    claim["fact_ids"] = [fact_id]
+    claim["metric_refs"] = []
+    return context
+
+
+def _with_local_fact(context: GateContext, fact_id: str, statement: str) -> GateContext:
+    """Add a case-local fact carrying ``statement`` to a copy of ``context``."""
+    from framework.schemas.core import Fact
+
+    fact = Fact.model_validate(
+        {
+            "id": fact_id,
+            "subject_id": SUBJECT_ID,
+            "window": {"start": _iso(30, 0, 0), "end": _iso(31, 12, 0)},
+            "statement": statement,
+            "evidence": ["synthetic log"],
+            "tier": "public",
+        }
+    )
+    facts = dict(context.facts)
+    facts[fact_id] = fact
+    return context.model_copy(update={"facts": facts})
+
+
+def _redteam_mutants() -> tuple[Case, ...]:
+    """Ticket 10b: one mutant per `real_hole` attack plus R1 and R3."""
+    from framework.briefing.labels import metric_label_binding as _binding
+
+    assert _binding is not None  # keep the labels import live if unused below
+    cases: list[Case] = []
+
+    def add(
+        name: str, expected: tuple[str, ...], text: str, refs: list[tuple[str, float]]
+    ) -> None:
+        base = base_case("builder")
+
+        def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+            return _install(briefing, context, text, refs)
+
+        cases.append(_mutate(base, name, expected, fn))
+
+    push3 = ("period.earlier.pushes", 3.0)
+    push1 = ("period.prior.pushes", 1.0)
+    push0 = ("period.last.pushes", 0.0)
+    prog475 = ("period.prior.screen_hours.Work/Programming", 4.75)
+    prog175 = ("period.last.screen_hours.Work/Programming", 1.75)
+
+    add(
+        "M39-negated-direction",
+        ("L1B_NEGATED_CLAIM",),
+        "Pushes did not fall from 3 in earlier to 1 in prior and to 0 in last.",
+        [push3, push1, push0],
+    )
+    add(
+        "M40-negated-zero",
+        ("L1B_NEGATED_CLAIM",),
+        "Pushes in last were not 0.",
+        [push0],
+    )
+    add(
+        "M41-growth-synonym",
+        ("L1B_DIRECTION_MISMATCH",),
+        "Pushes showed growth from 3 in earlier to 0 in last.",
+        [push3, push0],
+    )
+    add(
+        "M42-exceeded-synonym",
+        ("L1B_DIRECTION_MISMATCH",),
+        "Programming screen hours in last exceeded those in prior.",
+        [prog475, prog175],
+    )
+    add(
+        "M43-spanish-direction",
+        ("L1_CLAIM_LANGUAGE",),
+        "Pushes subieron from 3 in earlier to 0 in last.",
+        [push3, push0],
+    )
+    add(
+        "M44-doubled",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Work/Programming screen hours doubled from 4.75 in prior to 1.75 in last.",
+        [prog475, prog175],
+    )
+    add(
+        "M45-half",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes fell by half from 3 in earlier to 0 in last.",
+        [push3, push0],
+    )
+    add(
+        "M46-vulgar-fraction",
+        (
+            "L1B_NUMBER_WITHOUT_METRIC_REF",
+            "L1B_UNVERIFIABLE_QUANTITY",
+            "L1B_VALUE_PERIOD_MISMATCH",
+        ),
+        "Pushes in last were \u00be of the pushes in earlier.",
+        [push3, push0],
+    )
+    add(
+        "M47-tally-marks",
+        ("L1B_COMPARISON_WORD_UNKNOWN", "L1B_UNVERIFIABLE_QUANTITY"),
+        "Pushes in last reached this tally: ||||, with earlier named for comparison.",
+        [push3, push0],
+    )
+    add(
+        "M48-roman-numeral",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last reached IV.",
+        [push0],
+    )
+    add(
+        "M49-french-number",
+        ("L1_CLAIM_LANGUAGE",),
+        "Pushes in last reached quatre.",
+        [push0],
+    )
+    add(
+        "M50-digit-ordinal",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last hit their 99th push.",
+        [push0],
+    )
+    add(
+        "M51-clock-duration",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Programming screen hours in last ran for 14:30.",
+        [prog175],
+    )
+    add(
+        "M52-invalid-clock",
+        ("L1B_COMPARISON_WORD_UNKNOWN", "L1B_NUMBER_WITHOUT_METRIC_REF"),
+        "Pushes split 3:99 between earlier and last.",
+        [push3, push0],
+    )
+    add(
+        "M53-tenfold",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last were tenfold the pushes in earlier.",
+        [push3, push0],
+    )
+    add(
+        "M54-a-couple",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last came to a couple.",
+        [push0],
+    )
+    add(
+        "M55-one-oh",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last reached one-oh.",
+        [push0],
+    )
+    add(
+        "M56-rounded-integer",
+        ("L1B_NUMBER_WITHOUT_METRIC_REF",),
+        "Programming screen hours were 5 in prior.",
+        [prog475],
+    )
+    add(
+        "M57-wrong-unit",
+        ("L1B_UNIT_MISMATCH",),
+        "Programming screen hours in last totalled 1.75 minutes.",
+        [prog175],
+    )
+    add(
+        "M58-period-compound",
+        ("L1B_PERIOD_WORD_MISSING",),
+        "Pushes in the second-to-last window reached 0.",
+        [push0],
+    )
+    base59 = base_case("builder")
+
+    def m59_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        ctx = _install(
+            briefing,
+            context,
+            "Media/Video Programming screen hours in last reached 1.75.",
+            [prog175],
+        )
+        values = dict(ctx.metrics.values)
+        values["period.last.screen_hours.Media/Video"] = 4.0
+        return ctx.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    cases.append(
+        _mutate(
+            base59,
+            "M59-conflicting-category",
+            ("L1B_METRIC_LABEL_MISMATCH",),
+            m59_fn,
+        )
+    )
+    add(
+        "M60-rank-ordinal",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes ranked first in last, ahead of earlier and prior.",
+        [push3, push1, push0],
+    )
+    add(
+        "M61-rate-word",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last happened daily.",
+        [push0],
+    )
+
+    def _fact(
+        name: str,
+        expected: tuple[str, ...],
+        text: str,
+        private_terms: tuple[str, ...] = (),
+    ) -> None:
+        base = base_case("builder")
+
+        def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+            ctx = _install_fact_only(briefing, context, text)
+            if private_terms:
+                return ctx.model_copy(update={"private_terms": private_terms})
+            return ctx
+
+        cases.append(_mutate(base, name, expected, fn))
+
+    _fact(
+        "M62-hidden-char-term",
+        ("L1_PRIVATE_TERM", "L1_UNSAFE_TEXT"),
+        "The notes mention quetzal\u200bgarden today.",
+        (SYNTHETIC_TERM,),
+    )
+    _fact(
+        "M63-fullwidth-term",
+        ("L1_PRIVATE_TERM",),
+        "The notes mention \uff51uetzal-garden today.",
+        (SYNTHETIC_TERM,),
+    )
+    _fact(
+        "M64-spaced-term",
+        ("L1_PRIVATE_TERM",),
+        "The notes spell q u e t z a l - g a r d e n today.",
+        (SYNTHETIC_TERM,),
+    )
+    _fact(
+        "M65-confusable-term",
+        ("L1_CLAIM_LANGUAGE", "L1_PRIVATE_TERM"),
+        "The notes mention quetz\u0430l-garden today.",
+        (SYNTHETIC_TERM,),
+    )
+    _fact(
+        "M66-punctuated-literal",
+        ("L1_RAW_VALUE",),
+        "The calendar note reads Invented Calendar, Title Zqx today.",
+    )
+    _fact(
+        "M67-deontic-phrase",
+        ("L1_ADVICE",),
+        "You ought to ship one small change during the next free hour.",
+    )
+    _fact(
+        "M68-bare-imperative",
+        ("L1_ADVICE",),
+        "Ship one small change during the next free hour.",
+    )
+    _fact(
+        "M69-rhetorical-question",
+        ("L1_ADVICE",),
+        "Why not ship a small change during the next free hour?",
+    )
+    _fact(
+        "M70-french-imperative",
+        ("L1_CLAIM_LANGUAGE",),
+        "Exp\u00e9diez un petit changement pendant la prochaine heure libre.",
+    )
+    add(
+        "M71-crash-decimals",
+        ("L1B_NUMBER_WITHOUT_METRIC_REF",),
+        "Pushes in earlier were 3.000000000000000000000000000000.",
+        [push3],
+    )
+    add(
+        "M72-swapped-periods",
+        ("L1B_VALUE_PERIOD_MISMATCH",),
+        "Pushes fell from 1 in last to 0 in prior.",
+        [push1, push0],
+    )
+    return tuple(cases)
+
+
+def _round2_mutants() -> tuple[Case, ...]:
+    """Ticket 10b: one mutant per round-2 class and leftover round-1 rule.
+
+    Own sentences in the same synthetic context (``quetzal-garden``,
+    the ``Invented Calendar Title Zqx`` literal, the example commitments).
+    Each pins the exact ordered code list the gate emits today.
+    """
+    cases: list[Case] = []
+
+    def add(
+        name: str, expected: tuple[str, ...], text: str, refs: list[tuple[str, float]]
+    ) -> None:
+        base = base_case("builder")
+
+        def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+            return _install(briefing, context, text, refs)
+
+        cases.append(_mutate(base, name, expected, fn))
+
+    push3 = ("period.earlier.pushes", 3.0)
+    push1 = ("period.prior.pushes", 1.0)
+    push0 = ("period.last.pushes", 0.0)
+    prog475 = ("period.prior.screen_hours.Work/Programming", 4.75)
+    prog175 = ("period.last.screen_hours.Work/Programming", 1.75)
+    screen90 = ("screen_hours.Work/Programming", 90.0)
+
+    def add_fact(
+        name: str,
+        expected: tuple[str, ...],
+        text: str,
+        statement: str,
+        private_terms: tuple[str, ...] = (),
+    ) -> None:
+        base = base_case("builder")
+        fact_id = "fact:synthetic-local"
+
+        def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+            ctx = _with_local_fact(context, fact_id, statement)
+            if private_terms:
+                ctx = ctx.model_copy(update={"private_terms": private_terms})
+            return _install_fact_only(briefing, ctx, text, fact_id)
+
+        cases.append(_mutate(base, name, expected, fn))
+
+    def add_term_fact(
+        name: str,
+        expected: tuple[str, ...],
+        text: str,
+        private_terms: tuple[str, ...],
+    ) -> None:
+        base = base_case("builder")
+
+        def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+            ctx = context.model_copy(update={"private_terms": private_terms})
+            return _install_fact_only(briefing, ctx, text)
+
+        cases.append(_mutate(base, name, expected, fn))
+
+    add(
+        "M73-N01-value-beside-wrong-period",
+        ("L1B_VALUE_PERIOD_MISMATCH",),
+        "Programming screen hours fell from 1.75 screen hours in prior "
+        "to 4.75 screen hours in last.",
+        [prog475, prog175],
+    )
+    add(
+        "M74-R09-spelled-beside-wrong-period",
+        ("L1B_VALUE_PERIOD_MISMATCH",),
+        "Pushes sank from one in last to zero in prior.",
+        [push1, push0],
+    )
+    add(
+        "M75-N07-wrong-duration-word",
+        ("L1B_UNIT_MISMATCH",),
+        "Programming screen hours in last were 1.75 fortnights.",
+        [prog175],
+    )
+    add(
+        "M76-R11-magnitude-word",
+        ("L1B_UNIT_MISMATCH",),
+        "Programming screen hours in last were 1.75 gigawatts.",
+        [prog175],
+    )
+    add(
+        "M77-R12-glued-letter",
+        ("L1B_UNIT_MISMATCH", "L1B_UNVERIFIABLE_QUANTITY"),
+        "Pushes in earlier were 3x.",
+        [push3],
+    )
+    add(
+        "M78-R13-trailing-qualifier",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in earlier were about 3 or so.",
+        [push3],
+    )
+    add(
+        "M79-R14-single",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "A single push landed in earlier.",
+        [push3],
+    )
+    add(
+        "M80-R15-lower-roman",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last reached xiv.",
+        [push0],
+    )
+    add(
+        "M81-R16-share-word",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Most pushes landed in last.",
+        [push0],
+    )
+    add(
+        "M82-R17-universal-label",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Each push landed in last.",
+        [push0],
+    )
+    add(
+        "M83-R18-negated-one-word",
+        ("L1B_NEGATED_CLAIM", "L1B_NUMBER_WITHOUT_METRIC_REF"),
+        "Pushes in last ended non-zero.",
+        [push0],
+    )
+    add_fact(
+        "M84-R19-fact-both-directions",
+        ("L1B_DIRECTION_MISMATCH",),
+        "Pushes fell in prior and climbed in last.",
+        "Pushes fell in prior and dropped in last.",
+    )
+    add(
+        "M85-R20-hyphen-direction",
+        ("L1B_DIRECTION_MISMATCH",),
+        "Pushes in last stood higher-than-ever at 0.",
+        [push0],
+    )
+    add(
+        "M86-R21-period-other-sense",
+        ("L1B_PERIOD_WORD_MISSING",),
+        "Pushes stood at 0 at last.",
+        [push0],
+    )
+    add(
+        "M87-R22-spaced-negation",
+        ("L1_UNSAFE_TEXT",),
+        "Pushes in last stood at N O T 0.",
+        [push0],
+    )
+    add_term_fact(
+        "M88-R23-punctuated-term",
+        ("L1_PRIVATE_TERM",),
+        "The notes mention quetzal: garden today.",
+        (SYNTHETIC_TERM,),
+    )
+    add_fact(
+        "M89-R24-misspelled-literal",
+        ("L1_RAW_VALUE",),
+        "The calendar note reads Invented Calender Title Zqx today.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M90-R25-opener-imperative",
+        ("L1_ADVICE",),
+        "Today launch one small widget.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M91-R26-suggestion-phrase",
+        ("L1_ADVICE",),
+        "You could polish the widget in the free hour.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M92-R27-commitment-object",
+        ("L1_ADVICE",),
+        "The synthetic parser sketch is the next move.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M93-R28-strong-verb",
+        ("L1_ADVICE",),
+        "Finalize the widget.",
+        "Synthetic reference log filed under review.",
+    )
+    add(
+        "M94-R32-exactness-limit",
+        ("L1B_METRIC_VALUE_MISMATCH",),
+        "GitHub pushes reached 9007199254740994.",
+        [("github.push.count", 9007199254740994.0)],
+    )
+    add_fact(
+        "M95-R33-and-imperative",
+        ("L1_ADVICE",),
+        "Pushes fell in last and launch the parser.",
+        "Pushes fell in last.",
+    )
+    add_fact(
+        "M96-R34-dash-imperative",
+        ("L1_ADVICE",),
+        "Pushes fell in last \u2014 launch the parser.",
+        "Pushes fell in last.",
+    )
+    add_fact(
+        "M97-R35-hour-is-for",
+        ("L1_ADVICE",),
+        "This hour is for deep rest.",
+        "Synthetic reference log filed under review.",
+    )
+    base98 = base_case("builder")
+
+    def m98_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        ctx = _install(
+            briefing,
+            context,
+            "Pushes were 0 in last, and pull requests were 0 in last.",
+            [push0],
+        )
+        values = dict(ctx.metrics.values)
+        values["period.last.prs"] = 9.0
+        return ctx.model_copy(update={"metrics": MetricSnapshot(values=values)})
+
+    cases.append(
+        _mutate(
+            base98,
+            "M98-R36-named-not-cited",
+            ("L1B_METRIC_LABEL_MISMATCH",),
+            m98_fn,
+        )
+    )
+    add(
+        "M99-R37-time-word-periodless",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Programming ran 90 this week.",
+        [screen90],
+    )
+    add(
+        "M100-R38-scale-word",
+        ("L1B_NUMBER_WITHOUT_METRIC_REF",),
+        "Pushes reached 3 trillion.",
+        [("github.push.count", 3.0)],
+    )
+    add_term_fact(
+        "M101-R39-curly-term",
+        ("L1_PRIVATE_TERM",),
+        "The notes mention quetzal\u2019garden today.",
+        (SYNTHETIC_TERM,),
+    )
+    add(
+        "M102-N12-spelled-ordinal",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last hit the twelfth push.",
+        [push0],
+    )
+    add(
+        "M103-N14-tally",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in earlier went push, push, push.",
+        [push3],
+    )
+    add(
+        "M104-N08-slash-fraction",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes in last showed 0/3 with earlier at 3.",
+        [push3, push0],
+    )
+    add(
+        "M105-N15-range-one-period",
+        ("L1B_NUMBER_WITHOUT_METRIC_REF", "L1B_UNVERIFIABLE_QUANTITY"),
+        "Pushes in last ranged from 0 to 3.",
+        [push0],
+    )
+    add(
+        "M106-N05-wrong-change",
+        ("L1B_NUMBER_WITHOUT_METRIC_REF", "L1B_VALUE_PERIOD_MISMATCH"),
+        "Pushes fell by 2 from 1 in prior to 0 in last.",
+        [push1, push0],
+    )
+    add(
+        "M107-R41-periods-wrong-way",
+        ("L1B_DIRECTION_MISMATCH",),
+        "Programming stood lower in the prior period at 4.75 hours "
+        "than in the last period at 1.75 hours.",
+        [prog475, prog175],
+    )
+    add(
+        "M108-N04-joined-label",
+        ("L1B_METRIC_LABEL_MISSING", "L1B_PERIOD_WORD_MISSING"),
+        "WorkProgramming screen hours in last were 90.",
+        [screen90],
+    )
+    add(
+        "M109-N06-percent-word",
+        ("L1B_PERIOD_WORD_MISSING", "L1B_UNIT_MISMATCH"),
+        "Programming screen hours in last were 90 percent.",
+        [screen90],
+    )
+    add(
+        "M110-R52-digit-ordinal-noun",
+        ("L1B_UNVERIFIABLE_QUANTITY",),
+        "Pushes reached the 3rd page in earlier.",
+        [push3],
+    )
+    # The li-fold and rotation arms only run for terms without a hyphen,
+    # so these two carry the spaced variant the round-2 rows introduced.
+    add_term_fact(
+        "M111-N22-lookalike-I",
+        ("L1_PRIVATE_TERM",),
+        "The notes mention QuetzaIgarden today.",
+        ("quetzal garden",),
+    )
+    add_term_fact(
+        "M112-N23-halves-swapped",
+        ("L1_PRIVATE_TERM",),
+        "The archive cites gardenquetzal today.",
+        ("quetzal garden",),
+    )
+    add_fact(
+        "M113-N24-phonetic-term",
+        ("L1_UNSAFE_TEXT",),
+        "The notes read Quebec Uniform Echo Tango Zulu Alfa Lima today.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M114-N25-stretched-literal",
+        ("L1_RAW_VALUE",),
+        "The calendar note reads Invented in the early Calendar Title Zqx today.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M115-N26-dutch",
+        ("L1_CLAIM_LANGUAGE",),
+        "Stuur een kleine update in het volgende vrije uur.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M116-N28-question-no-mark",
+        ("L1_ADVICE",),
+        "Would the free hour suit a short build.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M117-R44-link",
+        ("L1_UNSAFE_TEXT",),
+        "The full log sits at https://example.invalid/synthetic-log.",
+        "Synthetic reference log filed under review.",
+    )
+    add_fact(
+        "M118-R45-no-letters-digits",
+        ("L1_UNSAFE_TEXT",),
+        "- - -",
+        "Synthetic reference log filed under review.",
+    )
+    return tuple(cases)
+
+
+MUTANTS: tuple[Case, ...] = _build_mutants() + _redteam_mutants() + _round2_mutants()
 
 
 def _build_known_good() -> tuple[Case, ...]:
@@ -974,7 +1643,7 @@ def _build_known_good() -> tuple[Case, ...]:
         working["claims"] = [
             _claim(
                 "claim-r1",
-                "Programming quality sits at 21.2 this week",
+                "Programming quality sits at 21.2",
                 facts=["fact:synthetic-1"],
                 refs=[_ref("screen_hours.Work/Programming", 21.1544)],
             ),
@@ -1175,3 +1844,253 @@ def _build_known_good() -> tuple[Case, ...]:
 
 
 KNOWN_GOOD: tuple[Case, ...] = _build_known_good()
+
+
+def _redteam_known_good() -> tuple[Case, ...]:
+    """Ticket 10b: N1 to N27 plus the R2 name case, all passing."""
+    cases: list[Case] = []
+
+    def add(name: str, text: str, refs: list[tuple[str, float]]) -> None:
+        base = base_case("builder")
+
+        def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+            return _install(briefing, context, text, refs)
+
+        cases.append(_mutate(base, name, (), fn))
+
+    def add_fact(name: str, text: str, statement: str) -> None:
+        base = base_case("builder")
+        fact_id = "fact:synthetic-local"
+
+        def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+            ctx = _with_local_fact(context, fact_id, statement)
+            return _install_fact_only(briefing, ctx, text, fact_id)
+
+        cases.append(_mutate(base, name, (), fn))
+
+    prog_last = "period.last.screen_hours.Work/Programming"
+    prog_prior = "period.prior.screen_hours.Work/Programming"
+    fell = "Pushes fell from 3 in earlier to 1 in prior and to 0 in last."
+    add("G21-n1-stood", "Programming in last stood at 1.75 hours.", [(prog_last, 1.75)])
+    add(
+        "G22-n2-went-down",
+        "Pushes went down from 1 in prior to 0 in last.",
+        [("period.prior.pushes", 1.0), ("period.last.pushes", 0.0)],
+    )
+    add(
+        "G23-n3-value-first",
+        "Pushes in last were 0, down from 1 in prior.",
+        [("period.prior.pushes", 1.0), ("period.last.pushes", 0.0)],
+    )
+    add(
+        "G24-n4-busy-over",
+        "Busy hours reached 6.5 over the window.",
+        [("calendar.busy_hours", 6.5)],
+    )
+    add(
+        "G25-n5-stated-zero",
+        "There were no pushes in last.",
+        [("period.last.pushes", 0.0)],
+    )
+    add_fact("G26-n6-absent", "Pushes were absent in the last period.", fell)
+    add(
+        "G27-n7-spent",
+        "I spent 1.75 hours on Programming in last.",
+        [(prog_last, 1.75)],
+    )
+    add_fact("G28-n8-shipped", "Shipped one small change in last.", fell)
+    add_fact(
+        "G29-n9-review-notes",
+        "Review notes were written in prior.",
+        "Review notes were written in prior.",
+    )
+    add_fact(
+        "G30-n10-about",
+        "Feed items about On-device inference optimization appeared.",
+        "Feed items about On-device inference optimization appeared in the synthetic log.",
+    )
+    add(
+        "G31-n11-moved",
+        "Programming moved from 4.75 in prior to 1.75 in last.",
+        [(prog_prior, 4.75), (prog_last, 1.75)],
+    )
+    add("G32-n12-totaled", "Pushes totaled 0 in last.", [("period.last.pushes", 0.0)])
+    add_fact(
+        "G33-n13-clock-the",
+        "The 14:00 call ran long.",
+        "Review notes were written in prior.",
+    )
+    add(
+        "G34-n14-period-list",
+        "Pushes were 1 and 0 in prior and last.",
+        [("period.prior.pushes", 1.0), ("period.last.pushes", 0.0)],
+    )
+    add(
+        "G35-n15-unit-pairs",
+        "Programming screen hours were 4.75 hours in prior and 1.75 hours in last.",
+        [(prog_prior, 4.75), (prog_last, 1.75)],
+    )
+    add_fact(
+        "G36-n16-roman-free",
+        "Feed items about ML and CI tooling appeared.",
+        "Feed items about ML and CI tooling appeared.",
+    )
+    add(
+        "G37-n17-up-to",
+        "Chat screen hours went up to 3.45 in last from 1.27 in prior.",
+        [
+            ("period.prior.screen_hours.Chat", 1.27),
+            ("period.last.screen_hours.Chat", 3.45),
+        ],
+    )
+    add_fact(
+        "G38-n18-use-of",
+        "Use of the feed fell in last.",
+        "Use of the feed fell in last.",
+    )
+    add_fact(
+        "G39-n19-focus-dropped", "Focus dropped in last.", "Focus dropped in last."
+    )
+    add(
+        "G40-n20-backticks",
+        "Cancelled `iki-deep` blocks were 1 in prior.",
+        [("period.prior.cancelled.iki-deep", 1.0)],
+    )
+    add(
+        "G41-n21-you-spent",
+        "You spent 4.75 hours on Programming in prior and 1.75 hours in last.",
+        [(prog_prior, 4.75), (prog_last, 1.75)],
+    )
+    add_fact(
+        "G42-n22-godel",
+        "Feed items about G\u00f6del machines appeared in last.",
+        "Feed items about G\u00f6del machines appeared in last.",
+    )
+    add_fact("G43-n23-due", "A review was due in last.", "A review was due in last.")
+    add(
+        "G44-n24-github-pushes",
+        "GitHub pushes were 3 in earlier and 1 in prior.",
+        [("period.earlier.pushes", 3.0), ("period.prior.pushes", 1.0)],
+    )
+    add(
+        "G45-n25-cancelled-zero",
+        "Cancelled iki-deep blocks were 0 in earlier and 1 in prior.",
+        [
+            ("period.earlier.cancelled.iki-deep", 0.0),
+            ("period.prior.cancelled.iki-deep", 1.0),
+        ],
+    )
+    add_fact(
+        "G46-n26-glimmer-fact",
+        "In prior, a GitHub pull request opening and a GitHub push occurred in the same period.",
+        "In prior, a GitHub pull request opening and a GitHub push occurred in the same period.",
+    )
+    add(
+        "G47-n27-slashed-category",
+        "Work/Programming screen hours were 7.0 in earlier and 4.75 in prior.",
+        [("period.earlier.screen_hours.Work/Programming", 7.0), (prog_prior, 4.75)],
+    )
+    base = base_case("builder")
+
+    def r2_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        ctx = _with_local_fact(
+            context,
+            "fact:synthetic-r2",
+            "Pushes to example-user/seven-tower happened in last.",
+        )
+        return _install_fact_only(
+            briefing,
+            ctx,
+            "Pushes to example-user/seven-tower happened in last.",
+            "fact:synthetic-r2",
+        )
+
+    cases.append(_mutate(base, "G48-r2-name-with-number", (), r2_fn))
+    return tuple(cases)
+
+
+def _round2_known_good() -> tuple[Case, ...]:
+    """Ticket 10b: one known-good case per round-2 over-block class."""
+    cases: list[Case] = []
+
+    def add(name: str, text: str, refs: list[tuple[str, float]]) -> None:
+        base = base_case("builder")
+
+        def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+            return _install(briefing, context, text, refs)
+
+        cases.append(_mutate(base, name, (), fn))
+
+    prog_last = "period.last.screen_hours.Work/Programming"
+    prog_prior = "period.prior.screen_hours.Work/Programming"
+    add(
+        "G49-R04-whole-over-noise",
+        "Programming reached 90 hours.",
+        [("screen_hours.Work/Programming", 90.00000000000001)],
+    )
+    add(
+        "G50-R05-held-count",
+        "The feed held 9 items.",
+        [("feed.item.count", 9.0)],
+    )
+
+    def g51_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        ctx = _with_local_fact(
+            context,
+            "fact:synthetic-g51",
+            "A synthetic review opened and two synthetic runs "
+            "finished in the same window.",
+        )
+        return _install_fact_only(
+            briefing,
+            ctx,
+            "The review and the runs showed up in the window.",
+            "fact:synthetic-g51",
+        )
+
+    cases.append(_mutate(base_case("builder"), "G51-R06-phrasal-particle", (), g51_fn))
+    add(
+        "G52-R07-ahead",
+        "Busy hours ran 6.5, leaving this hour clear to plan ahead.",
+        [("calendar.busy_hours", 6.5)],
+    )
+
+    def g53_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        ctx = _install(
+            briefing,
+            context,
+            "Pushes in prior were 1.",
+            [("period.prior.pushes", 1.0)],
+        )
+        return ctx.model_copy(update={"private_terms": ("I 7 depot",)})
+
+    cases.append(_mutate(base_case("builder"), "G53-R31-short-word-value", (), g53_fn))
+
+    def g54_fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        ctx = context.model_copy(update={"private_terms": (SYNTHETIC_TERM,)})
+        return _install_fact_only(briefing, ctx, "Quetzal left the notes today.")
+
+    cases.append(_mutate(base_case("builder"), "G54-R42-hyphen-part-alone", (), g54_fn))
+    add(
+        "G55-R40-later-period-first",
+        "Programming stood lower in the last period at 1.75 hours "
+        "than in the prior period at 4.75 hours.",
+        [(prog_prior, 4.75), (prog_last, 1.75)],
+    )
+    add(
+        "G56-R43-cancel-comparison",
+        "Cancelled deep blocks fell from 1 in prior to 0 in last.",
+        [
+            ("period.prior.cancelled.iki-deep", 1.0),
+            ("period.last.cancelled.iki-deep", 0.0),
+        ],
+    )
+    add(
+        "G57-range-two-periods",
+        "Pushes ranged from 3 in earlier to 0 in last.",
+        [("period.earlier.pushes", 3.0), ("period.last.pushes", 0.0)],
+    )
+    return tuple(cases)
+
+
+KNOWN_GOOD = KNOWN_GOOD + _redteam_known_good() + _round2_known_good()

@@ -1,0 +1,207 @@
+{
+  "gate_commit": "8419879e0f3afab67433fe6c8905067da5366af8",
+  "gate_dirty": false,
+  "gate_files_sha256": "6d055f088a514d997996f0e6f708c78e4efcbe185de252809b132e9f25b8c722",
+  "gate_tree": "94951c91875a168f97a34d68069b38fd23228a79",
+  "input_sha256": "4ae88067a85bd24b35610ab120213fcd253f0185b37e1bcb7b81e3cce5ed0542",
+  "rows": [
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S01",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S02",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S03",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S04",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S05",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S06",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S07",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S08",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S09",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "S10",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S11",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S12",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S13",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S14",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S15",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S16",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_TOO_MANY_METRICS"
+      ],
+      "id": "S17",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S18",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S19",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S20",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_TOO_MANY_METRICS"
+      ],
+      "id": "S21",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S22",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S23",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S24",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S25",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "S26",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S27",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S28",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S29",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S30",
+      "passed": true,
+      "raised": null
+    }
+  ]
+}
