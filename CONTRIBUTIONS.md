@@ -599,6 +599,18 @@ verdicts, and placed the data file and the three published files
 muse-spark-1.3 at low effort, wrote the README section and the freeze test
 and made this commit, in a headless session Claude Code started, in
 Contributor mode, on this public repo.
+## Ticket 16c — since-last evidence (2026-11-02)
+
+Built on branch `t16c-since-last-evidence` per [docs/plans/016c-since-last-evidence.md](docs/plans/016c-since-last-evidence.md):
+for a claim in a `since_last` section, the rater page now shows each cited metric's value on the
+previous card and on this card before the change, recovered from the two stored snapshots and
+checked against the claim's change under the delta arithmetic; a claim whose numbers cannot be
+recovered and checked exactly is left out and counted on its own line. The start screen says that
+each card counts its own three periods. PREREG Deviation 19 records the change. Evidence in
+[docs/sessions/016c-since-last-evidence.md](docs/sessions/016c-since-last-evidence.md).
+The real pack is private and never enters the repo, and no rating exists yet. After the review, a follow-up added a display-name profile fallback so a delivered corrected card saved with no `slot_cards` rows still resolves its sides (counted as `sides_profile_from_display`), with no change to how a side matches its source.
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only.
 
 ## AI assistance outside the Muse family
 

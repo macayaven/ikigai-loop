@@ -1,0 +1,24 @@
+# Session evidence — 016c-since-last-evidence (2026-11-02)
+
+Ticket 16c only: the rater page's `since_last` evidence lines now show both cards' values, on branch `t16c-since-last-evidence`, per [docs/plans/016c-since-last-evidence.md](016c-since-last-evidence.md). This note summarises the work; the raw session exports are kept privately, not in this repo. No real pack, key or result file was generated in these sessions or entered the repo; all stores below are made-up, and no real data was read in these sessions. Outside these sessions, Claude Code ran the pack against a private copy of my store to check the change against real formats, saw only counts, and deleted every pack it built.
+
+Every `uv`, `pre-commit` and `git` command in these sessions ran from the repo root under `PRE_COMMIT_HOME="$PWD/.git/pre-commit-home"` `UV_CACHE_DIR="$PWD/.git/uv-cache"`.
+
+## Sessions in order
+
+1. Plan — muse-wonder-1.0 at high. Wrote the plan and nothing else.
+2. Implementation — muse-spark-1.3 at medium. Wrote the plan's tests first, confirmed they failed on the base tree, implemented the fix, and wrote the docs.
+3. Fix — muse-spark-1.3 at medium. After the review found a voice-note corrected card with no `slot_cards` rows losing its statements to `statements_unmatched`, took a side's goal from its display name (`sides_profile_from_display`), with the regression test written first and watched fail before the fix.
+4. This commit session — muse-spark-1.3 at medium. Corrects this note, stages, commits, rebases onto origin/main, and runs the checks.
+
+## Implementation
+
+Implemented by Muse Code (Muse Spark), no model calls, no network. Tests were written before the code and failed on the base tree (12 failures: the new `since_last` tests on the missing `claims_since_last_unresolved` counter and two-value lines, and the two start-screen tests on the missing D8 sentence; 38 existing tests stayed green); then `framework/rater/pack.py` (snapshot on `_Candidate`, the lazy briefing-id parent index, the D4 resolver, the D5 line, the new counter) and `framework/rater/page.py` (the D8 sentence) were changed until green.
+
+Acceptance results, made-up stores only: AT-C1 passed (`test_since_last_shows_both_values`, previous 6, this card 9, change +3, `claims_since_last_unresolved=0`); AT-C2 passed (6 triggers in `test_since_last_unresolved`, each leaving the claim out and counting it once); AT-C3 passed (`test_since_last_duplicate_parent_agreeing`, two carriers agreeing at 6); AT-C4 passed (re-based `test_since_last_signed_changes` with the full new rise/fall/flat lines, plus untouched `test_evidence_rendering_per_family` and `test_fact_only_claim_shows_fact_and_no_number`); AT-C5 passed (`test_since_last_fact_only`, fact-only `since_last` claim with no parent untouched); AT-C6 passed (the D8 sentences verbatim on the start screen, CSP meta and no network surface intact); AT-C7 passed (the PREREG diff is the Deviation 19 block only, `tests/test_literature_doc.py` green). 131 tests in `tests/test_rater_*.py` and `tests/test_metrics_*.py`, passing, from the runs I made; the README Ticket 16 line carries that count.
+
+Assumptions I recorded: (1) D5's rendering, including the unit repeated after each number and the two card phrases "on the previous card" / "on this card"; (2) D6's single counter name `claims_since_last_unresolved` covering every failure trigger, counted once per claim; (3) D3's briefing-id lookup with no slot/profile/delivered filter, duplicates usable only when they agree; (4) D9's made-up test values 6, 9 and +3; (5) C2's reading of the duplicated failure case; (6) the D8 start-screen wording; (7) Deviation 19's exact text and heading, appended after the unnumbered R3 line that ends docs/PREREG.md. The plan and the code agreed everywhere else: I found no contradiction to report, so I improvised nothing beyond the helper shapes the plan leaves to the implementer (`_snapshot_mapping`, the `resolved` keyword on `_render_ref` failing closed to `None`, the lazily built parent index).
+
+The contradictions the plan pins (Grounding's stored-snapshot finding, C1–C3) were taken as read from the plan: the D4 exact-arithmetic check is what turns any snapshot disagreement into a counted exclusion, the two "missing parent" failure names describe one empty lookup, and the parent lookup is new read-only code on the copy.
+
+No real store, pack, key or result file was generated in this session or entered the repo; all stores above are made-up. No commit and nothing staged: the single Ticket 16c commit waits for the reviewer. Follow-up session (same model, medium): after the review found a voice-note corrected card with no `slot_cards` rows losing all six statements to `statements_unmatched`, I added the display-name profile fallback (`sides_profile_from_display`) with the `test_corrected_card_without_slot_rows_uses_display_profile` regression test, written first and watched fail before the fix.

@@ -162,7 +162,20 @@ def test_start_screen_explains_periods() -> None:
     assert "earlier" in page and "prior" in page and "last" in page
     assert "most recent" in page
     assert "all three together" in page
-    assert "the card before" in page
+    assert "the number on the previous card and the number on this card" in page
+    assert "covers different hours" in page
+
+
+def test_start_screen_describes_since_last_values() -> None:
+    page = _page()
+    assert (
+        "A line about a change since the previous card shows the number on the "
+        "previous card and the number on this card, then the change." in page
+    )
+    assert (
+        "Each card counts its own three periods, so the same period name on two "
+        "cards covers different hours." in page
+    )
 
 
 def test_start_screen_says_what_the_rater_judges() -> None:
