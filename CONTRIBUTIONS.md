@@ -477,6 +477,34 @@ Built on branch `t11b-review-fixes` per [docs/plans/011b-review-fixes.md](docs/p
 Muse Wonder Full (muse-wonder-full-1.0) reviewed Ticket 11 blind, found the problems this ticket fixes, and wrote the reproduction scripts; Claude Code ran them from a normal shell, because the review's sandbox couldn't. The finding that a real Contributor run passed the parser came from Claude Code's live run, not the review. The review's `repro_hour.py`, rerun on this tree, printed the same output as before the ticket: all five live slots land on the slot's own hour, 22:31 gives no hour, and the busy edges and the 59-minute gap behave.
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started; those sessions ran in Contributor mode, on this public repo and made-up data only. Claude Code ran the live measurements outside those sessions, on made-up data. The first move onto main and the text fixes ran on muse-spark-1.3 at effort low, and the move onto main after Tickets 13, 13b and 14 ran on muse-spark-1.3 at effort medium.
+## Ticket 16 — metrics and labels (2026-11-02)
+
+Built on branch `t16-metrics` per [docs/plans/016-metrics-and-labels.md](docs/plans/016-metrics-and-labels.md):
+two slices, one implementation commit for the whole ticket after the reviewer approves both.
+Slice A (`framework/rater/`) builds a self-contained offline HTML page holding every atomic claim
+from every delivered card with its cited evidence in plain words, plus a private key file, and a
+scorer that prints the R1 support rate; the dated Deviations entries 13 to 16 in
+[docs/PREREG.md](docs/PREREG.md) pin the claim-splitting rules.
+Slice B (`framework/metrics/`, `make metrics`) prints the whole submission report as counts and
+rates with `n` from a store copy: R1 first drafts as slot-path and re-proposal blocks off the
+existing SQL with an opt-in proposal-key filter, delivered cards and sides from the delivery join,
+fact disputes, the identities that must hold between the counts, with both sides printed,
+gating the exit code, R7 follow-through per
+evidence class with right-censored and unobserved-device unknowns, the before/during table from
+independent evidence only, and R8 with the rebuilt learner state against the stored one,
+Brier-primary scores with the clipping note, the policy diff, my forecast against my actual split
+with the Neither and untapped lines, and the recovery grid.
+109 tests in `tests/test_rater_*.py` and `tests/test_metrics_*.py`, passing.
+Evidence in [docs/sessions/016-metrics-and-labels.md](docs/sessions/016-metrics-and-labels.md).
+The real pack is private and never enters the repo.
+
+Prompts and review by Claude Code. The plan and its amendment by muse-wonder-1.0 (effort high),
+from Claude Code's prose briefs. Implementation and fixes by muse-spark-1.3 (effort medium), with three small amend sessions after the commit on muse-spark-1.3 at low effort,
+in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo
+and made-up data only. The PREREG entry's text was written by muse-wonder-1.0 in the plan from
+Claude Code's instructions on what it must say; Claude Code's prompts named files, tables,
+functions and one example sentence copied from the product prompt, and held no code.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
