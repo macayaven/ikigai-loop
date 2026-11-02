@@ -1,0 +1,9 @@
+The shell commands in the author's Codex run log, in order. All ran in the author's folder, whose path is left out; the paths below are relative to it. Only the commands are shown, not their output. The log records no other tool call and no web search.
+
+1. pwd -P && rg --files -g 'INSTRUCTIONS.md' -g 'AGENTS.md' -g 'CLAUDE.md' -g '!node_modules' -g '!.git' .
+2. cat INSTRUCTIONS.md
+3. rg --files contract
+4. cat contract/redteam-README.md contract/PREREG.md
+5. cat contract/session-010b-redteam.md contract/session-010c-since-last-wording.md contract/gate-codes-in-docs.md
+6. cat contract/PREREG.md
+7. cat contract/session-010b-redteam.md
