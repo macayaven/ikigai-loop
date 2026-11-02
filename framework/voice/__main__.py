@@ -5,7 +5,7 @@ from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
-from framework.voice.worker import show_chain
+from framework.voice.worker import backfill_slot_rows, show_chain
 
 
 def main(
@@ -26,8 +26,17 @@ def main(
     picked.add_argument("--card", default=None)
     picked.add_argument("--message", type=int, default=None)
     chain.add_argument("--db", default=None)
+    backfill = sub.add_parser(
+        "backfill-slot-rows",
+        help="Rebuild missing corrected-card rows from stored rows.",
+    )
+    backfill.add_argument("--db", default=None)
+    backfill.add_argument("--apply", action="store_true")
     args = parser.parse_args(argv)
     resolved = Path(args.db) if args.db is not None else db_path
+    if args.command == "backfill-slot-rows":
+        print(backfill_slot_rows(resolved, apply=args.apply), flush=True)
+        return 0
     print(
         show_chain(resolved, card_id=args.card, message_id=args.message),
         flush=True,

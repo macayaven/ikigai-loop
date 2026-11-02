@@ -4479,3 +4479,222 @@ def test_voice_correction_ordinary_slot_keeps_injected_limits(
     assert row is not None
     assert process_one(deps, row) == "applied_card"
     assert seen["limits"] is unusual
+
+
+def _live_path_harness(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Harness:
+    """The live poller's store shape: one folder, one file, no explicit path.
+
+    The made-up store is seeded through explicit-path ledgers, then the
+    deps carry ``db_path=None`` and the path is found from
+    ``IKIGAI_DATA_DIR`` at call time, as the live poller leaves it.
+    """
+    import dataclasses
+
+    harness = make_harness(
+        monkeypatch,
+        tmp_path,
+        compile_script=[correction_json("skip", WRITE_ID, "today")],
+        transcript=b"skip the write-up today",
+    )
+    data = tmp_path / "data"
+    data.mkdir(exist_ok=True)
+    monkeypatch.setenv("IKIGAI_DATA_DIR", str(data))
+    harness.db = data / "ikigai.db"
+    harness.deps = dataclasses.replace(deps_of(harness), db_path=None)
+    return harness
+
+
+def test_corrected_card_saves_slot_rows_no_explicit_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """With no explicit path a corrected card still gets its slot rows.
+
+    The unchanged side copies the old row with the new card id and letter
+    and its old ``as_of``; the changed side takes its new commitment and
+    kind with the handling instant as ``as_of``.
+    """
+    harness = _live_path_harness(monkeypatch, tmp_path)
+    old = seed_old_card(harness, message_id=700)
+    seed_results(harness, old)
+    seed_slot_rows(harness, old)
+    seed_note(harness, 301, reply_to=700)
+
+    assert claim_and_process(harness) == "applied_card"
+    row = VoiceLedger(harness.db).load(301)
+    assert row is not None and row.new_card_id is not None
+
+    from framework.cycle.slot_ledger import SlotLedger
+
+    saved = SlotLedger(harness.db).slot_cards_for_card(row.new_card_id)
+    assert [(item.card_id, item.letter) for item in saved] == [
+        (row.new_card_id, "A"),
+        (row.new_card_id, "B"),
+    ]
+    changed, unchanged = saved
+    assert (changed.commitment_id, changed.kind) == (WRITE2_ID, "proposal")
+    assert changed.slot == old.slot and changed.subject_id == SUBJECT
+    assert changed.bucket == "loved"
+    assert changed.as_of == harness.now
+    assert (changed.policy_pick, changed.policy_alternative) == ("pick-A", None)
+    assert (unchanged.commitment_id, unchanged.kind) == (REST_ID, "proposal")
+    assert unchanged.as_of == SAT_SLOT
+    assert (unchanged.policy_pick, unchanged.policy_alternative) == ("pick-B", None)
+
+
+def test_corrected_tap_counted_no_explicit_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """With no explicit path a tap on the corrected card is counted.
+
+    The tap's ruling comes from the rows the worker saved, read back
+    through the same environment resolution the live path uses.
+    """
+    from framework.collectors.common import event_id
+    from framework.cycle.orchestrator import rebuild_state
+    from framework.cycle.slot_ledger import SlotLedger
+    from framework.schemas.events import AppTapData, Event
+    from framework.store import resolve_db_path
+    from framework.telegram.service import COLLECTOR_VERSION
+
+    harness = _live_path_harness(monkeypatch, tmp_path)
+    old = seed_old_card(harness, message_id=700)
+    seed_results(harness, old)
+    seed_slot_rows(harness, old, bucket="evening")
+    seed_note(harness, 301, reply_to=700)
+
+    assert claim_and_process(harness) == "applied_card"
+    row = VoiceLedger(harness.db).load(301)
+    assert row is not None and row.new_card_id is not None
+    tap = Event(
+        id=event_id("telegram", "tap:no-explicit-path"),
+        subject_id=SUBJECT,
+        source="telegram",
+        type="app.tap",
+        time=harness.now,
+        source_id="tap:no-explicit-path",
+        data=AppTapData(block_id=row.new_card_id, target="A"),
+        tier="private",
+        collected_at=harness.now,
+        collector_version=COLLECTOR_VERSION,
+    )
+    through_env = SlotLedger(resolve_db_path(None)).slot_cards_for_card(row.new_card_id)
+    through_path = SlotLedger(harness.db).slot_cards_for_card(row.new_card_id)
+    assert tuple(through_env) == tuple(through_path)
+    state, skipped = rebuild_state((tap,), through_env)
+    expected, expected_skipped = rebuild_state((tap,), through_path)
+    assert skipped == 0
+    assert (state, skipped) == (expected, expected_skipped)
+
+
+def test_local_retry_recorded_no_explicit_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """With no explicit path a retried local start failure is recorded."""
+    import dataclasses
+
+    from framework.cycle.slot_ledger import SlotLedger
+    from framework.proposal.local_retry import LocalRetryClient
+    from framework.proposal.muse_client import LocalStartFailure
+    from framework.voice.worker import process_one as _process_one
+
+    harness = _live_path_harness(monkeypatch, tmp_path)
+    old = seed_old_card(harness, message_id=700)
+    seed_results(harness, old)
+    seed_slot_rows(harness, old)
+
+    class _FailOnce:
+        transport = "fake"
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, request: Any) -> Any:
+            from framework.proposal.core import WonderResponse
+
+            self.calls += 1
+            if self.calls == 1:
+                raise LocalStartFailure(
+                    "exit 1", latency_ms=5, exit_code=1, stderr_masked="masked"
+                )
+            return WonderResponse(
+                text="{}",
+                model_reported="fake",
+                latency_ms=5,
+                finish_reason="stop",
+                prompt_tokens=1,
+                completion_tokens=1,
+                reasoning_tokens=None,
+            )
+
+    def _retry_factory(terms: tuple[str, ...], available: bool) -> LocalRetryClient:
+        return LocalRetryClient(_FailOnce(), sleep=lambda s: None)  # type: ignore[arg-type]
+
+    def _propose(**kwargs: Any) -> Any:
+        from framework.proposal.core import WonderRequest
+
+        kwargs["client"].complete(
+            WonderRequest(
+                prompt="synthetic",
+                model="synthetic",
+                effort="low",
+                response_schema={},
+            )
+        )
+        return harness.propose(**kwargs)
+
+    deps = dataclasses.replace(
+        deps_of(harness), make_wonder_client=_retry_factory, propose_fn=_propose
+    )
+    seed_note(harness, 309, reply_to=700)
+    claimed = VoiceLedger(harness.db).claim_next(harness.now)
+    assert claimed is not None
+    assert _process_one(deps, claimed) == "applied_card"
+
+    retries = SlotLedger(harness.db).local_retries_for_slot(old.slot)
+    assert len(retries) == 1
+    retry = retries[0]
+    assert retry.slot == old.slot and retry.profile == "builder"
+    assert (retry.attempt, retry.reason) == (1, "exit 1")
+    assert (retry.latency_ms, retry.exit_code) == (5, 1)
+    assert retry.stderr_masked == "masked"
+
+
+def test_corrected_card_saves_slot_rows_explicit_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Pinning: the explicit-path corrected card writes today's rows.
+
+    This is the behaviour D1 and D4 must keep line for line; it passes
+    with and without the fix.
+    """
+    harness = make_harness(
+        monkeypatch,
+        tmp_path,
+        compile_script=[correction_json("skip", WRITE_ID, "today")],
+        transcript=b"skip the write-up today",
+    )
+    old = seed_old_card(harness, message_id=700)
+    seed_results(harness, old)
+    seed_slot_rows(harness, old)
+    seed_note(harness, 301, reply_to=700)
+
+    assert claim_and_process(harness) == "applied_card"
+    row = VoiceLedger(harness.db).load(301)
+    assert row is not None and row.new_card_id is not None
+
+    from framework.cycle.slot_ledger import SlotLedger
+
+    saved = SlotLedger(harness.db).slot_cards_for_card(row.new_card_id)
+    assert [(item.card_id, item.letter) for item in saved] == [
+        (row.new_card_id, "A"),
+        (row.new_card_id, "B"),
+    ]
+    changed, unchanged = saved
+    assert (changed.commitment_id, changed.kind) == (WRITE2_ID, "proposal")
+    assert changed.slot == old.slot and changed.subject_id == SUBJECT
+    assert changed.bucket == "loved"
+    assert changed.as_of == harness.now
+    assert (changed.policy_pick, changed.policy_alternative) == ("pick-A", None)
+    assert (unchanged.commitment_id, unchanged.kind) == (REST_ID, "proposal")
+    assert unchanged.as_of == SAT_SLOT
+    assert (unchanged.policy_pick, unchanged.policy_alternative) == ("pick-B", None)
