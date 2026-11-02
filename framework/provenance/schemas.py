@@ -354,6 +354,17 @@ class NotOnCard(SchemaModel):
     reason_codes: tuple[CodeStr, ...] | Literal["unknown"]
 
 
+VoiceOperation = Literal[
+    "done", "skip", "defer", "drop", "keep", "fact_correction", "asked", "unknown"
+]
+
+
+class VoiceNote(SchemaModel):
+    operation: VoiceOperation
+    new_card_sent: bool
+    latency_ms: CountValue
+
+
 class ProvenanceLine(SchemaModel):
     slot: SlotStr
     delivery: Delivery
@@ -365,3 +376,4 @@ class ProvenanceLine(SchemaModel):
     facts_cited: OriginCounts
     not_on_card: tuple[NotOnCard, ...]
     sides: tuple[Side, ...]
+    voice_notes: tuple[VoiceNote, ...] | Literal["unknown"] = "unknown"

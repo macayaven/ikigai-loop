@@ -42,6 +42,8 @@ STORE_COLUMNS: dict[str, tuple[str, ...]] = {
     "slot_ledger": ("slot", "step", "outcome", "card_id"),
     "slot_cards": ("card_id", "slot", "subject_id", "as_of"),
     "slot_card_payloads": ("card_id", "card_json", "chart_json"),
+    "telegram_card_charts": ("card_id", "chart_json"),
+    "voice_notes": ("new_card_id",),
 }
 
 
@@ -283,6 +285,191 @@ def results_at(conn: sqlite3.Connection, subject: str, slot: Any) -> list[dict]:
             entry.update(briefing=_loads(briefing_text), snapshot=_loads(snap_text))
             latest[profile] = entry
     return [latest[key] for key in sorted(latest)]
+
+
+def results_rows_at(conn: sqlite3.Connection, subject: str, slot: Any) -> list[dict]:
+    """Read every proposal or fallback row at one slot, in rowid order."""
+    if not has(conn, "proposal_results"):
+        return []
+    query = (
+        "SELECT rowid, profile_id, cycle_id, run, kind, slot, briefing_json,"
+        " snapshot FROM proposal_results WHERE subject_id = ? ORDER BY rowid"
+    )
+    out = []
+    for row in conn.execute(query, (subject,)):
+        rowid, profile, cycle_id, run, kind, slot_text, briefing_text, snap_text = row
+        if kind not in ("proposal", "fallback") or _when(slot_text) != slot:
+            continue
+        out.append(
+            {
+                "rowid": rowid,
+                "profile_id": profile,
+                "cycle_id": cycle_id,
+                "run": run,
+                "kind": kind,
+            }
+            | {"briefing": _loads(briefing_text), "snapshot": _loads(snap_text)}
+        )
+    return out
+
+
+def card_claim_texts(briefing: Any) -> list[str]:
+    """Restate the product's card-claim rule without importing it.
+
+    The first overall_state claim first, then the remaining claims in
+    section order, three at most. Only string texts count. Anything that
+    is not a briefing object with claim lists simply has no card claims.
+    """
+    if not isinstance(briefing, dict):
+        return []
+    sections = briefing.get("sections")
+    if not isinstance(sections, list):
+        return []
+    ordered: list[dict] = []
+    first: dict | None = None
+    for section in sections:
+        if not isinstance(section, dict):
+            continue
+        claims = section.get("claims")
+        if not isinstance(claims, list):
+            continue
+        for claim in claims:
+            if not isinstance(claim, dict):
+                continue
+            if first is None and section.get("type") == "overall_state":
+                first = claim
+            ordered.append(claim)
+    if first is not None:
+        ordered = [first, *[claim for claim in ordered if claim is not first]]
+    return [claim["text"] for claim in ordered if isinstance(claim.get("text"), str)][
+        :3
+    ]
+
+
+def own_rows_for(rows: list[dict], statements: Any) -> list[dict]:
+    """Pick one row per profile: the latest whose card claims sit on the card.
+
+    A row qualifies when it has at least one card claim and every one
+    appears word for word among the card's statements. Otherwise the
+    latest row of that profile is taken, which is today's rule.
+    """
+    wanted = (
+        {text for text in statements if isinstance(text, str)}
+        if isinstance(statements, list)
+        else set()
+    )
+    by_profile: dict[str, list[dict]] = {}
+    for row in rows:
+        by_profile.setdefault(str(row["profile_id"]), []).append(row)
+    out = []
+    for profile in sorted(by_profile):
+        cands = by_profile[profile]
+        pick = cands[-1]
+        for row in reversed(cands):
+            texts = card_claim_texts(row.get("briefing"))
+            if texts and all(text in wanted for text in texts):
+                pick = row
+                break
+        out.append(pick)
+    return out
+
+
+def card_chart(conn: sqlite3.Connection, card_id: Any) -> Any:
+    """Read one corrected card's chart, or None when the table has none."""
+    if not has(conn, "telegram_card_charts"):
+        return None
+    try:
+        row = conn.execute(
+            "SELECT chart_json FROM telegram_card_charts WHERE card_id = ?",
+            (card_id,),
+        ).fetchone()
+    except sqlite3.Error:
+        return None
+    if row is None:
+        return None
+    return _loads(row[0])
+
+
+def _chain_reaches(card: dict, slot_id: Any, slot: Any, by_id: dict[Any, Any]) -> bool:
+    """Walk replaces_card_id links to the slot card, staying on this slot."""
+    seen: set[Any] = set()
+    link = card.get("replaces_card_id")
+    while isinstance(link, str) and link and link not in seen:
+        if link == slot_id:
+            return True
+        seen.add(link)
+        nxt = by_id.get(link)
+        if not isinstance(nxt, dict):
+            return False
+        if _when(nxt.get("slot")) != slot:
+            return False
+        link = nxt.get("replaces_card_id")
+    return False
+
+
+def corrected_cards(conn: sqlite3.Connection, slot_card: dict | None) -> list[dict]:
+    """Read corrected cards at the slot card's slot with voice proof.
+
+    A corrected card names the slot instant, its replaces_card_id chain
+    reaches the slot card through cards of that slot, and a voice_notes
+    row names its card id in new_card_id. Only new_card_id is read from
+    voice_notes. A missing table or column means no corrected cards.
+    """
+    if not isinstance(slot_card, dict):
+        return []
+    slot, slot_id = slot_card.get("slot"), slot_card.get("card_id")
+    if not isinstance(slot, datetime):
+        return []
+    if not has(conn, "telegram_cards") or not has(conn, "voice_notes"):
+        return []
+    try:
+        columns = [row[1] for row in conn.execute("PRAGMA table_info(voice_notes)")]
+    except sqlite3.Error:
+        return []
+    if "new_card_id" not in columns:
+        return []
+    try:
+        proof = {
+            row[0]
+            for row in conn.execute("SELECT new_card_id FROM voice_notes")
+            if isinstance(row[0], str) and row[0]
+        }
+    except sqlite3.Error:
+        return []
+    try:
+        rows = conn.execute(
+            "SELECT rowid, card_id, card_json FROM telegram_cards ORDER BY rowid"
+        ).fetchall()
+    except sqlite3.Error:
+        return []
+    by_id: dict[Any, Any] = {}
+    cands = []
+    for rowid, card_id, card_text in rows:
+        card = _loads(card_text)
+        by_id[card_id] = card
+        cands.append((rowid, card_id, card))
+    out = []
+    for rowid, card_id, card in cands:
+        if not isinstance(card, dict):
+            continue
+        if _when(card.get("slot")) != slot:
+            continue
+        if not isinstance(card_id, str) or card_id not in proof:
+            continue
+        if not _chain_reaches(card, slot_id, slot, by_id):
+            continue
+        out.append(
+            {
+                "card_id": card_id,
+                "slot": slot,
+                "rowid": rowid,
+                "card": card,
+                "chart": card_chart(conn, card_id),
+                "proven": True,
+            }
+        )
+    out.sort(key=lambda entry: entry["rowid"])
+    return out
 
 
 def ticket13_cards(conn: sqlite3.Connection, subject: str) -> list[dict] | None:

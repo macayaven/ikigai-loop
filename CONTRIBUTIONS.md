@@ -612,6 +612,14 @@ The real pack is private and never enters the repo, and no rating exists yet. Af
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only.
 
+## Ticket 20b — corrected cards (2026-11-02)
+
+Built on branch `e2b-corrected-cards` per [docs/plans/020b-corrected-cards.md](docs/plans/020b-corrected-cards.md):
+the source audit now collects every delivered card at a slot — the slot card plus each corrected card with voice-note delivery proof — and runs stage 4 once per card against that card's own briefing rows, folding the per-card lines into the metric verdict; a one-card slot prints byte for byte what it printed before, and a change sentence with "by" is never read as a count. The provenance log gains one last field with one entry per closed voice note at the slot: the operation word, whether a new card was sent, and the time in whole milliseconds. Evidence in
+[docs/sessions/020b-corrected-cards.md](docs/sessions/020b-corrected-cards.md).
+
+Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation, the fix and this commit step: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code ran the re-audit and the provenance export on scratch copies of my store outside those sessions; it created the branch and typed nothing in this repository.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

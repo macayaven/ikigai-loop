@@ -124,7 +124,7 @@ def _base_tables(db: Path) -> None:
     from framework.store.proposal_store import ProposalStore
     from framework.store.store import DDL as STORE_DDL
     from framework.store.store import EventStore
-    from framework.telegram.ledger import LEDGER_DDL
+    from framework.telegram.ledger import LEDGER_DDL, VOICE_NOTES_DDL
 
     EventStore(db_path=db).close()
     FactStore(db_path=db).close()
@@ -138,6 +138,7 @@ def _base_tables(db: Path) -> None:
         conn.executescript(PROPOSAL_DDL)
         conn.executescript(SLOT_DDL)
         conn.executescript(LEDGER_DDL)
+        conn.executescript(VOICE_NOTES_DDL)
         conn.commit()
     finally:
         conn.close()
@@ -193,6 +194,7 @@ EXEMPT: dict[str, str] = {
     "slot_cards.slot": "slot instant join, must parse",
     "proposal_results.slot": "slot instant join, must parse",
     "local_start_retries.slot": "slot instant join, must parse",
+    "voice_notes.slot": "slot instant join, must parse",
 }
 
 
@@ -617,6 +619,55 @@ def _seed_canary_db(db: Path) -> list[str]:
             " duration_s) VALUES (7, ?, 3)",
             (FREE,),
         )
+        conn.execute(
+            "INSERT INTO voice_notes (message_id, file_id, file_unique_id,"
+            " mime_type, received_at, status, next_attempt_at,"
+            " first_claimed_at, applied_at, slot, matched_card_id,"
+            " transcript, operation, commitment_id, until_value, question,"
+            " validation_codes, new_card_id, outcome, step_seconds, total_s,"
+            " compile_model, compile_effort, muse_version) VALUES (11, ?, ?,"
+            " ?, ?, 'done', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
+            " ?, ?)",
+            (
+                FREE,
+                FREE,
+                FREE,
+                FREE,
+                FREE,
+                FREE,
+                FREE,
+                SLOT1_UTC,
+                FREE,
+                FREE,
+                FREE,
+                FREE,
+                FREE,
+                FREE,
+                FREE,
+                CARD1,
+                FREE,
+                FREE,
+                1.5,
+                FREE,
+                FREE,
+                FREE,
+            ),
+        )
+        conn.execute(
+            "INSERT INTO voice_notes (message_id, slot, status, operation)"
+            " VALUES (12, ?, ?, 'done')",
+            (SLOT2_UTC, FREE),
+        )
+        conn.execute(
+            "INSERT INTO telegram_card_messages (message_id, card_id,"
+            " sent_at) VALUES (9, ?, ?)",
+            (FREE, FREE),
+        )
+        conn.execute(
+            "INSERT INTO telegram_card_charts (card_id, chart_json,"
+            " created_at) VALUES (?, ?, ?)",
+            (FREE, FREE, FREE),
+        )
         conn.commit()
     finally:
         conn.close()
@@ -676,6 +727,12 @@ def test_canary_no_private_text_escapes(
     assert first["sides"][0]["metrics_cited"] == 1
     assert first["facts_cited"] == {"code": 1, "model": 1, "unknown": 0}
     assert first["sides"][0]["cycle"]["passes"][0]["noop_reason"] == "none"
+    # The closed voice note reads as one entry with a mapped operation;
+    # the open slot-2 note stays out.
+    assert first["voice_notes"] == [
+        {"operation": "unknown", "new_card_sent": True, "latency_ms": 1500}
+    ]
+    assert rows[SLOT2_LOCAL]["voice_notes"] == []
     second = rows[SLOT2_LOCAL]
     # The closed-column canaries map to the fixed words.
     assert second["delivery"] == "not_sent"

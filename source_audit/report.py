@@ -63,6 +63,37 @@ def _diag_row(name: str, diag: dict) -> dict:
     return row
 
 
+def _stage_entry(row: dict, metric: str, stage: str) -> dict:
+    """Build one export stage entry, keeping a card marker last."""
+    entry = {key: value for key, value in row.items() if key != "card"}
+    entry["metric"] = metric
+    entry["stage"] = stage
+    if "card" in row:
+        entry["card"] = row["card"]
+    return entry
+
+
+def _stage_entries(res: dict) -> list[dict]:
+    """Build the export stage entries; extra fourth stages stay stage 4."""
+    return [
+        _stage_entry(r, n, str(i) if i < 4 else "4")
+        for n, rows in res["stages"].items()
+        for i, r in enumerate(rows, 1)
+    ]
+
+
+def _verdict_entries(res: dict) -> list[dict]:
+    """Build the export verdict entries with per-card verdicts after folded."""
+    folded = [{"metric": n, "verdict": v} for n, v in res["verdicts"].items()]
+    if not res.get("card_verdicts"):
+        return folded
+    return folded + [
+        {"metric": n, "verdict": entry["verdict"], "card": entry["card"]}
+        for n in res["stages"]
+        for entry in res["card_verdicts"].get(n, [])
+    ]
+
+
 def build_export(
     res: dict, count: Any, card_window: Any, picked: Any, snapshot: dict
 ) -> dict[str, Any]:
@@ -79,14 +110,8 @@ def build_export(
             "limits": _limit_codes(False),
             "other_repos_feed_only": 0,
             "deltas_not_audited": res["deltas_not_audited"],
-            "stages": [
-                {**r, "metric": n, "stage": str(i)}
-                for n, rows in res["stages"].items()
-                for i, r in enumerate(rows, 1)
-            ],
-            "verdicts": [
-                {"metric": n, "verdict": v} for n, v in res["verdicts"].items()
-            ],
+            "stages": _stage_entries(res),
+            "verdicts": _verdict_entries(res),
             "rows": [_diag_row(n, d) for n, d in res["diagnostics"].items()],
             "activity_unmatched": None,
             "identifiers": {k: res["identifiers"][k] for k in ID3},
@@ -121,12 +146,8 @@ def build_export(
         "coverage": [
             _cov_row(s, count, snapshot) for s in ("events", "pulls", "activity")
         ],
-        "stages": [
-            {**r, "metric": n, "stage": str(i)}
-            for n, rows in res["stages"].items()
-            for i, r in enumerate(rows, 1)
-        ],
-        "verdicts": [{"metric": n, "verdict": v} for n, v in res["verdicts"].items()],
+        "stages": _stage_entries(res),
+        "verdicts": _verdict_entries(res),
         "rows": [_diag_row(n, d) for n, d in res["diagnostics"].items()],
         "activity_unmatched": acts,
         "identifiers": {k: res["identifiers"][k] for k in ID3},
@@ -193,9 +214,13 @@ def render_lines(export: dict[str, Any], tz: str) -> list[str]:
             f"earlier={_num(r['earlier'])} prior={_num(r['prior'])} "
             f"last={_num(r['last'])} total={_num(r['total'])} "
             f"codes={_codes(r['codes'])}"
+            + (f" card={r['card']}" if "card" in r else "")
         )
     for r in export["verdicts"]:
-        lines.append(f"metric={r['metric']} verdict={r['verdict']}")
+        lines.append(
+            f"metric={r['metric']} verdict={r['verdict']}"
+            + (f" card={r['card']}" if "card" in r else "")
+        )
     for r in export["rows"]:
         lines.append(
             f"metric={r['metric']} rows_counted={_num(r['rows_counted'])} "
@@ -233,7 +258,9 @@ def render_lines(export: dict[str, Any], tz: str) -> list[str]:
         lines.append("snapshot_diverges=" + ",".join(export["snapshot_diverges"]))
     if export["statements"]:
         joined = ",".join(
-            f"{d['metric']}:{d['stage']}:{d['item']}" for d in export["statements"]
+            f"{d['metric']}:{d['stage']}:{d['item']}"
+            + (f":card{d['card']}" if "card" in d else "")
+            for d in export["statements"]
         )
         lines.append(f"statements={joined}")
     if export.get("delta_codes"):

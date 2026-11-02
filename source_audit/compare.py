@@ -166,16 +166,29 @@ def run_compare(
     pick_result = _pick(conn, subject, choice, instant)
     picked = pick_result.picked
     pick_code = pick_result.code
-    joined = pick_result.joined
+    slot_joined = list(pick_result.joined)
     ambiguous = pick_result.ambiguous
     prev = pick_result.prev
+    t13 = all(ST.has(conn, name) for name in ST.TICKET13)
+    corrections: list[dict] = []
+    slot_rows: list[dict] = slot_joined
+    if t13 and picked is not None:
+        slot_rows = ST.results_rows_at(conn, subject, picked["slot"])
+        if slot_rows:
+            slot_joined = ST.own_rows_for(slot_rows, _card_statements(picked))
+            corrections = ST.corrected_cards(conn, picked)
+            only = {(row["cycle_id"], row["run"]) for row in slot_joined}
+            if len(only) > 1:
+                ambiguous, pick_code = True, "CARD_CYCLE_AMBIGUOUS"
+            else:
+                ambiguous, pick_code = False, ""
     sel = Selection(
         want_card=want_card,
         as_of=as_of,
         cycle=cycle,
         picked=picked,
         pick_code=pick_code,
-        joined=joined,
+        joined=slot_joined,
         ambiguous=ambiguous,
     )
     cycle, pick_code = _resolve(conn, subject, sel)
@@ -203,20 +216,22 @@ def run_compare(
     first = S.stage1(count, snapshot)
     blank_code = "NO_CYCLE" if count is None else "WINDOW_RULE_MISMATCH"
     for name in chosen:
-        stages[name] = [first[name][0], _blank("")[0], _blank("")[0], _blank("")[0]]
+        stages[name] = [first[name][0], _blank("")[0], _blank("")[0]]
         identifiers["disagree"].extend(first[name][1].get("disagree", []))
         for entry in first[name][1].get("duplicate", []):
             if "repo" not in entry or entry not in identifiers["duplicate"]:
                 identifiers["duplicate"].append(entry)
         if count is None or guard_fail:
-            stages[name][1:] = [_blank(blank_code)[0] for _ in range(3)]
+            stages[name][1:] = [_blank(blank_code)[0] for _ in range(2)]
             diag = _diag0(conn)
         elif cycle is None:
             stages[name][1:3] = [_blank("NO_CYCLE")[0] for _ in range(2)]
             diag, dprobs = S.diagnostics(scope, cycle_as_of, count, name)
             identifiers["item_not_stored"].extend(dprobs.get("item_not_stored", []))
         else:
-            (two, probs), diag = S.stage2(scope, cycle, count, joined, guard_note, name)
+            (two, probs), diag = S.stage2(
+                scope, cycle, count, slot_joined, guard_note, name
+            )
             stages[name][1] = two
             identifiers["snapshot_diverges"].extend(probs.get("snapshot_diverges", []))
             identifiers["item_not_stored"].extend(probs.get("item_not_stored", []))
@@ -227,42 +242,115 @@ def run_compare(
             stages[name][2] = _force_gap(stages[name][2])
         diagnostics[name] = diag
     proven = isinstance(picked, dict) and picked.get("proven", False) is True
-    _, delta_texts = S.split_claims(joined)
-    card_body = picked.get("card") if isinstance(picked, dict) else None
-    deltas = card_body.get("statements") if isinstance(card_body, dict) else None
-    deltas = deltas if isinstance(deltas, list) else []
-    deltas_not_audited = sum(
-        1 for t in deltas if isinstance(t, str) and t in delta_texts
-    )
-    ctx = StageContext(
-        pick_code=pick_code,
-        picked=picked,
-        joined=joined,
-        card_count=card_count,
-        proven=proven,
-        delta_texts=delta_texts,
-    )
-    since_info = _since(snapshot, picked, prev)
+    multi = bool(corrections)
+    cards_ctx: list[tuple[int, StageContext, dict]] = []
+    if not multi:
+        _, delta_texts = S.split_claims(slot_joined)
+        card_body = picked.get("card") if isinstance(picked, dict) else None
+        deltas = card_body.get("statements") if isinstance(card_body, dict) else None
+        deltas = deltas if isinstance(deltas, list) else []
+        deltas_not_audited = sum(
+            1 for t in deltas if isinstance(t, str) and t in delta_texts
+        )
+        delta_codes = ["CARD_DELTA_NOT_AUDITED"] if delta_texts else []
+        ctx = StageContext(
+            pick_code=pick_code,
+            picked=picked,
+            joined=slot_joined,
+            card_count=card_count,
+            proven=proven,
+            delta_texts=delta_texts,
+        )
+        cards_ctx = [(0, ctx, _since(snapshot, picked, prev))]
+    else:
+        _, slot_deltas = S.split_claims(slot_joined)
+        slot_ctx = StageContext(
+            pick_code=pick_code,
+            picked=picked,
+            joined=slot_joined,
+            card_count=card_count,
+            proven=proven,
+            delta_texts=slot_deltas,
+        )
+        cards_ctx = [(1, slot_ctx, _since(snapshot, picked, prev))]
+        for ordinal, corr in enumerate(corrections, 2):
+            own = ST.own_rows_for(slot_rows, _card_statements(corr))
+            cycles = {(row["cycle_id"], row["run"]) for row in own}
+            if not own:
+                code, moment = "CARD_NO_RESULT_ROW", None
+            elif len(cycles) > 1:
+                code, moment = "CARD_CYCLE_AMBIGUOUS", None
+            else:
+                code, moment = "", None
+                found = ST.cycle_get(conn, *next(iter(cycles))) if cycles else None
+                moment = found["as_of"] if found else None
+            entry = dict(corr) | {"as_of": moment}
+            own_count = _recount(snapshot, moment) if moment else None
+            _, own_deltas = S.split_claims(own)
+            cards_ctx.append(
+                (
+                    ordinal,
+                    StageContext(
+                        pick_code=code,
+                        picked=entry,
+                        joined=own,
+                        card_count=own_count,
+                        proven=True,
+                        delta_texts=own_deltas,
+                    ),
+                    _since(snapshot, entry, prev),
+                )
+            )
+        all_deltas: set[str] = set()
+        total = 0
+        for _, card_ctx, _ in cards_ctx:
+            for text in _card_statements(card_ctx.picked):
+                if isinstance(text, str) and text in card_ctx.delta_texts:
+                    total += 1
+            all_deltas |= set(card_ctx.delta_texts)
+        deltas_not_audited = total
+        delta_codes = ["CARD_DELTA_NOT_AUDITED"] if all_deltas else []
+    card_verdicts: dict[str, list] = {}
     for name in chosen:
         if guard_fail:
-            stages[name][3] = _blank("WINDOW_RULE_MISMATCH")[0]
+            for ordinal, _ctx, _ in cards_ctx:
+                row = _blank("WINDOW_RULE_MISMATCH")[0]
+                if multi:
+                    row = dict(row) | {"card": ordinal}
+                stages[name].append(row)
             continue
-        stages[name][3], fprobs = S.stage4(ctx, name)
-        identifiers["statements"].extend(fprobs.get("statements", []))
-        if name == "pushes_plus_prs" and proven:
-            stages[name][3] = _apply_since(stages[name][3], since_info)
-        if _gap_4(name, card_count):
-            stages[name][3] = _force_gap(stages[name][3])
+        for ordinal, card_ctx, since_each in cards_ctx:
+            row, fprobs = S.stage4(card_ctx, name)
+            if multi:
+                row = dict(row) | {"card": ordinal}
+                for entry in fprobs.get("statements", []):
+                    entry["card"] = ordinal
+            stages[name].append(row)
+            identifiers["statements"].extend(fprobs.get("statements", []))
+            if name == "pushes_plus_prs" and card_ctx.proven:
+                stages[name][-1] = _apply_since(stages[name][-1], since_each)
+            if _gap_4(name, card_ctx.card_count):
+                stages[name][-1] = _force_gap(stages[name][-1])
+    since_info = cards_ctx[0][2]
+    if multi:
+        for name in chosen:
+            first_three = [row["status"] for row in stages[name][:3]]
+            fourths = stages[name][-len(cards_ctx) :]
+            card_verdicts[name] = [
+                {"verdict": _verdict(first_three + [row["status"]]), "card": ordinal}
+                for (ordinal, _, _), row in zip(cards_ctx, fourths)
+            ]
     verdicts = {n: _verdict([s["status"] for s in stages[n]]) for n in chosen}
     worst = max({"FAIL": 3, "INCOMPLETE": 2, "PASS": 1}[v] for v in verdicts.values())
     exit_code = {3: 1, 2: 3, 1: 0}[worst]
     res = {
         "stages": stages,
         "verdicts": verdicts,
+        "card_verdicts": card_verdicts,
         "exit": exit_code,
         "diagnostics": diagnostics,
         "identifiers": identifiers,
-        "delta_codes": ["CARD_DELTA_NOT_AUDITED"] if delta_texts else [],
+        "delta_codes": delta_codes,
         "deltas_not_audited": deltas_not_audited,
         "delivery_proven": proven,
         "feed_settled": count["feed_settled"] if count else False,
@@ -339,6 +427,13 @@ def _since(snapshot: dict, picked: Any, prev: Any) -> dict[str, Any]:
             "codes": ["SINCE_LINE_WRONG"],
         }
     return {"stated": stated, "recounted": recounted, "codes": []}
+
+
+def _card_statements(picked: Any) -> list:
+    """Return a picked card's statements, or an empty list when unreadable."""
+    card = picked.get("card") if isinstance(picked, dict) else None
+    statements = card.get("statements") if isinstance(card, dict) else None
+    return list(statements) if isinstance(statements, list) else []
 
 
 def _pick(
