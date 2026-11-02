@@ -87,6 +87,7 @@ from framework.proposal.hour import (
 from framework.proposal.local_retry import LocalRetryClient
 from framework.proposal.muse_client import MuseExecClient, resolve_muse_bin
 from framework.proposal.schemas import FallbackProposal
+from framework.proposal.timeout_retry import TimeoutRetryClient
 from framework.schemas.events import AppTapData, Event
 from framework.store.fact_store import FactStore
 from framework.store.proposal_store import ProposalStore, StoredResult
@@ -815,8 +816,10 @@ def _run_slot_body(
         print(f"slot={iso} code={code} kill={kill_flag}")
         raise _SlotDone(2)
 
-    def _step_failed(step: str, exc: BaseException) -> NoReturn:
-        ledger.append_step(slot, step, type(exc).__name__, _elapsed(), None, None)
+    def _step_failed(
+        step: str, exc: BaseException, detail: dict[str, object] | None = None
+    ) -> NoReturn:
+        ledger.append_step(slot, step, type(exc).__name__, _elapsed(), None, detail)
         _finish((), None, type(exc).__name__, 1)
 
     def _killed_at(step: str) -> NoReturn:
@@ -980,7 +983,7 @@ def _run_slot_stores(
     kill: Path | None,
     iso: str,
     finish: Callable[..., NoReturn],
-    step_failed: Callable[[str, BaseException], NoReturn],
+    step_failed: Callable[..., NoReturn],
     killed_at: Callable[[str], NoReturn],
 ) -> int:
     """Facts, hour, learner, proposals, card, wait and send."""
@@ -1400,6 +1403,12 @@ def _run_slot_stores(
         clock() + PROPOSE_STEP_BUDGET,
     )
     seconds_left = lambda: (propose_deadline - clock()).total_seconds()
+
+    def _timeout_seconds_left() -> float | None:
+        if _killed(kill):
+            return None
+        return seconds_left()
+
     client: Any = None
     for profile in profiles if chosen_cycle is not None else ():
         eligible_here = eligible_commitments(
@@ -1425,6 +1434,11 @@ def _run_slot_stores(
         retrying = LocalRetryClient(
             client, sleep=seams.sleep, seconds_left=seconds_left
         )
+        timed = TimeoutRetryClient(
+            retrying,
+            seconds_left=_timeout_seconds_left,
+            min_seconds_left=WONDER_TIMEOUT_S,
+        )
         try:
             produced = run_proposals(
                 as_of=as_of,
@@ -1434,7 +1448,7 @@ def _run_slot_stores(
                 store=store,
                 fact_store=fact_store,
                 proposal_store=proposal_store,
-                client=retrying,
+                client=timed,
                 private_terms=terms,
                 eligible_by_profile={profile: eligible_here},
                 limits=SLOT_LIMITS,
@@ -1446,7 +1460,10 @@ def _run_slot_stores(
             )
         except Exception as exc:  # noqa: BLE001 -- closed code, never the value
             _record_local_retries(ledger, slot, profile, retrying)
-            step_failed(f"propose_{profile}", exc)
+            timeout_detail: dict[str, object] | None = None
+            if timed.retries:
+                timeout_detail = {"timeout_retries": str(timed.retries)}
+            step_failed(f"propose_{profile}", exc, timeout_detail)
         (result,) = produced
         results.append(result)
         local_retries = _record_local_retries(ledger, slot, profile, retrying)
@@ -1486,6 +1503,8 @@ def _run_slot_stores(
                 break
         if local_retries:
             detail["local_retries"] = str(local_retries)
+        if timed.retries:
+            detail["timeout_retries"] = str(timed.retries)
         ledger.append_step(
             slot, f"propose_{profile}", result.kind, _elapsed(), None, detail
         )

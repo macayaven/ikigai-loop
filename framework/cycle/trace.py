@@ -482,6 +482,22 @@ def _retry_rows(conn: sqlite3.Connection, slot_text: str, profile: str) -> list[
         return []
 
 
+def _timeout_retries(conn: sqlite3.Connection, slot_text: str, profile: str) -> int:
+    """The retried timeouts summed over every row of one side's propose step.
+
+    A resumed run writes another row and a ``--fresh`` run writes a new
+    one; each carries its own count, so the side line sums them. A
+    database with no such key reads as zero.
+    """
+    total = 0
+    for (detail,) in conn.execute(
+        "SELECT detail FROM slot_ledger WHERE slot = ? AND step = ?",
+        (slot_text, f"propose_{profile}"),
+    ).fetchall():
+        total += int(_parse_detail(str(detail)).get("timeout_retries", "0") or 0)
+    return total
+
+
 def _print_side(
     row: Any,
     results: dict[str, Any],
@@ -534,6 +550,9 @@ def _print_side(
     retry_rows = _retry_rows(conn, str(row[2]), profile)
     if retry_rows:
         line += f" local_retries={len(retry_rows)}"
+    timeout_retries = _timeout_retries(conn, str(row[2]), profile)
+    if timeout_retries:
+        line += f" timeout_retries={timeout_retries}"
     print(line)
     for attempt, reason, latency_ms, exit_code, stderr in retry_rows:
         code = "-" if exit_code is None else str(exit_code)

@@ -5275,6 +5275,571 @@ def test_second_stale_slot_same_day_repeats_quietly(
     assert "code=DEGRADED_REPEAT" in check_out
 
 
+# -- slice 3c: one more attempt for a timed-out Wonder call (fake clock) --
+#
+# A Wonder call that ends in a timeout gets one more attempt when a full
+# call's time still remains before the propose deadline, through
+# TimeoutRetryClient, counted as timeout_retries on the propose row. The
+# runner below answers --version at once, because that probe costs
+# milliseconds in production and must not burn the fake clock.
+
+
+class _ScriptRunner:
+    """A fake runner: scripted exec behaviors, an instant version, no port."""
+
+    def __init__(
+        self,
+        clock: _Clock,
+        bin_name: str,
+        script: list[str],
+        kill_file: Path | None = None,
+    ) -> None:
+        self.clock = clock
+        self.bin = bin_name
+        self._script = list(script)
+        self._kill_file = kill_file
+        self.exec_calls = 0
+        self.calls: list[tuple[str, float, datetime]] = []
+
+    def __call__(self, argv: Any, *, env: Any, timeout_s: float, cwd: Any) -> Any:
+        import json as _json
+
+        from framework.proposal.muse_client import RunResult
+
+        args = [str(item) for item in argv]
+        if len(args) > 1 and args[1] == "--version":
+            self.calls.append(("version", timeout_s, self.clock.now))
+            return RunResult(0, b"fake-muse-timeout 0.0\n", False)
+        self.exec_calls += 1
+        before = self.clock.now
+        self.calls.append(("exec", timeout_s, before))
+        if self._kill_file is not None and self.exec_calls == 1:
+            self._kill_file.write_text("stop\n")
+        behavior = self._script.pop(0) if self._script else "hang"
+        if behavior == "hang":
+            self.clock.now = before + timedelta(seconds=timeout_s)
+            return RunResult(None, b"", True)
+        if behavior == "burst":
+            return RunResult(1, b"burst\n", False, b"launcher hiccup, retry soon\n")
+        with open(os.path.join(os.path.dirname(cwd), "schema.json"), "rb") as handle:
+            schema = _json.loads(handle.read())
+        if behavior == "bad":
+            properties = schema["properties"]
+            cids = properties["commitment_id"]["enum"]
+            claim_schema = properties["overall_state"]["items"]["properties"]
+            fact_ids = claim_schema["fact_ids"]["items"]["enum"]
+            payload: dict[str, Any] = {
+                "commitment_id": cids[0],
+                "overall_state": [
+                    {
+                        "text": " ".join(["word"] * 60),
+                        "fact_ids": [fact_ids[0]],
+                        "metric_refs": [],
+                    }
+                ],
+                "working": [],
+                "not_working": [],
+            }
+            terminal = _json.dumps(
+                {
+                    "payload": {
+                        "kind": "run_terminal",
+                        "terminal": "completed",
+                        "text": _json.dumps(payload),
+                    }
+                }
+            )
+            usage = _json.dumps({"payload": {"kind": "run_usage", "models": []}})
+            return RunResult(0, (terminal + "\n" + usage + "\n").encode(), False)
+        if behavior == "good":
+            return RunResult(0, _draft_stdout_for(schema), False)
+        raise AssertionError(f"unknown behavior {behavior}")
+
+
+def _script_timer(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    slot: datetime,
+    script: list[str],
+    *,
+    bin_name: str,
+    start_minutes: int = 25,
+    kill_file: Path | None = None,
+) -> Any:
+    """A timer run like _timer but with a scripted runner and an offset start."""
+    from framework.proposal.muse_client import MuseExecClient
+
+    _env(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        "framework.proposal.muse_client.rules_file_path",
+        lambda *args, **kwargs: str(tmp_path / "no-rules-here"),
+    )
+    clock = _Clock(slot - timedelta(minutes=start_minutes))
+    runner = _ScriptRunner(clock, f"fake-muse-{bin_name}", script, kill_file=kill_file)
+    deadlines: list[datetime] = []
+    telegram = _StampTelegram(clock)
+
+    def _factory(terms: Any, deadline: datetime) -> Any:
+        deadlines.append(deadline)
+
+        def _make(timeout_s: float) -> Any:
+            return MuseExecClient(
+                private_terms=terms.terms,
+                private_terms_available=terms.available,
+                muse_bin=runner.bin,
+                timeout_s=timeout_s,
+                runner=runner,
+            )
+
+        return DeadlineWonderClient(make_client=_make, deadline=deadline, clock=clock)
+
+    def _sleep(seconds: float) -> None:
+        clock.now = clock.now + timedelta(seconds=seconds)
+
+    seams = Seams(
+        facts=_HungFacts(clock),
+        wonder=_factory,
+        telegram=telegram,
+        clock=clock,
+        sleep=_sleep,
+        home=tmp_path / "home",
+        ledger_sleep=lambda s: None,
+    )
+    return SimpleNamespace(
+        db=tmp_path / "cycle.db",
+        clock=clock,
+        facts=seams.facts,
+        runner=runner,
+        deadlines=deadlines,
+        telegram=telegram,
+        seams=seams,
+    )
+
+
+def _ok_facts(code_id: str) -> Any:
+    """A facts seam that reports the pre-recorded cycle at once."""
+
+    def _fine(**kwargs: Any) -> FactsChildResult:
+        return FactsChildResult("ok", code_id, 1)
+
+    return _fine
+
+
+def _facts_at(clock: _Clock, mark: datetime, code_id: str) -> Any:
+    """A facts seam ending at one mark: the clock jumps there, then ok."""
+
+    def _go(**kwargs: Any) -> FactsChildResult:
+        clock.now = mark
+        return FactsChildResult("ok", code_id, 1)
+
+    return _go
+
+
+def _stored_attempts(db: Path, profile: str) -> int:
+    conn = sqlite3.connect(db)
+    try:
+        rows = conn.execute(
+            "SELECT a.proposal_key FROM proposal_attempts a"
+            " JOIN proposal_results r ON a.proposal_key = r.proposal_key"
+            " WHERE r.subject_id = ? AND r.profile_id = ?",
+            (SUBJECT, profile),
+        ).fetchall()
+        return len(rows)
+    finally:
+        conn.close()
+
+
+def _propose_rows(db: Path, slot: datetime) -> list[Any]:
+    return [
+        row
+        for row in SlotLedger(db).rows_for_slot(slot)
+        if row.step.startswith("propose_")
+    ]
+
+
+def test_timeout_then_answer_is_a_proposal_with_one_retry(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Builder's first call times out and the retry answers: a proposal side."""
+    slot = slot_at("15:30")
+    run = _script_timer(
+        tmp_path,
+        monkeypatch,
+        slot,
+        ["hang", "good", "good"],
+        bin_name="t13b-retry-once",
+    )
+    as_of = slot - timedelta(minutes=25)
+    _seed_timer_events(run.db, as_of)
+    code_id = _pre_record_code_cycle(run.db, as_of)
+    run.seams = dataclasses.replace(run.seams, facts=_ok_facts(code_id))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    sides = SlotLedger(run.db).slot_cards_for_slot(slot)
+    assert len(sides) == 2
+    assert {side.kind for side in sides} == {"proposal"}
+    assert len(run.telegram.calls) == 1
+    assert run.telegram.at == [slot]
+    assert run.runner.exec_calls == 3
+    rows = {row.step: row for row in _propose_rows(run.db, slot)}
+    assert rows["propose_builder"].outcome == "proposal"
+    assert "timeout_retries=1" in rows["propose_builder"].detail
+    assert "timeout_retries" not in rows["propose_disconnect"].detail
+    assert "local_retries" not in rows["propose_builder"].detail
+    assert "local_retries" not in rows["propose_disconnect"].detail
+    assert SlotLedger(run.db).local_retries_for_slot(slot) == ()
+    assert _stored_attempts(run.db, "builder") == 1
+
+
+def test_second_attempt_proposal_reads_delivered_with_no_alert(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A side that got its proposal on the second attempt is a normal side."""
+    slot = slot_at("15:30")
+    run = _script_timer(
+        tmp_path,
+        monkeypatch,
+        slot,
+        ["hang", "good", "good"],
+        bin_name="t13b-retry-calm",
+    )
+    as_of = slot - timedelta(minutes=25)
+    _seed_timer_events(run.db, as_of)
+    code_id = _pre_record_code_cycle(run.db, as_of)
+    run.seams = dataclasses.replace(run.seams, facts=_ok_facts(code_id))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    check_code, check_out = _check(slot, run.db, _check_harness(tmp_path, slot), capsys)
+    assert check_code == 0, check_out
+    assert "code=DELIVERED" in check_out
+
+
+def test_every_call_hanging_with_time_to_spare_retries_both_sides(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Hung Wonders with minutes to spare: two calls per side, labelled fallbacks."""
+    slot = slot_at("15:30")
+    run = _script_timer(
+        tmp_path, monkeypatch, slot, ["hang"], bin_name="t13b-retry-both"
+    )
+    as_of = slot - timedelta(minutes=25)
+    _seed_timer_events(run.db, as_of)
+    code_id = _pre_record_code_cycle(run.db, as_of)
+    run.seams = dataclasses.replace(run.seams, facts=_ok_facts(code_id))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    sides = SlotLedger(run.db).slot_cards_for_slot(slot)
+    assert len(sides) == 2
+    assert {side.kind for side in sides} == {"fallback"}
+    assert run.runner.exec_calls == 4
+    rows = {row.step: row for row in _propose_rows(run.db, slot)}
+    assert len(rows) == 2
+    for row in rows.values():
+        assert row.outcome == "fallback"
+        assert "FALLBACK_MODEL_UNAVAILABLE" in row.detail
+        assert "timeout_retries=1" in row.detail
+        assert "wonder_down=1" in row.detail
+    assert run.telegram.at == [slot]
+    assert len(run.telegram.calls) == 1
+
+
+def test_both_hung_one_goal_makes_no_second_attempt(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Both models hung on a one-goal slot: the stalled call is not retried."""
+    slot = slot_at("13:30")
+    run = _timer(tmp_path, monkeypatch, slot, bin_name="t13b-hung-one")
+    _seed_timer_events(run.db, slot - timedelta(minutes=25))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    assert run.runner.timeouts == [120.0, 10.0]
+    rows = {row.step: row for row in _propose_rows(run.db, slot)}
+    assert len(rows) == 1
+    assert "timeout_retries" not in rows["propose_builder"].detail
+    assert run.telegram.at == [slot]
+    assert len(run.telegram.calls) == 1
+
+
+def test_both_hung_two_goal_makes_no_second_attempt(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Both models hung on a two-goal slot: each side stalls once, then falls back."""
+    slot = slot_at("15:30")
+    run = _timer(tmp_path, monkeypatch, slot, bin_name="t13b-hung-two")
+    _seed_timer_events(run.db, slot - timedelta(minutes=25))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    assert run.runner.timeouts == [120.0, 10.0, 80.0]
+    rows = {row.step: row for row in _propose_rows(run.db, slot)}
+    assert len(rows) == 2
+    for row in rows.values():
+        assert "timeout_retries" not in row.detail
+        assert "FALLBACK_MODEL_UNAVAILABLE" in row.detail
+    assert run.telegram.at == [slot]
+    assert len(run.telegram.calls) == 1
+
+
+@pytest.mark.parametrize(
+    ("minutes_before", "want_execs"),
+    [
+        (25, 4),
+        (10, 4),
+        (6, 3),
+        (5, 3),
+        (4.5, 2),
+        (4, 2),
+    ],
+    ids=["25min", "10min", "6min", "5min", "4.5min", "4min"],
+)
+def test_hung_wonder_facts_distance_keeps_send_on_slot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    minutes_before: float,
+    want_execs: int,
+) -> None:
+    """Every call hanging, facts ending nearer the slot: the send still lands on it."""
+    from framework.cycle.slot_ledger import SlotLedger as _Ledger
+
+    slot = slot_at("15:30")
+    mark = slot - timedelta(minutes=minutes_before)
+    name = f"t13b-hang-{str(minutes_before).replace('.', 'p')}"
+    run = _script_timer(tmp_path, monkeypatch, slot, ["hang"], bin_name=name)
+    _seed_timer_events(run.db, slot - timedelta(minutes=25))
+    code_id = _pre_record_code_cycle(run.db, slot - timedelta(minutes=25))
+    run.seams = dataclasses.replace(
+        run.seams, facts=_facts_at(run.clock, mark, code_id)
+    )
+    card_times: list[datetime] = []
+    real_save = _Ledger.save_card_step
+
+    def _timed_save(self: Any, *args: Any, **kwargs: Any) -> Any:
+        card_times.append(run.clock.now)
+        return real_save(self, *args, **kwargs)
+
+    monkeypatch.setattr(_Ledger, "save_card_step", _timed_save)
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    assert run.runner.exec_calls == want_execs
+    deadline = max(mark + timedelta(seconds=150), slot - timedelta(seconds=30))
+    for kind, timeout_s, before in run.runner.calls:
+        if kind != "exec":
+            continue
+        assert timeout_s <= 120.0
+        assert timeout_s <= (deadline - before).total_seconds() + 1e-6
+    assert card_times != [] and all(
+        mark <= slot - timedelta(seconds=30) for mark in card_times
+    )
+    assert run.telegram.at == [slot]
+    assert len(run.telegram.calls) == 1
+
+
+def test_hand_run_three_minutes_before_slot_makes_no_second_attempt(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A hand run started three minutes before the slot leaves too little to retry."""
+    slot = slot_at("15:30")
+
+    def _past_deadline(**kwargs: Any) -> FactsChildResult:
+        return FactsChildResult("FACTS_DEADLINE", None, None)
+
+    run = _script_timer(
+        tmp_path,
+        monkeypatch,
+        slot,
+        ["hang"],
+        bin_name="t13b-retry-late",
+        start_minutes=3,
+    )
+    run.seams = dataclasses.replace(run.seams, facts=_past_deadline)
+    _seed_timer_events(run.db, slot - timedelta(minutes=3))
+    code, out, _ = _run_timer(slot, run, capsys, lead_minutes=3)
+    assert code == 0, out
+    assert run.runner.exec_calls == 2
+    rows = {row.step: row for row in _propose_rows(run.db, slot)}
+    assert len(rows) == 2
+    for row in rows.values():
+        assert "timeout_retries" not in row.detail
+    assert run.telegram.at == [slot]
+    assert len(run.telegram.calls) == 1
+
+
+def test_bad_draft_then_repair_timeout_still_proposes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A bad first draft, a repair call that times out, then a good repair."""
+    slot = slot_at("15:30")
+    run = _script_timer(
+        tmp_path,
+        monkeypatch,
+        slot,
+        ["bad", "hang", "good", "good"],
+        bin_name="t13b-retry-repair",
+    )
+    as_of = slot - timedelta(minutes=25)
+    _seed_timer_events(run.db, as_of)
+    code_id = _pre_record_code_cycle(run.db, as_of)
+    run.seams = dataclasses.replace(run.seams, facts=_ok_facts(code_id))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    sides = SlotLedger(run.db).slot_cards_for_slot(slot)
+    assert {side.kind for side in sides} == {"proposal"}
+    rows = {row.step: row for row in _propose_rows(run.db, slot)}
+    assert "timeout_retries=1" in rows["propose_builder"].detail
+    assert run.telegram.at == [slot]
+    assert len(run.telegram.calls) == 1
+
+
+def test_kill_during_first_hung_call_makes_no_second_call(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The kill file appearing during the first hung call: the slot ends killed."""
+    slot = slot_at("15:30")
+    kill = tmp_path / "stop"
+    run = _script_timer(
+        tmp_path, monkeypatch, slot, ["hang"], bin_name="t13b-retry-kill"
+    )
+    monkeypatch.setenv("IKIGAI_KILL_FILE", str(kill))
+    run.runner._kill_file = kill
+    as_of = slot - timedelta(minutes=25)
+    _seed_timer_events(run.db, as_of)
+    code_id = _pre_record_code_cycle(run.db, as_of)
+    run.seams = dataclasses.replace(run.seams, facts=_ok_facts(code_id))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    assert "code=killed" in out
+    assert run.runner.exec_calls == 1
+    rows = SlotLedger(run.db).rows_for_slot(slot)
+    assert [row.step for row in rows if row.step == "propose_disconnect"] == []
+    assert rows[-1].outcome == "killed"
+
+
+def test_timeout_then_local_start_then_success_counts_each_once(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A timeout, then a local start failure on the retry, then a success."""
+    slot = slot_at("15:30")
+    run = _script_timer(
+        tmp_path,
+        monkeypatch,
+        slot,
+        ["hang", "burst", "good", "good"],
+        bin_name="t13b-retry-burst",
+    )
+    as_of = slot - timedelta(minutes=25)
+    _seed_timer_events(run.db, as_of)
+    code_id = _pre_record_code_cycle(run.db, as_of)
+    run.seams = dataclasses.replace(run.seams, facts=_ok_facts(code_id))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    sides = SlotLedger(run.db).slot_cards_for_slot(slot)
+    assert {side.kind for side in sides} == {"proposal"}
+    rows = {row.step: row for row in _propose_rows(run.db, slot)}
+    assert "timeout_retries=1" in rows["propose_builder"].detail
+    assert "local_retries=1" in rows["propose_builder"].detail
+    retries = SlotLedger(run.db).local_retries_for_slot(slot)
+    assert [(row.profile, row.attempt) for row in retries] == [("builder", 1)]
+    assert run.telegram.at == [slot]
+    assert len(run.telegram.calls) == 1
+
+
+def test_timeout_then_local_start_then_timeout_falls_back_once_each(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A timeout, a local start failure on the retry, then another timeout.
+
+    The local start wrapper sits inside the timeout wrapper, so the
+    local failure retries inside the second timeout attempt instead of
+    restarting the call for a second extra timeout attempt. Builder
+    falls back with one of each count, and Disconnect still proposes.
+    """
+    slot = slot_at("15:30")
+    run = _script_timer(
+        tmp_path,
+        monkeypatch,
+        slot,
+        ["hang", "burst", "hang", "good"],
+        bin_name="t13b-retry-order",
+    )
+    as_of = slot - timedelta(minutes=25)
+    _seed_timer_events(run.db, as_of)
+    code_id = _pre_record_code_cycle(run.db, as_of)
+    run.seams = dataclasses.replace(run.seams, facts=_ok_facts(code_id))
+    code, out, _ = _run_timer(slot, run, capsys)
+    assert code == 0, out
+    sides = SlotLedger(run.db).slot_cards_for_slot(slot)
+    assert {side.profile_id: side.kind for side in sides} == {
+        "builder": "fallback",
+        "disconnect": "proposal",
+    }
+    rows = {row.step: row for row in _propose_rows(run.db, slot)}
+    assert rows["propose_builder"].outcome == "fallback"
+    assert "timeout_retries=1" in rows["propose_builder"].detail
+    assert "local_retries=1" in rows["propose_builder"].detail
+    assert rows["propose_disconnect"].outcome == "proposal"
+    assert "timeout_retries" not in rows["propose_disconnect"].detail
+    assert "local_retries" not in rows["propose_disconnect"].detail
+    retries = SlotLedger(run.db).local_retries_for_slot(slot)
+    assert [(row.profile, row.attempt) for row in retries] == [("builder", 1)]
+    assert run.telegram.at == [slot]
+    assert len(run.telegram.calls) == 1
+
+
+def test_run_proposals_failure_after_retry_keeps_the_count(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """run_proposals raising after a retried timeout: the failure row keeps it."""
+    from framework.proposal.core import WonderRequest
+
+    _env(monkeypatch, tmp_path)
+    slot = slot_at("15:30")
+    harness = _harness(tmp_path, slot, wonder=_DownWonder("timeout"))
+
+    def _raising(**kwargs: Any) -> Any:
+        client = kwargs["client"]
+        request = WonderRequest(
+            prompt="made-up prompt",
+            model="muse-wonder-1.0",
+            effort="high",
+            response_schema={"type": "object"},
+        )
+        with pytest.raises(MetaUnavailableError):
+            client.complete(request)
+        raise RuntimeError("boom-after-timeout")
+
+    monkeypatch.setattr("framework.cycle.orchestrator.run_proposals", _raising)
+    code, out, _ = _run(slot, harness, capsys)
+    assert code == 1, out
+    assert "code=RuntimeError" in out
+    rows = [row for row in SlotLedger(harness.db).rows_for_slot(slot)]
+    failed = [row for row in rows if row.step == "propose_builder"]
+    assert len(failed) == 1
+    assert failed[0].outcome == "RuntimeError"
+    assert "timeout_retries=1" in failed[0].detail
+
+
 def test_card_bytes_match_stale_or_fresh(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

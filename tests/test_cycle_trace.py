@@ -1584,3 +1584,103 @@ def test_trace_without_retry_table_prints_nothing_and_passes(
     out = capsys.readouterr().out
     assert "local_retries=" not in out
     assert "local_retry" not in out
+
+
+def _side_line(out: str) -> str:
+    lines = [line for line in out.splitlines() if line.startswith("side ")]
+    assert len(lines) == 1
+    return lines[0]
+
+
+def test_trace_prints_timeout_retries_on_the_side_line(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import hashlib as _hashlib
+
+    from framework.cycle.slot_ledger import SlotLedger
+    from framework.cycle.trace import trace
+
+    db = tmp_path / "trace.db"
+    ids = _build_db(db)
+    SlotLedger(db).append_step(
+        SLOT, "propose_builder", "proposal", 0.1, None, {"timeout_retries": "2"}
+    )
+    before = _hashlib.sha256(db.read_bytes()).hexdigest()
+    assert trace(card_id=ids["card_id"], db_path=db) == 0
+    assert _hashlib.sha256(db.read_bytes()).hexdigest() == before
+    assert " timeout_retries=2" in _side_line(capsys.readouterr().out)
+
+
+def test_trace_sums_timeout_retries_over_two_rows(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from framework.cycle.slot_ledger import SlotLedger
+    from framework.cycle.trace import trace
+
+    db = tmp_path / "trace.db"
+    ids = _build_db(db)
+    ledger = SlotLedger(db)
+    ledger.append_step(
+        SLOT, "propose_builder", "proposal", 0.1, None, {"timeout_retries": "1"}
+    )
+    ledger.append_step(
+        SLOT, "propose_builder", "proposal", 0.2, None, {"timeout_retries": "2"}
+    )
+    assert trace(card_id=ids["card_id"], db_path=db) == 0
+    assert " timeout_retries=3" in _side_line(capsys.readouterr().out)
+
+
+def test_trace_resumed_row_without_the_key_keeps_the_count(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from framework.cycle.slot_ledger import SlotLedger
+    from framework.cycle.trace import trace
+
+    db = tmp_path / "trace.db"
+    ids = _build_db(db)
+    ledger = SlotLedger(db)
+    ledger.append_step(
+        SLOT, "propose_builder", "proposal", 0.1, None, {"timeout_retries": "1"}
+    )
+    ledger.append_step(SLOT, "propose_builder", "proposal", 0.2, None, {"cycle": "c1"})
+    assert trace(card_id=ids["card_id"], db_path=db) == 0
+    assert " timeout_retries=1" in _side_line(capsys.readouterr().out)
+
+
+def test_trace_without_timeout_key_prints_nothing_extra(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from framework.cycle.trace import trace
+
+    db = tmp_path / "trace.db"
+    ids = _build_db(db)
+    assert trace(card_id=ids["card_id"], db_path=db) == 0
+    out = capsys.readouterr().out
+    assert "timeout_retries" not in out
+    assert "side A builder proposal" in _side_line(out)
+
+
+def test_trace_ignores_other_side_and_other_slot_keys(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Only this side's rows at this slot count on its line.
+
+    A `timeout_retries` key on the other side's propose row at this
+    slot, and one on this side's row at another slot, stay off this
+    side's line.
+    """
+    from framework.cycle.slot_ledger import SlotLedger
+    from framework.cycle.trace import trace
+
+    db = tmp_path / "trace.db"
+    ids = _build_db(db)
+    ledger = SlotLedger(db)
+    ledger.append_step(
+        SLOT, "propose_disconnect", "proposal", 0.1, None, {"timeout_retries": "4"}
+    )
+    other = SLOT + timedelta(hours=2)
+    ledger.append_step(
+        other, "propose_builder", "proposal", 0.1, None, {"timeout_retries": "3"}
+    )
+    assert trace(card_id=ids["card_id"], db_path=db) == 0
+    assert "timeout_retries" not in _side_line(capsys.readouterr().out)
