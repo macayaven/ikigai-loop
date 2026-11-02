@@ -30,6 +30,8 @@ GRAY = "#52514e"
 
 PERIOD_COLORS = (EARLIER, PRIOR, LAST)
 
+PERIOD_MISSING = ("screen earlier", "screen prior", "screen last")
+
 
 def format_value(value: float) -> str:
     if value == int(value):
@@ -68,13 +70,23 @@ def _bar(
         draw.ellipse([x0, y, x1, y + BAR_H], fill=fill)
 
 
+def _missing_periods(data: ChartData) -> tuple[int, ...]:
+    """Period rows with no bar, in fixed earlier/prior/last order."""
+    return tuple(
+        index for index, entry in enumerate(PERIOD_MISSING) if entry in data.missing
+    )
+
+
 def render_chart_png(data: ChartData) -> bytes:
     """Render the two-panel chart; same input gives the same bytes."""
     font = _load_font()
     measure = font.getlength
-    labels = [item.label for item in data.screen] + [data.pushes.label]
+    present = list(data.screen)
+    if data.pushes is not None:
+        present.append(data.pushes)
+    labels = [item.label for item in present]
     label_w = max([measure(label) for label in labels] or [0.0])
-    values = [format_value(item.last) for item in list(data.screen) + [data.pushes]]
+    values = [format_value(item.last) for item in present]
     value_w = max([measure(value) for value in values] or [0.0])
     bar_x0 = MARGIN + label_w + LABEL_BAR_GAP
     bar_area = max(WIDTH - MARGIN - value_w - VALUE_GAP - bar_x0, 8.0)
@@ -138,9 +150,13 @@ def _layout_height(
 ) -> int:
     y = float(MARGIN)
     y += _legend_rows(data, measure, legend_pitch) * legend_pitch + PANEL_GAP
-    if data.screen:
-        y += len(data.screen) * block_h + (len(data.screen) - 1) * BLOCK_GAP
-        y += PANEL_GAP
+    if "screen" in data.missing:
+        y += block_h + PANEL_GAP
+    else:
+        y += len(_missing_periods(data)) * tally_pitch
+        if data.screen:
+            y += len(data.screen) * block_h + (len(data.screen) - 1) * BLOCK_GAP
+            y += PANEL_GAP
     y += block_h + PANEL_GAP
     y += _tally_rows(data, measure, tally_pitch)
     if data.tally:
@@ -188,10 +204,16 @@ def _paint(
     y = row_top + legend_pitch + PANEL_GAP
 
     def draw_block(
-        top_y: float, label: str, trio: tuple[float, float, float], color_max: float
+        top_y: float,
+        label: str,
+        trio: tuple[float, float, float],
+        color_max: float,
+        skip: tuple[int, ...] = (),
     ) -> None:
         _text(draw, (MARGIN, top_y + (block_h - text_h) / 2 - top), label, INK, font)
         for row, (value, color) in enumerate(zip(trio, PERIOD_COLORS, strict=True)):
+            if row in skip:
+                continue
             bar_y = top_y + row * (BAR_H + BAR_GAP)
             width = round(value / color_max * bar_area) if color_max > 0 else 0
             if value > 0:
@@ -206,22 +228,56 @@ def _paint(
                     font,
                 )
 
-    if data.screen:
-        screen_vals = [
-            v for item in data.screen for v in (item.earlier, item.prior, item.last)
-        ]
-        screen_max = max(screen_vals) if screen_vals else 0.0
-        for index, item in enumerate(data.screen):
-            if index:
-                y += BLOCK_GAP
-            draw_block(y, item.label, (item.earlier, item.prior, item.last), screen_max)
-            y += block_h
-        y += PANEL_GAP
+    def no_data_line(top_y: float, entry: str) -> None:
+        _text(draw, (MARGIN, top_y - top), f"{entry}: no data", INK, font)
+
+    skipped = _missing_periods(data)
+    if "screen" in data.missing:
+        _text(
+            draw,
+            (MARGIN, y + (block_h - text_h) / 2 - top),
+            "screen: no data",
+            INK,
+            font,
+        )
+        y += block_h + PANEL_GAP
+    else:
+        for index in skipped:
+            no_data_line(y, PERIOD_MISSING[index])
+            y += tally_pitch
+        if data.screen:
+            screen_vals = [
+                v for item in data.screen for v in (item.earlier, item.prior, item.last)
+            ]
+            screen_max = max(screen_vals) if screen_vals else 0.0
+            for index, item in enumerate(data.screen):
+                if index:
+                    y += BLOCK_GAP
+                draw_block(
+                    y,
+                    item.label,
+                    (item.earlier, item.prior, item.last),
+                    screen_max,
+                    skipped,
+                )
+                y += block_h
+            y += PANEL_GAP
 
     pushes = data.pushes
-    pushes_vals = [pushes.earlier, pushes.prior, pushes.last]
-    pushes_max = max(pushes_vals) if pushes_vals else 0.0
-    draw_block(y, pushes.label, (pushes.earlier, pushes.prior, pushes.last), pushes_max)
+    if pushes is None:
+        _text(
+            draw,
+            (MARGIN, y + (block_h - text_h) / 2 - top),
+            "pushes + PRs: no data",
+            INK,
+            font,
+        )
+    else:
+        pushes_vals = [pushes.earlier, pushes.prior, pushes.last]
+        pushes_max = max(pushes_vals) if pushes_vals else 0.0
+        draw_block(
+            y, pushes.label, (pushes.earlier, pushes.prior, pushes.last), pushes_max
+        )
     y += block_h + PANEL_GAP
 
     x = float(MARGIN)

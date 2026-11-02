@@ -297,6 +297,24 @@ Item 11, the moved block, was found by Claude Code during plan review and reprod
 
 Prompts and review by Claude Code. Plan: muse-wonder-full-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started. The commit step, the move onto main and the final text fixes ran on muse-spark-1.3 at effort low.
 
+## Ticket 13 — orchestrator (2026-11-02)
+
+Built on branch `t13-orchestrator` per [docs/plans/013-orchestrator.md](docs/plans/013-orchestrator.md):
+`python -m framework.cycle run-slot` runs one pinned Madrid slot from facts to
+delivered card: code facts first in-process, the local model as a killable
+child, one guarded Wonder call per allowed goal through headless Muse Code, the
+card, the send, and an append-only ledger in the same database file. The card
+never waits for a hung model: the local model's time ends four minutes before
+the slot and Wonder's 30 s before it, with a labelled fallback stored by then.
+A send whose delivery is unknown never retries by itself; `check-slot`
+explains a slot or exits non-zero; `trace` shows what a card rests on;
+`rehearse` sends one TEST card for a real tap. Evidence in
+[docs/sessions/013-orchestrator.md](docs/sessions/013-orchestrator.md).
+
+Prompts and review by Claude Code. Plan on muse-wonder-1.0 (effort high), implementation on muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only, and Claude Code ran the live exercise outside those sessions, on made-up data.
+
+The finding that a blind send retry could deliver a card twice, and the finding that a hung model could hold a card past its slot, came from independent reviews by GPT Sol 6.1, run through Codex. The check of D11 that found the redirect path came from a finding by GPT Terra 6.1, run through Codex. The fix that reads a parent from the delivered card came from Muse Wonder Full's blind review of Ticket 11, which also raised the three other items this ticket checked. The finding that the since line could read a late-collected batch as new came from a source-to-card audit Claude Code ran.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

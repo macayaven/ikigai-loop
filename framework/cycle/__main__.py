@@ -11,7 +11,11 @@ from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from framework.briefing import load_commitments
-from framework.briefing.context import ProfileLimits, load_private_terms
+from framework.briefing.context import (
+    PrivateTerms,
+    ProfileLimits,
+    load_private_terms,
+)
 from framework.collectors.common import event_id
 from framework.cycle import (
     UnknownCycleError,
@@ -20,6 +24,17 @@ from framework.cycle import (
     run_proposals,
 )
 from framework.cycle.labels import CALENDAR_TYPES, STORED_LABEL_TYPES, run_label_sweep
+from framework.cycle.orchestrator import (
+    FactsChildResult,
+    Seams,
+    check_slot,
+    production_facts_runner,
+    production_wonder_client,
+    run_slot,
+    slot_from_today,
+)
+from framework.cycle.rehearse import rehearse
+from framework.cycle.trace import trace
 from framework.glimmer.facts import FactResult, LLMClient, LLMResponse
 from framework.glimmer.label_step import LabelStepResult, build_label_client
 from framework.glimmer.labels import CalendarLabelData, effective_label
@@ -32,7 +47,11 @@ from framework.proposal.client import (
     load_meta_config,
     refuse_contributor_model,
 )
-from framework.proposal.core import ModelParams, ProposalResult
+from framework.proposal.core import (
+    ModelParams,
+    ProposalResult,
+    WonderClient,
+)
 from framework.proposal.defaults import DEFAULT_EFFORT, DEFAULT_MODEL
 from framework.proposal.muse_client import MuseExecClient, resolve_muse_bin
 from framework.schemas.events import Event
@@ -379,6 +398,119 @@ def _run_labels(args: argparse.Namespace) -> int:
     return 0
 
 
+def _resolve_slot_arg(args: argparse.Namespace) -> datetime | None:
+    """One of ``--slot`` / ``--slot-today`` to an aware instant, else None."""
+    raw_slot: str | None = args.slot
+    raw_today: str | None = args.slot_today
+    if raw_slot is not None:
+        return _parse_proposal_instant(raw_slot)
+    assert raw_today is not None
+    try:
+        return slot_from_today(raw_today, datetime.now(ZoneInfo("Europe/Madrid")))
+    except ValueError:
+        return None
+
+
+def _production_seams() -> Seams:
+    home = Path.home()
+    zone = ZoneInfo("Europe/Madrid")
+
+    def _clock() -> datetime:
+        return datetime.now(zone)
+
+    def _facts(
+        *,
+        as_of: datetime,
+        subject_id: str,
+        db_path: str,
+        deadline: datetime,
+    ) -> FactsChildResult:
+        kill_raw = os.environ.get("IKIGAI_KILL_FILE", "")
+        kill = Path(kill_raw) if kill_raw.strip() else None
+        return production_facts_runner(
+            as_of=as_of,
+            subject_id=subject_id,
+            db_path=db_path,
+            deadline=deadline,
+            kill_path=kill,
+            clock=_clock,
+        )
+
+    def _wonder(terms: PrivateTerms, deadline: datetime) -> WonderClient:
+        return production_wonder_client(terms, deadline, _clock)
+
+    return Seams(facts=_facts, wonder=_wonder, telegram=None, clock=_clock, home=home)
+
+
+def _run_run_slot(args: argparse.Namespace) -> int:
+    os.environ["MUSE_NO_AUTO_UPDATE"] = "1"
+    slot = _resolve_slot_arg(args)
+    if slot is None:
+        print("error: --slot must be an ISO-8601 datetime", file=sys.stderr)
+        return 2
+    subject_id: str = args.subject_id or os.environ.get("IKIGAI_SUBJECT_ID", "")
+    if not subject_id:
+        print("error: IKIGAI_SUBJECT_ID", file=sys.stderr)
+        return 2
+    db_path = Path(args.db) if args.db else None
+    try:
+        return run_slot(
+            slot=slot,
+            subject_id=subject_id,
+            db_path=db_path,
+            dry_run=bool(args.dry_run),
+            fresh=bool(args.fresh),
+            force_slot=bool(args.force_slot),
+            no_wait=bool(args.no_wait),
+            lead_minutes=args.lead_minutes,
+            skip_local_model=bool(args.skip_local_model),
+            resend_unknown=bool(args.resend_unknown),
+            seams=_production_seams(),
+        )
+    except Exception as exc:  # noqa: BLE001 -- the edge maps to the class only
+        print(f"error: {type(exc).__name__}", file=sys.stderr)
+        return 1
+
+
+def _run_check_slot(args: argparse.Namespace) -> int:
+    slot = _resolve_slot_arg(args)
+    if slot is None:
+        print("error: --slot must be an ISO-8601 datetime", file=sys.stderr)
+        return 2
+    db_path = Path(args.db) if args.db else None
+    try:
+        return check_slot(
+            slot=slot,
+            db_path=db_path,
+            seams=_production_seams(),
+        )
+    except Exception as exc:  # noqa: BLE001 -- the edge maps to the class only
+        print(f"error: {type(exc).__name__}", file=sys.stderr)
+        return 1
+
+
+def _run_trace(args: argparse.Namespace) -> int:
+    try:
+        return trace(card_id=args.card, db_path=Path(args.db) if args.db else None)
+    except Exception as exc:  # noqa: BLE001 -- the edge maps to the class only
+        print(f"error: {type(exc).__name__}", file=sys.stderr)
+        return 1
+
+
+def _run_rehearse(args: argparse.Namespace) -> int:
+    os.environ["MUSE_NO_AUTO_UPDATE"] = "1"
+    try:
+        return rehearse(
+            db_path=Path(args.db),
+            skip_local_model=bool(args.skip_local_model),
+            no_wait=bool(args.no_wait),
+            seams=_production_seams(),
+        )
+    except Exception as exc:  # noqa: BLE001 -- the edge maps to the class only
+        print(f"error: {type(exc).__name__}", file=sys.stderr)
+        return 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m framework.cycle")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -408,7 +540,61 @@ def main(argv: list[str] | None = None) -> int:
     labels.add_argument("--label", action="append", default=None)
     labels.add_argument("--db", default=None)
     labels.add_argument("--budget-s", type=float, default=240)
+    run_slot_parser = sub.add_parser("run-slot")
+    run_slot_group = run_slot_parser.add_mutually_exclusive_group(required=True)
+    run_slot_group.add_argument("--slot", default=None)
+    run_slot_group.add_argument("--slot-today", default=None)
+    run_slot_parser.add_argument("--subject-id", default=None)
+    run_slot_parser.add_argument("--db", default=None)
+    run_slot_parser.add_argument("--dry-run", action="store_true")
+    run_slot_parser.add_argument(
+        "--force-slot",
+        action="store_true",
+        help="run an unpinned time; a forced run outside 13:00-23:30 builds no proposal",
+    )
+    run_slot_parser.add_argument("--fresh", action="store_true")
+    run_slot_parser.add_argument("--no-wait", action="store_true")
+    run_slot_parser.add_argument("--lead-minutes", default="25")
+    run_slot_parser.add_argument("--skip-local-model", action="store_true")
+    run_slot_parser.add_argument("--resend-unknown", action="store_true")
+    check_slot_parser = sub.add_parser("check-slot")
+    check_slot_group = check_slot_parser.add_mutually_exclusive_group(required=True)
+    check_slot_group.add_argument("--slot", default=None)
+    check_slot_group.add_argument("--slot-today", default=None)
+    check_slot_parser.add_argument("--db", default=None)
+    trace_parser = sub.add_parser(
+        "trace",
+        help="print what a card sent and what each claim cited (private output)",
+        description="Trace output stays private and must not go into the repo.",
+    )
+    trace_parser.add_argument("--card", required=True)
+    trace_parser.add_argument("--db", default=None)
+    rehearse_parser = sub.add_parser("rehearse", help="one TEST card on a new file")
+    rehearse_parser.add_argument("--db", required=True)
+    rehearse_parser.add_argument("--skip-local-model", action="store_true")
+    rehearse_parser.add_argument(
+        "--no-wait",
+        action="store_true",
+        default=True,
+        help="the rehearsal goes at once; the slot only picks the two-goal shape",
+    )
     args = parser.parse_args(argv)
+    if args.command == "run-slot":
+        try:
+            args.lead_minutes = int(args.lead_minutes)
+        except (TypeError, ValueError):
+            print("error: --lead-minutes must be a number", file=sys.stderr)
+            return 2
+        if args.lead_minutes < 0:
+            print("error: --lead-minutes must not be negative", file=sys.stderr)
+            return 2
+        return _run_run_slot(args)
+    if args.command == "check-slot":
+        return _run_check_slot(args)
+    if args.command == "trace":
+        return _run_trace(args)
+    if args.command == "rehearse":
+        return _run_rehearse(args)
     if args.command == "labels":
         if args.label is None:
             args.label = ["personal"]

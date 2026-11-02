@@ -1,7 +1,8 @@
-"""Faithful offline fake of the Telegram Bot API over the urlopen seam.
+"""Faithful offline fake of the Telegram Bot API over the ``_open_url`` seam.
 
 Synthetic values only. Never binds or connects a socket: tests patch
-``urllib.request.urlopen`` with ``FakeTelegram`` and drive everything locally.
+``framework.telegram.client._open_url`` with ``FakeTelegram`` and drive
+everything locally.
 """
 
 import io
@@ -284,6 +285,22 @@ class FakeTelegram:
             raise TimeoutError("timed out at urlopen")
         if outcome == "timeout-read":
             return _BoomReader(200, {}, b"")
+        if outcome == "connect-refused":
+            raise urllib.error.URLError(
+                ConnectionRefusedError("synthetic connection refused")
+            )
+        if outcome == "accept-then-timeout":
+            # The server committed the photo, then the response was lost.
+            self._commit_photo(headers, body)
+            raise TimeoutError("timed out during read")
+        if outcome == "ok-no-message-id":
+            return self._ok(
+                {
+                    "chat": {"id": self.chat_id, "type": "private"},
+                    "date": 1790985600,
+                    "caption": "synthetic",
+                }
+            )
         if outcome == "malformed":
             return _Response(200, {}, b"<html>not json</html>")
         if outcome == "echo-url":
@@ -311,6 +328,12 @@ class FakeTelegram:
                 "Bad Gateway",
                 hdrs,
                 io.BytesIO(b"<html><body>Bad Gateway</body></html>"),
+            )
+        if outcome == "redirect-302":
+            # What a no-redirect opener hands back: the plain 3xx status
+            # with no usable body, never a followed GET.
+            return _Response(
+                302, {"Location": "https://example.invalid/synthetic"}, b""
             )
         assert isinstance(outcome, tuple)
         kind = outcome[0]
@@ -383,7 +406,7 @@ class FakeTelegram:
                 if utf16_units(str(data)) > 64:
                     raise _http_error(url, 400, "Bad Request: BUTTON_DATA_INVALID")
 
-    def _send_photo(self, headers: dict[str, str], body: bytes) -> _Response:
+    def _commit_photo(self, headers: dict[str, str], body: bytes) -> dict[str, object]:
         content_type = headers.get("content-type", "")
         assert "multipart/form-data" in content_type
         fields = _parse_multipart(content_type, body)
@@ -402,14 +425,15 @@ class FakeTelegram:
         self._check_markup("photo", markup)
         self.message_seq += 1
         self.markups[(chat_id, self.message_seq)] = markup
-        return self._ok(
-            {
-                "message_id": self.message_seq,
-                "chat": {"id": chat_id, "type": "private"},
-                "date": 1790985600,
-                "caption": caption,
-            }
-        )
+        return {
+            "message_id": self.message_seq,
+            "chat": {"id": chat_id, "type": "private"},
+            "date": 1790985600,
+            "caption": caption,
+        }
+
+    def _send_photo(self, headers: dict[str, str], body: bytes) -> _Response:
+        return self._ok(self._commit_photo(headers, body))
 
     def _send_message(self, payload: dict[str, object]) -> _Response:
         text = payload.get("text", "")

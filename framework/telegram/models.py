@@ -419,14 +419,22 @@ class TallyItem(SchemaModel):
         return self
 
 
+MissingEntry = Literal[
+    "screen", "pushes + PRs", "screen earlier", "screen prior", "screen last"
+]
+
+
 class ChartData(SchemaModel):
     period_labels: tuple[str, str, str]
     screen: tuple[ChartSeries, ...] = Field(max_length=8)
-    pushes: ChartSeries
+    pushes: ChartSeries | None = None
     tally: tuple[TallyItem, ...] = Field(max_length=4)
+    missing: tuple[MissingEntry, ...] = ()
 
     @model_validator(mode="after")
     def _check_periods(self) -> "ChartData":
         for label in self.period_labels:
             check_label(label)
+        if (self.pushes is None) != ("pushes + PRs" in self.missing):
+            raise ValueError('pushes is None exactly when "pushes + PRs" is in missing')
         return self

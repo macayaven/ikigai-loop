@@ -18,7 +18,6 @@ from framework.glimmer.metrics import fixed_offset, window_bounds
 from framework.proposal.core import ModelParams, ProposalResult, WonderClient, propose
 from framework.proposal.hour import (
     allowed_windows,
-    busy_query_span,
     cycle_window,
     future_busy_intervals,
     pick_hour,
@@ -180,9 +179,8 @@ def run_proposals(
     snapshot = MetricSnapshot(values=dict(cycle["snapshot"]))
     cycle_as_of = datetime.fromisoformat(cycle["as_of"])
     literals = forbidden_literals_for(store, subject_id, as_of)
-    busy_start, busy_end = busy_query_span(as_of)
     busy_events = store.events_between(
-        subject_id, busy_start, busy_end, types=_BUSY_TYPES
+        subject_id, _SENTINEL_START, _SENTINEL_END, types=_BUSY_TYPES
     )
     busy = future_busy_intervals(busy_events, as_of=as_of, slot=slot)
     hour = pick_hour(slot, busy, limits)
@@ -190,8 +188,11 @@ def run_proposals(
     results: list[ProposalResult] = []
     for profile_id in profiles:
         eligible = eligible_by_profile.get(profile_id, ())
-        if parents is not None and profile_id in parents:
-            parent_briefing, parent_metrics = parents[profile_id]
+        if parents is not None:
+            if profile_id in parents:
+                parent_briefing, parent_metrics = parents[profile_id]
+            else:
+                parent_briefing, parent_metrics = None, None
         else:
             found = proposal_store.latest_proposal(
                 subject_id, profile_id, before_slot=slot

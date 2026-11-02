@@ -2,7 +2,6 @@
 
 import json
 import sqlite3
-import urllib.request
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
@@ -22,14 +21,15 @@ from test_telegram_models import card as make_card
 from test_telegram_models import proposal
 
 from framework.store import EventStore
+from framework.telegram import client as client_module
 from framework.telegram import service
 from framework.telegram.chart import render_chart_png
 from framework.telegram.client import (
-    TelegramApiError,
     TelegramAuthError,
     TelegramClient,
     TelegramConfigError,
     TelegramConflict,
+    TelegramDeliveryUnknown,
 )
 from framework.telegram.ledger import CardLedger
 from framework.telegram.models import (
@@ -87,7 +87,7 @@ def harness(
     fake = FakeTelegram()
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", FAKE_BOT_VALUE)
     monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
-    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    monkeypatch.setattr(client_module, "_open_url", fake)
     db = tmp_path / "ikigai.db"
     yield fake, TelegramClient(), db
     assert fake.parse_mode_requests == []
@@ -169,7 +169,7 @@ def test_restart_keeps_offset_and_foreign_total(
         fake2.text_update(10, "hello from a stranger", user_id=999, chat_id=999)
     )
     fake2.queue(fake2.callback_update(11, "q1", f"{sent.card_id}:A"))
-    monkeypatch.setattr(urllib.request, "urlopen", fake2)
+    monkeypatch.setattr(client_module, "_open_url", fake2)
     again = poll_once(db_path=db, client=client, now_fn=Clock([T0]))
     assert again.updates == 0
     assert again.stored == 0
@@ -993,10 +993,11 @@ def test_send_failure_keeps_ledger_card(harness: Harness) -> None:
     fake, _client, db = harness
     card = make_card()
     quiet = TelegramClient(sleep_fn=lambda _s: None)
-    fake.queue_script("sendPhoto", ("500",), ("500",), ("500",), ("500",))
-    with pytest.raises(TelegramApiError):
+    fake.queue_script("sendPhoto", ("500",))
+    with pytest.raises(TelegramDeliveryUnknown):
         send_card(card, chart_data(), db_path=db, client=quiet)
     assert load_card(card.card_id, db_path=db) is not None
+    assert len([r for r in fake.requests if r[0] == "sendPhoto"]) == 1
 
 
 def test_answered_on_side_effect_timeout_and_answer_retry(
@@ -1095,6 +1096,7 @@ def test_sample_card_and_chart_keep_synthetic_labels() -> None:
         "comms",
         "feed",
     ]
+    assert SAMPLE_CHART.pushes is not None
     assert SAMPLE_CHART.pushes.label == "pushes"
     assert [item.label for item in SAMPLE_CHART.tally] == [
         "Builder",
@@ -1465,3 +1467,25 @@ def test_poll_once_propagates_conflict(harness: Harness) -> None:
     harness[0].queue_script("getUpdates", ("409",))
     with pytest.raises(TelegramConflict):
         poll_once(db_path=db, client=client)
+
+
+def test_send_card_uses_sixty_second_timeout(harness: Harness) -> None:
+    fake, _client, db = harness
+    sent = send_card(make_card(), chart_data(), db_path=db)
+    assert sent.message_id >= 1001
+    photo_calls = [r for r in fake.requests if r[0] == "sendPhoto"]
+    assert len(photo_calls) == 1
+    assert photo_calls[0][4] == 60.0
+
+
+def test_send_card_without_message_id_is_delivery_unknown(
+    harness: Harness,
+) -> None:
+    fake, _client, db = harness
+    card = make_card()
+    quiet = TelegramClient(sleep_fn=lambda _s: None)
+    fake.queue_script("sendPhoto", "ok-no-message-id")
+    with pytest.raises(TelegramDeliveryUnknown):
+        send_card(card, chart_data(), db_path=db, client=quiet)
+    assert load_card(card.card_id, db_path=db) is not None
+    assert len([r for r in fake.requests if r[0] == "sendPhoto"]) == 1

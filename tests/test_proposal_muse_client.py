@@ -93,6 +93,14 @@ def _clean_version_cache():
     _VERSION_CACHE.clear()
 
 
+@pytest.fixture(autouse=True)
+def _isolated_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Never touch the real home: the temp root lives under it now."""
+    home = tmp_path / "home"
+    home.mkdir(exist_ok=True)
+    monkeypatch.setenv("HOME", str(home))
+
+
 class FakeRunner:
     """Scripted outcomes; observes the temp files while it 'runs'."""
 
@@ -387,13 +395,12 @@ def test_child_env_drops_key_keeps_home_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("META_API_KEY", "fake-key-xyz")
-    monkeypatch.setenv("HOME", "/fake/home")
     monkeypatch.setenv("PATH", "/fake/path")
     fake = FakeRunner([_ok_result(SUCCESS_TEXT)])
     _exec_client(fake).complete(_request())
     env = fake.calls[0]["env"]
     assert "META_API_KEY" not in env
-    assert env["HOME"] == "/fake/home"
+    assert env["HOME"] == os.environ["HOME"]
     assert env["PATH"] == "/fake/path"
 
 
@@ -1216,3 +1223,65 @@ def test_propose_contributor_run_is_unavailable_fallback() -> None:
     assert result.briefing is None
     assert result.fallback is not None
     assert result.fallback.reason_codes == ("FALLBACK_MODEL_UNAVAILABLE",)
+
+
+def _private_tmp_expected() -> Path:
+    import framework.proposal.muse_client as muse_module
+
+    return Path.home() / ".cache" / muse_module.PRIVATE_TMP_DIRNAME
+
+
+def test_private_tmp_root_and_child_tmpdir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake_home = tmp_path / "fake-home"
+    fake_home.mkdir()
+    monkeypatch.setenv("HOME", str(fake_home))
+    fake = FakeRunner([_ok_result(SUCCESS_TEXT)])
+    response = _exec_client(fake).complete(_request())
+    assert response.text == SUCCESS_TEXT
+    expected = _private_tmp_expected()
+    record = _exec_calls(fake)[0]
+    assert record["env"]["TMPDIR"] == str(expected)
+    assert Path(record["cwd"]) == Path(record["workspace"])
+    assert Path(record["root"]).is_relative_to(expected)
+    assert Path(record["cwd"]).is_relative_to(expected)
+    assert not os.path.exists(record["root"])
+    assert stat.S_IMODE(os.stat(expected).st_mode) == 0o700
+
+
+def test_private_tmp_root_gone_on_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake_home = tmp_path / "fake-home"
+    fake_home.mkdir()
+    monkeypatch.setenv("HOME", str(fake_home))
+    fake = FakeRunner([RunResult(1, b"", False)])
+    with pytest.raises(MetaUnavailableError):
+        _exec_client(fake).complete(_request())
+    expected = _private_tmp_expected()
+    record = _exec_calls(fake)[0]
+    assert record["env"]["TMPDIR"] == str(expected)
+    assert Path(record["root"]).is_relative_to(expected)
+    assert not os.path.exists(record["root"])
+    assert stat.S_IMODE(os.stat(expected).st_mode) == 0o700
+
+
+def test_private_tmp_ignores_poisoned_system_tmp(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake_home = tmp_path / "fake-home"
+    fake_home.mkdir()
+    monkeypatch.setenv("HOME", str(fake_home))
+    poisoned = tmp_path / "poisoned-tmp"
+    poisoned.mkdir()
+    (poisoned / ".git").mkdir()
+    monkeypatch.setenv("TMPDIR", str(poisoned))
+    monkeypatch.setenv("TEMP", str(poisoned))
+    monkeypatch.setenv("TEMPDIR", str(poisoned))
+    fake = FakeRunner([_ok_result(SUCCESS_TEXT)])
+    response = _exec_client(fake).complete(_request())
+    assert response.text == SUCCESS_TEXT
+    record = _exec_calls(fake)[0]
+    assert not str(record["root"]).startswith(str(poisoned) + os.sep)
+    assert Path(record["root"]).is_relative_to(_private_tmp_expected())

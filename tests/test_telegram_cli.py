@@ -1,6 +1,5 @@
 """CLI: send-sample, poll --once, interrupts and errors (synthetic only)."""
 
-import urllib.request
 from dataclasses import fields
 from pathlib import Path
 
@@ -13,6 +12,7 @@ from telegram_fake import (  # noqa: F401  (autouse fixture)
 )
 
 from framework.store import EventStore
+from framework.telegram import client as client_module
 from framework.telegram.__main__ import main
 from framework.telegram.client import TelegramClient
 from framework.telegram.models import PollStats
@@ -27,7 +27,7 @@ def run_main(
 ) -> tuple[int, object, object]:
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", FAKE_BOT_VALUE)
     monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
-    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    monkeypatch.setattr(client_module, "_open_url", fake)
     db = tmp_path / "ikigai.db"
     code = main(argv, client=TelegramClient(), db_path=db)
     assert fake.parse_mode_requests == []
@@ -223,7 +223,7 @@ def test_malformed_cursor_prints_error_and_exits_one(
     fake = FakeTelegram()
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", FAKE_BOT_VALUE)
     monkeypatch.setenv("TELEGRAM_CHAT_ID", str(FAKE_CHAT_ID))
-    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    monkeypatch.setattr(client_module, "_open_url", fake)
     db = tmp_path / "ikigai.db"
     store = EventStore(db)
     try:
