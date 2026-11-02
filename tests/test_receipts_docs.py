@@ -26,11 +26,16 @@ PROMPT_FILE = "framework/proposal/prompt.py"
 _TOKEN_SHAPE = re.compile(r"sk-[A-Za-z0-9_-]{6,}")
 
 
-def _r3_file() -> Path:
+def _r3_files() -> list[Path]:
     files = sorted(R3_DIR.glob("*.jsonl"))
     assert files, "no stored R3 rows"
-    assert len(files) == 1, [p.name for p in files]
-    return files[0]
+    return files
+
+
+def _r4_files() -> list[Path]:
+    files = sorted(R4_DIR.glob("*.jsonl"))
+    assert files, "no stored R4 rows"
+    return files
 
 
 def test_r3_doc_matches_summary_from_stored_rows(capsys: Any) -> None:
@@ -41,15 +46,7 @@ def test_r3_doc_matches_summary_from_stored_rows(capsys: Any) -> None:
 
 
 def test_r4_doc_matches_summary_from_stored_rows(capsys: Any) -> None:
-    code = r4.main(
-        [
-            "--summary",
-            "--results-dir",
-            str(R4_DIR),
-            "--r3-file",
-            str(_r3_file()),
-        ]
-    )
+    code = r4.main(["--summary", "--results-dir", str(R4_DIR)])
     assert code == 0
     out = capsys.readouterr().out
     assert out == (REPO / "docs" / "r4.md").read_text(encoding="utf-8")
@@ -67,18 +64,7 @@ def test_summaries_construct_no_client(monkeypatch: Any, capsys: Any) -> None:
     monkeypatch.setattr(muse_client, "MuseExecClient", _RaisesOnConstruction)
     assert r3.main(["--summary", "--results-dir", str(R3_DIR)]) == 0
     capsys.readouterr()
-    assert (
-        r4.main(
-            [
-                "--summary",
-                "--results-dir",
-                str(R4_DIR),
-                "--r3-file",
-                str(_r3_file()),
-            ]
-        )
-        == 0
-    )
+    assert r4.main(["--summary", "--results-dir", str(R4_DIR)]) == 0
     capsys.readouterr()
 
 
@@ -105,7 +91,10 @@ def _scanned_files() -> list[Path]:
 def test_stored_rows_pass_hygiene_scan() -> None:
     files = _scanned_files()
     assert R2_PATH in files
-    assert _r3_file() in files
+    for path in _r3_files():
+        assert path in files
+    for path in _r4_files():
+        assert path in files
     home = str(Path.home())
     hostname = socket.gethostname()
     identity_abs = [str(REPO / rel) for rel in (*GATE_SOURCE_FILES, PROMPT_FILE)]
