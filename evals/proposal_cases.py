@@ -992,7 +992,7 @@ CASES: tuple[Case, ...] = (
                     PARSER_ID,
                     [
                         _claim(
-                            "Pushes were higher in prior than in last",
+                            "Pushes were lower in prior than in last",
                             metrics=(
                                 "period.prior.pushes",
                                 "period.last.pushes",

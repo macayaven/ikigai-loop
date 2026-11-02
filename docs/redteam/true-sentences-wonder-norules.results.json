@@ -1,0 +1,205 @@
+{
+  "rows": [
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S01",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S02",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S03",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S04",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S05",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S06",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S07",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S08",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF",
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "S09",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "S10",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S11",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S12",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S13",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S14",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S15",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "id": "S16",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_TOO_MANY_METRICS"
+      ],
+      "id": "S17",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S18",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S19",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S20",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_TOO_MANY_METRICS"
+      ],
+      "id": "S21",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S22",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S23",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S24",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "S25",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "S26",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S27",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S28",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S29",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "S30",
+      "passed": true,
+      "raised": null
+    }
+  ]
+}

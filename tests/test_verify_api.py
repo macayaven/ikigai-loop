@@ -564,15 +564,6 @@ def test_citing_both_members_passes() -> None:
     assert report.passed is True
 
 
-def test_sibling_rule_needs_order() -> None:
-    payload = _series_payload(
-        "Deploys reached 9 in November and October",
-        [{"metric_id": "deploys.nov", "value": 9}],
-    )
-    del payload["order"]
-    assert verify_claims(payload).passed is True
-
-
 def test_sibling_rule_needs_sibling_labels() -> None:
     payload = _series_payload(
         "Deploys reached 9 in November and October",
@@ -580,24 +571,6 @@ def test_sibling_rule_needs_sibling_labels() -> None:
     )
     payload["labels"] = {"deploys.nov": ["deploys", "november"]}
     assert verify_claims(payload).passed is True
-
-
-def test_labelled_metric_outside_any_series_gets_no_sibling_finding() -> None:
-    report = verify_claims(
-        _base(
-            [
-                _claim(
-                    "c1",
-                    "solo other 5",
-                    metric_refs=[{"metric_id": "solo", "value": 5}],
-                )
-            ],
-            metrics={"solo": 5},
-            labels={"solo": ["solo"], "b1": ["other"]},
-            order=[["a1", "a2"], ["b1", "b2"]],
-        )
-    )
-    assert report.passed is True
 
 
 def test_lone_surrogate_is_bad_input() -> None:
@@ -755,7 +728,9 @@ def test_error_message_never_echoes_input() -> None:
 ALLOWED_IMPORT_PREFIXES = (
     "framework.verify",
     "framework.briefing.gate",
+    "framework.briefing.normalize",
     "framework.briefing.numbers",
+    "framework.briefing.quantities",
     "framework.schemas.base",
     "pydantic",
 )
@@ -1322,22 +1297,6 @@ def test_two_bound_refs_naming_one_label_word() -> None:
     assert [v.code for v in report.violations] == ["L1B_METRIC_LABEL_MISSING"]
 
 
-def test_sibling_word_from_another_series_is_no_sibling() -> None:
-    payload = _base(
-        [
-            _claim(
-                "c1",
-                "Alfa reached 5 and cee",
-                metric_refs=[{"metric_id": "a", "value": 5}],
-            )
-        ],
-        metrics={"a": 5, "b": 5, "c": 5, "d": 5},
-        labels={"a": ["alfa"], "b": ["bravo"], "c": ["cee"], "d": ["dee"]},
-        order=[["a", "b"], ["c", "d"]],
-    )
-    assert verify_claims(payload).passed is True
-
-
 def test_sibling_word_matching_only_in_case_is_no_sibling() -> None:
     payload = _base(
         [
@@ -1552,3 +1511,422 @@ def test_advice_word_case_variants_reach_word_list_once(
     )
     assert seen == [("should",)]
     assert [v.code for v in report.violations] == ["L1_ADVICE"]
+
+
+def test_sibling_rule_without_order_now_names_uncited_label() -> None:
+    payload = _series_payload(
+        "Deploys reached 9 in November and October",
+        [{"metric_id": "deploys.nov", "value": 9}],
+    )
+    del payload["order"]
+    assert _codes(verify_claims(payload)) == ["L1B_METRIC_LABEL_MISSING"]
+
+
+def test_labelled_metric_word_outside_series_now_named() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "solo other 5",
+                    metric_refs=[{"metric_id": "solo", "value": 5}],
+                )
+            ],
+            metrics={"solo": 5},
+            labels={"solo": ["solo"], "b1": ["other"]},
+            order=[["a1", "a2"], ["b1", "b2"]],
+        )
+    )
+    assert _codes(report) == ["L1B_METRIC_LABEL_MISSING"]
+
+
+def test_sibling_word_from_another_labelled_metric_is_named() -> None:
+    payload = _base(
+        [
+            _claim(
+                "c1",
+                "Alfa reached 5 and cee",
+                metric_refs=[{"metric_id": "a", "value": 5}],
+            )
+        ],
+        metrics={"a": 5, "b": 5, "c": 5, "d": 5},
+        labels={"a": ["alfa"], "b": ["bravo"], "c": ["cee"], "d": ["dee"]},
+        order=[["a", "b"], ["c", "d"]],
+    )
+    assert _codes(verify_claims(payload)) == ["L1B_METRIC_LABEL_MISSING"]
+
+
+def test_direction_held_guard_matches_gate_arm() -> None:
+    from framework.briefing.gate import direction_sides
+
+    assert direction_sides(
+        "Feed held 3 while output rose", exclude_words=["feed"]
+    ) == frozenset({"up"})
+
+
+def test_direction_hyphen_compound_matches_gate_arm() -> None:
+    from framework.briefing.gate import direction_sides
+
+    assert direction_sides(
+        "Deploys sat up-trending at 9", exclude_words=["deploys"]
+    ) == frozenset({"up"})
+
+
+def test_claim_advice_phrase_list_is_public() -> None:
+    from framework.briefing import claim_text
+    from framework.briefing.gate import ADVICE_PHRASES, CLAIM_ADVICE_PHRASES
+
+    assert tuple(ADVICE_PHRASES) == ("push harder", "rest more")
+    assert "is required" in CLAIM_ADVICE_PHRASES
+    assert "is needed" in CLAIM_ADVICE_PHRASES
+    assert CLAIM_ADVICE_PHRASES is claim_text.CLAIM_ADVICE_PHRASES
+
+
+def test_signed_number_not_backed_by_positive_ref() -> None:
+    from decimal import Decimal
+
+    from framework.briefing.gate import ref_backs_token
+
+    assert ref_backs_token(7, 0, Decimal(-7)) is False
+    assert ref_backs_token(-7, 0, Decimal(7)) is True
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Pushes fell by -7 in last",
+                    metric_refs=[{"metric_id": "m", "value": 7}],
+                )
+            ],
+            metrics={"m": 7},
+        )
+    )
+    assert _codes(report) == ["L1B_NUMBER_WITHOUT_METRIC_REF"]
+
+
+def test_positive_number_backed_by_negative_ref() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Pushes rose by 7 in last",
+                    metric_refs=[{"metric_id": "m", "value": -7}],
+                )
+            ],
+            metrics={"m": -7},
+        )
+    )
+    assert report.passed is True
+
+
+def test_accented_label_matches_claim() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1", "Cafe reached 5", metric_refs=[{"metric_id": "m", "value": 5}]
+                )
+            ],
+            metrics={"m": 5},
+            labels={"m": ["café"]},
+        )
+    )
+    assert report.passed is True
+
+
+def test_accented_known_id_still_masks() -> None:
+    from framework.briefing.numbers import extract_number_tokens
+
+    tokens = extract_number_tokens(
+        "Pushes in caf\u00e9-9 stood at 1", known_ids={"caf\u00e9-9"}
+    )
+    assert [(t.raw, str(t.value)) for t in tokens] == [("1", "1")]
+
+
+def test_accented_known_name_still_masks() -> None:
+    from framework.briefing.numbers import extract_number_tokens
+
+    tokens = extract_number_tokens(
+        "Tower caf\u00e9-seven stood at 1", known_names={"caf\u00e9-seven"}
+    )
+    assert [(t.raw, str(t.value)) for t in tokens] == [("1", "1")]
+
+
+def test_labelled_claim_numbers_come_from_labelled_refs() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Code screen time ran 100 hours in last.",
+                    metric_refs=[
+                        {"metric_id": "code.last", "value": 2},
+                        {"metric_id": "other", "value": 100},
+                    ],
+                )
+            ],
+            metrics={"code.last": 2, "other": 100},
+            labels={"code.last": ["code"]},
+        )
+    )
+    assert _codes(report) == ["L1B_NUMBER_WITHOUT_METRIC_REF"]
+
+
+def test_unlabelled_claim_keeps_old_backing() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Code screen time ran 100 hours in last.",
+                    metric_refs=[
+                        {"metric_id": "code.last", "value": 2},
+                        {"metric_id": "other", "value": 100},
+                    ],
+                )
+            ],
+            metrics={"code.last": 2, "other": 100},
+        )
+    )
+    assert report.passed is True
+
+
+def test_uncited_labelled_metric_word_is_named() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Pushes came to 1 in prior, and pull requests were 1 in prior.",
+                    metric_refs=[{"metric_id": "period.prior.pushes", "value": 1}],
+                )
+            ],
+            metrics={"period.prior.pushes": 1, "period.prior.prs": 9},
+            labels={
+                "period.prior.pushes": ["pushes", "prior"],
+                "period.prior.prs": ["pull", "requests", "prior"],
+            },
+            order=[
+                ["period.earlier.pushes", "period.prior.pushes", "period.last.pushes"],
+                ["period.earlier.prs", "period.prior.prs", "period.last.prs"],
+            ],
+        )
+    )
+    assert _codes(report) == ["L1B_METRIC_LABEL_MISSING"]
+
+
+def test_time_word_outside_cited_labels_is_named() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Programming ran 90 today.",
+                    metric_refs=[
+                        {"metric_id": "screen_hours.Work/Programming", "value": 90}
+                    ],
+                )
+            ],
+            metrics={"screen_hours.Work/Programming": 90},
+            labels={"screen_hours.Work/Programming": ["programming"]},
+        )
+    )
+    assert _codes(report) == ["L1B_METRIC_LABEL_MISSING"]
+
+
+def test_subset_word_list_names_nothing_else() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Deploys reached 9 in November",
+                    metric_refs=[{"metric_id": "a", "value": 9}],
+                )
+            ],
+            metrics={"a": 9, "b": 9},
+            labels={"a": ["deploys", "november"], "b": ["deploys"]},
+            order=[["a", "b"]],
+        )
+    )
+    assert report.passed is True
+
+
+def test_own_period_word_names_nothing_else() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Programming stood at 90 in last",
+                    metric_refs=[{"metric_id": "m", "value": 90}],
+                )
+            ],
+            metrics={"m": 90},
+            labels={"m": ["programming", "last"]},
+        )
+    )
+    assert report.passed is True
+
+
+def test_label_check_cap_boundary() -> None:
+    from framework.verify import MAX_LABEL_CHECKS
+
+    assert MAX_LABEL_CHECKS == 2_000_000
+    labels = {"m0": ["alfa"]}
+    for i in range(1, 2000):
+        labels[f"u{i}"] = [f"word{i}"]
+    assert len({tuple(v) for v in labels.values()}) == 2000
+    ok_claims = [
+        _claim(
+            f"c{i}", "Alfa steady note", metric_refs=[{"metric_id": "m0", "value": 5}]
+        )
+        for i in range(1000)
+    ]
+    assert (
+        verify_claims(_base(ok_claims, metrics={"m0": 5}, labels=labels)).passed is True
+    )
+    over_claims = list(ok_claims) + [
+        _claim(
+            "c-over", "Alfa steady note", metric_refs=[{"metric_id": "m0", "value": 5}]
+        )
+    ]
+    with pytest.raises(VerifyInputError, match="MAX_LABEL_CHECKS"):
+        verify_claims(_base(over_claims, metrics={"m0": 5}, labels=labels))
+
+
+def test_billion_scale_word_needs_backing() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Pushes hit 3 billion.",
+                    metric_refs=[{"metric_id": "m", "value": 3}],
+                )
+            ],
+            metrics={"m": 3},
+        )
+    )
+    assert _codes(report) == ["L1B_NUMBER_WITHOUT_METRIC_REF"]
+    both = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Pushes hit 3 billion.",
+                    metric_refs=[
+                        {"metric_id": "m1", "value": 3},
+                        {"metric_id": "m2", "value": 1000000000},
+                    ],
+                )
+            ],
+            metrics={"m1": 3, "m2": 1000000000},
+        )
+    )
+    assert both.passed is True
+
+
+def test_trillion_scale_word_needs_backing() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Pushes reached 3 trillion.",
+                    metric_refs=[{"metric_id": "m", "value": 3}],
+                )
+            ],
+            metrics={"m": 3},
+        )
+    )
+    assert _codes(report) == ["L1B_NUMBER_WITHOUT_METRIC_REF"]
+
+
+@pytest.mark.parametrize(
+    ("term", "text"),
+    [
+        ("quetzal's garden", "The notes cite Quetzal\u2019s garden today."),
+        ("Quetzal\u2019s garden", "The notes mention quetzal's garden today."),
+        ("caf\u00e9 corner", "The notes mention cafe\u0301 corner today."),
+        ("cafe\u0301 corner", "The notes mention caf\u00e9 corner today."),
+        ("quetzal\u200bgarden", "The notes mention quetzalgarden today."),
+        ("quetzalgarden", "The notes mention quetzal\u200bgarden today."),
+    ],
+)
+def test_private_term_renderings_match_both_directions(term: str, text: str) -> None:
+    report = verify_claims(
+        _base(
+            [_claim("c1", text, fact_ids=["f1"])],
+            facts={"f1": "Filed note"},
+            deny_terms=[term],
+        )
+    )
+    assert _codes(report) == ["L1_PRIVATE_TERM"]
+
+
+def test_limit_unit_word_ignored() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Deploys took 5 minutes",
+                    metric_refs=[{"metric_id": "m", "value": 5}],
+                )
+            ],
+            metrics={"m": 5},
+            labels={"m": ["deploys"]},
+        )
+    )
+    assert report.passed is True
+
+
+def test_limit_unit_as_label_word_must_be_named() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Deploys took 5 hours",
+                    metric_refs=[{"metric_id": "m", "value": 5}],
+                )
+            ],
+            metrics={"m": 5},
+            labels={"m": ["deploys", "minutes"]},
+        )
+    )
+    assert _codes(report) == ["L1B_METRIC_LABEL_MISSING"]
+
+
+def test_limit_glued_digits_pass_unread() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Model 3D scored 3",
+                    metric_refs=[{"metric_id": "m", "value": 3}],
+                )
+            ],
+            metrics={"m": 3},
+        )
+    )
+    assert report.passed is True
+
+
+def test_limit_ordinal_passes_unread() -> None:
+    report = verify_claims(
+        _base(
+            [
+                _claim(
+                    "c1",
+                    "Pushes hit the 99th mark in last",
+                    metric_refs=[{"metric_id": "m", "value": 0}],
+                )
+            ],
+            metrics={"m": 0},
+        )
+    )
+    assert report.passed is True

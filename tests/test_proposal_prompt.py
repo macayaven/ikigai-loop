@@ -490,17 +490,17 @@ def test_rule_examples_checked_against_real_gate() -> None:
         )
         == ()
     )
-    falling = {
+    rising = {
         "calendar.busy_hours": 2.5,
         "period.earlier.pushes": 2.0,
-        "period.prior.pushes": 3.0,
-        "period.last.pushes": 1.0,
+        "period.prior.pushes": 1.0,
+        "period.last.pushes": 3.0,
     }
     failing = [
         (
             "Pushes were higher in prior than in last",
             (),
-            (("period.prior.pushes", 3.0), ("period.last.pushes", 1.0)),
+            (("period.prior.pushes", 1.0), ("period.last.pushes", 3.0)),
             ("L1B_DIRECTION_MISMATCH",),
         ),
         (
@@ -529,7 +529,7 @@ def test_rule_examples_checked_against_real_gate() -> None:
         ),
     ]
     rows = [
-        (text, facts, refs, codes, falling if "higher in prior" in text else None)
+        (text, facts, refs, codes, rising if "higher in prior" in text else None)
         for text, facts, refs, codes in failing
     ]
     for text, facts, refs, codes, row_values in rows:

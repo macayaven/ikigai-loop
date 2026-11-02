@@ -2,6 +2,7 @@
 
 from framework.verify.core import (
     LIMITS_NOTE,
+    MAX_LABEL_CHECKS,
     ClaimInput,
     MetricRefInput,
     Report,
@@ -21,6 +22,7 @@ from framework.verify.repair import (
 
 __all__ = [
     "LIMITS_NOTE",
+    "MAX_LABEL_CHECKS",
     "Attempt",
     "ClaimInput",
     "FailedValidation",

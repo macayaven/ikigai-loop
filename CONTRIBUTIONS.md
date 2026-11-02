@@ -413,6 +413,42 @@ Claude Code's prompts for this ticket weren't all prose: besides that code block
 The raising-handler finding came from a review by GPT Sol 6.1, run through Codex. The Contributor-mode facts were measured live by Claude Code, and so were the live end-to-end numbers.
 
 Prompts and review by Claude Code; plan by muse-wonder-full-1.0 (effort high); plan amendments by muse-wonder-1.0 (effort high) from the reviewer's findings; implementation and fixes by muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started; these code sessions ran in Contributor mode, on this public repo and made-up data only.
+## Ticket 10b — red-team rounds (2026-11-02)
+
+Built on branch `t10b-redteam` per [docs/plans/010b-redteam.md](docs/plans/010b-redteam.md):
+the offline runner `evals/redteam.py`, the gate modules `normalize.py`,
+`quantities.py` and `claim_text.py`, both rounds' files under `docs/redteam/`,
+and the counts from the summary: round 1, 34 attacks with 32 fixed and 2
+passing by ruling; round 2, 32 attacks with none getting through now;
+54 review rows apart from the attacker totals; 156 sentences in all,
+13 blocked on the frozen runs, 78 on the current gate. Evidence in
+[docs/sessions/010b-redteam.md](docs/sessions/010b-redteam.md) and
+[docs/redteam/README.md](docs/redteam/README.md).
+
+The attacks came from Muse Code sessions with no part in writing the gate.
+Claude Code wrote the prompts, reviewed, and wrote the adjudication files by
+hand, including the sentences in the review rows. Muse Code wrote the plan,
+the runner and the fixes in headless sessions Claude Code started. Claude
+Code's own hands on the tree were mechanical: it archived the draft outside
+this repository, put the affected files back to main's state with git,
+deleted its own verbatim lines from the plan and from two runner tests,
+fast-forwarded the branch to main twice and re-applied one comment line Muse
+had written, and wrote R47 to R54 into the adjudication file by hand. It
+typed no code. An earlier
+draft of the fixes carried code written by Claude Code; it was discarded, and
+Muse Code rewrote it from prose rules.
+
+Models: the attacks, the plan and two blind sentence sets on muse-wonder-1.0
+at high effort; one blind set and all implementation on muse-spark-1.3 at
+medium effort. The false claims in R47 to R54 came from muse-wonder-full-1.0
+at high effort, in a review I ran.
+
+Reviews credited as in the plan: R1 to R3 from Ticket 9's review; R4 to R28,
+R31 and R33 to R35 from Claude Code's review; R29 and R30 from the external
+code review by GPT Sol 6.1 through Codex; R32 from Ticket 17a's review;
+R36 to R39 from the independent review by Muse Wonder Full; R40 to R46 from
+Ticket 11's gate report and Claude Code's review of it; R47 to R54 from Muse
+Wonder Full's blind review of Ticket 11.
 
 ## Ticket E2 — source-to-card audit (2026-11-02)
 
@@ -448,4 +484,5 @@ Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implemen
   and ran feasibility checks on Oct 27 outside this repo (one call each to Muse Glimmer,
   Muse Wonder and Muse Code, plus an Inspect AI hello-world).
 - Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as summarised in `docs/sessions/`. The exception is the held-out test sets a ticket's entry names. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks I found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. The exception is Ticket 14, as that entry says: the matcher block was about 48 lines, and the compile prompt text and two `docs/PRIVACY.md` paragraphs were given word for word. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
+- Claude Code doesn't edit files or make branch commits in this repository; those are Muse Code's, as summarised in `docs/sessions/`. The exceptions are the held-out test sets a ticket's entry names, and Ticket 10b's adjudication files and the mechanical steps that entry lists. Its prompts sometimes spelled out a small fix in a few lines of code, or exact wording for a doc or session note, and Muse Code applied them. The largest such code blocks I found are about a dozen lines, in Tickets 9, 9b, 15a and 17a. Through Oct 31 I ran every Muse Code session myself. From Nov 1, at my request, Claude Code also wrote the prompts, started and supervised the Muse Code sessions and reviewed their output. It also runs pushes and squash merges, so the merge commits on main come from those.
 - **GPT Sol 6.1 and GPT Astra 6 (OpenAI), through Codex,** reviewed this project read-only on Nov 1: literature, code, demo plan, failure modes and launch plan. They wrote nothing in this repository. Findings that changed something are credited in the ticket that used them.

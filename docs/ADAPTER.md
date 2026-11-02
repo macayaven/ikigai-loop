@@ -79,6 +79,8 @@ The returned dict must validate as this checker input:
 Cover at least: a figure in the sample that disagrees with the source keeps the agent's value in `metric_refs` and the source's value in `metrics`; changing the agent's reported figure changes no value in `metrics`; a figure with no table entry raises `MissingProvenance`.
 ```
 
+A claim citing a labelled metric also fails when it holds every word of a labelled metric it does not cite, or a time word outside its cited metric's listed words; a list inside the cited one, or a period word that is one of the cited metric's own, does not fail. At most MAX_LABEL_CHECKS (2,000,000) label checks run per input, distinct label lists times the claims citing a labelled or ordered metric; over that the input is rejected naming the cap.
+
 ## What this does not catch
 
 This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.
@@ -86,9 +88,11 @@ This check covers parseable numbers, cited sources, labels and direction. It doe
 Also:
 
 - A false sentence around correct numbers.
-- Without labels, a number only has to match some ref on its claim, and a metric with no `labels` or `order` entry gets no label or direction check.
+- Without labels, a number only has to match some ref on its claim, and a metric with no `labels` or `order` entry gets no label or direction check. On a claim citing a labelled metric, only labelled metrics back its numbers.
 - Inside one series, a value is not bound to its place in the sentence unless a direction word exposes it: "rose from 9 in October to 5 in November" passes when October was 5 and November was 9.
 - Direction words outside the gate's lists are not seen.
-- Rounding and sign: a number is backed when a cited value rounds to it at the precision written, with the sign ignored, so 5 passes for 4.75 and -7 for 7.
+- Rounding and sign: a number with decimals is backed when a cited value rounds to it at the precision written, so 4.8 passes for 4.75; a whole number is backed only when the value rounds to it at two decimal places, so 5 passes for 4.9999999; a minus sign counts against a positive value, and not the other way round, so -7 fails for 7 while 7 passes for -7.
+- Units: verify does not know a metric's unit, so a value in hours passes when the claim says minutes. To require a unit, list it among the metric's label words, so the claim must name it.
 - Number forms the parser does not read, such as `7k` or `8th`, plus dates and clock times. The full list is at the top of [framework/briefing/numbers.py](../framework/briefing/numbers.py).
 - Claim ids are echoed as given, so never put private terms in ids.
+- The public subset leaves to the gate: negation, quantity words and forms, imperatives, comparisons read in time order rather than by the periods a sentence names, period compounds, value and period binding, language, look-alike private terms, and raw literals.

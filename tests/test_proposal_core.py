@@ -824,6 +824,7 @@ def test_proposal_claim_too_long_by_words_retries() -> None:
     assert result.kind == "proposal"
     assert len(result.attempts) == 2
     assert tuple(code for code, _ in result.attempts[0].codes) == (
+        "L1B_UNVERIFIABLE_QUANTITY",
         "PROPOSAL_CLAIM_TOO_LONG",
     )
     assert result.attempts[0].codes[0][1].startswith("sections[overall_state].claims[")
@@ -843,6 +844,7 @@ def test_proposal_claim_too_long_by_characters() -> None:
     assert result.kind == "proposal"
     assert len(result.attempts) == 2
     assert tuple(code for code, _ in result.attempts[0].codes) == (
+        "L1_TEXT_TOO_LONG",
         "PROPOSAL_CLAIM_TOO_LONG",
     )
     assert "write one sentence of at most 20 words" in client.requests[1].prompt

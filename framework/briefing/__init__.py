@@ -1,5 +1,6 @@
 """Ticket 10: briefing gate package (schema, context, numbers, gate)."""
 
+from framework.briefing.claim_text import claim_text_codes, fact_claim_codes
 from framework.briefing.commitments import (
     LoadedCommitments,
     load_commitments,
@@ -28,7 +29,9 @@ from framework.briefing.gate import (
     text_check_codes,
 )
 from framework.briefing.labels import MetricBinding, metric_label_binding
+from framework.briefing.normalize import has_unsafe_text, normalize_text
 from framework.briefing.numbers import NumberToken, extract_number_tokens
+from framework.briefing.quantities import find_unverifiable_quantities
 from framework.briefing.schemas import (
     Action,
     ActionKind,
@@ -68,11 +71,16 @@ __all__ = [
     "Violation",
     "action_targets_repo",
     "action_window_codes",
+    "claim_text_codes",
     "evaluate_briefing",
     "extract_number_tokens",
+    "fact_claim_codes",
+    "find_unverifiable_quantities",
+    "has_unsafe_text",
     "load_commitments",
     "load_private_terms",
     "metric_label_binding",
+    "normalize_text",
     "scan_outbound_text",
     "slot_window_codes",
     "text_check_codes",

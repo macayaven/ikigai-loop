@@ -39,7 +39,9 @@ from framework.briefing.gate import (
     text_check_codes,
     word_list_hit,
 )
+from framework.briefing.normalize import normalize_text
 from framework.briefing.numbers import extract_number_tokens
+from framework.briefing.quantities import time_scope_hit
 
 LIMITS_NOTE = (
     "This check covers parseable numbers, cited sources, labels and direction. "
@@ -59,6 +61,7 @@ MAX_SERIES_IDS = 366
 MAX_JSON_DEPTH = 64
 MAX_WORD_CHARS = 100
 MAX_CLAIM_ID_CHARS = 200
+MAX_LABEL_CHECKS = 2_000_000
 
 _FIELD_NAMES = frozenset(
     {
@@ -428,6 +431,53 @@ class _ClaimContext:
     advice_words: tuple[str, ...] | None
 
 
+def _labelled_name_check(
+    claim: ClaimInput,
+    ctx: _ClaimContext,
+    collapsed: str,
+    claim_words: set[str],
+    add: Any,
+) -> None:
+    """Names a claim citing a labelled metric cannot back (R36, R37).
+
+    Fails with ``L1B_METRIC_LABEL_MISSING`` when the claim holds every
+    word of a labelled metric it does not cite, or a time word outside
+    its cited metric's listed words. A word list with no word outside
+    the cited metric's own words names nothing else, so a list inside
+    the cited one never fires, and neither does a period word that is
+    one of the cited metric's own. Each word is searched once per claim:
+    the claim's word set is built once and every list is a set check.
+    """
+    label_words = ctx.label_words
+    cited = [ref.metric_id for ref in claim.metric_refs if ref.metric_id in label_words]
+    if not cited:
+        return
+    cited_words = {
+        word for metric_id in cited for word in label_words.get(metric_id, ())
+    }
+    cited_ids = {ref.metric_id for ref in claim.metric_refs}
+    for metric_id, words in label_words.items():
+        if metric_id in cited_ids:
+            continue
+        listed = {piece for word in words for piece in word.split()}
+        if not listed or not listed <= claim_words:
+            continue
+        if listed <= cited_words:
+            continue
+        add(
+            "L1B_METRIC_LABEL_MISSING",
+            claim.id,
+            "claim names another labelled metric without citing it",
+        )
+        return
+    if time_scope_hit(collapsed, cited_words):
+        add(
+            "L1B_METRIC_LABEL_MISSING",
+            claim.id,
+            "claim names a time outside the cited metric",
+        )
+
+
 def _check_claim(
     claim: ClaimInput,
     ctx: _ClaimContext,
@@ -462,11 +512,25 @@ def _check_claim(
                 claim.id,
                 "metric value differs from the snapshot",
             )
+    norm = normalize_text(claim.text)
+    collapsed = collapse_text(norm)
+    claim_words = set(re.findall(r"[a-z0-9]+", collapsed))
     known_ids = set(claim.fact_ids) | {ref.metric_id for ref in claim.metric_refs}
+    bound_ids = {
+        ref.metric_id
+        for ref in claim.metric_refs
+        if ref.metric_id in label_words or ref.metric_id in series_index
+    }
+    if (label_words or series_index) and bound_ids:
+        # A labelled claim's numbers come from its labelled refs only;
+        # an unlabelled ref cited beside them backs nothing.
+        backing_refs = [ref for ref in claim.metric_refs if ref.metric_id in bound_ids]
+    else:
+        backing_refs = list(claim.metric_refs)
     for token in extract_number_tokens(claim.text, known_ids):
         if not any(
-            ref_backs_token(ref.value, token.places, abs(token.value))
-            for ref in claim.metric_refs
+            ref_backs_token(ref.value, token.places, token.value)
+            for ref in backing_refs
         ):
             add(
                 "L1B_NUMBER_WITHOUT_METRIC_REF",
@@ -493,7 +557,6 @@ def _check_claim(
                 "split the claim or list them in order",
             )
         else:
-            collapsed = collapse_text(claim.text)
             bound_words = {
                 word for metric_id in ids for word in label_words.get(metric_id, ())
             }
@@ -526,7 +589,7 @@ def _check_claim(
             exclude_words = [
                 word for ref in bound for word in label_words.get(ref.metric_id, ())
             ]
-            sides = direction_sides(claim.text, exclude_words=exclude_words)
+            sides = direction_sides(norm, exclude_words=exclude_words)
             if len(sides) > 1:
                 add(
                     "L1B_DIRECTION_MISMATCH",
@@ -560,11 +623,12 @@ def _check_claim(
                             claim.id,
                             "direction words disagree with the cited values",
                         )
+    _labelled_name_check(claim, ctx, collapsed, claim_words, add)
     for code in text_check_codes(claim.text, private_terms=deny_terms):
         if code == "L1_ADVICE":
             continue
         add(code, claim.id, _TEXT_MESSAGES.get(code, "text check failed"))
-    if advice_words and word_list_hit(claim.text, advice_words):
+    if advice_words and word_list_hit(norm, advice_words):
         add("L1_ADVICE", claim.id, _TEXT_MESSAGES["L1_ADVICE"])
 
 
@@ -586,13 +650,26 @@ def verify_claims(data: VerifyInput | dict[str, Any] | str | bytes) -> Report:
             violations.append(Violation(code=code, claim_id=claim_id, message=message))
 
     label_words = {
-        metric_id: tuple(collapse_text(word) for word in words)
+        metric_id: tuple(collapse_text(normalize_text(word)) for word in words)
         for metric_id, words in (validated.labels or {}).items()
     }
     series_index: dict[str, tuple[int, int]] = {}
     for series_no, series in enumerate(validated.order or []):
         for position, metric_id in enumerate(series):
             series_index[metric_id] = (series_no, position)
+    distinct_lists = {tuple(words) for words in label_words.values()}
+    citing = sum(
+        1
+        for claim in validated.claims
+        if any(
+            ref.metric_id in label_words or ref.metric_id in series_index
+            for ref in claim.metric_refs
+        )
+    )
+    if len(distinct_lists) * citing > MAX_LABEL_CHECKS:
+        raise VerifyInputError(
+            f"label checks exceed MAX_LABEL_CHECKS ({MAX_LABEL_CHECKS})"
+        )
     grouped: dict[int, list[str]] = {}
     for series_no, series in enumerate(validated.order or []):
         for metric_id in series:
@@ -610,7 +687,10 @@ def verify_claims(data: VerifyInput | dict[str, Any] | str | bytes) -> Report:
             dict.fromkeys(collapse_text(term) for term in validated.deny_terms or ())
         ),
         advice_words=tuple(
-            dict.fromkeys(collapse_text(word) for word in validated.advice_words or ())
+            dict.fromkeys(
+                collapse_text(normalize_text(word))
+                for word in validated.advice_words or ()
+            )
         )
         if validated.advice_words
         else None,

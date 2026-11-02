@@ -1,0 +1,650 @@
+{
+  "review_rows": [
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "R1",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "R2",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_VALUE_PERIOD_MISMATCH"
+      ],
+      "id": "R3",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "R4",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "R5",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "R6",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "R7",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_VALUE_PERIOD_MISMATCH"
+      ],
+      "id": "R8",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_VALUE_PERIOD_MISMATCH"
+      ],
+      "id": "R9",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "R10",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "R11",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH",
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R12",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R13",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R14",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R15",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R16",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R17",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM",
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "R18",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "R19",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "R20",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "R21",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_UNSAFE_TEXT"
+      ],
+      "id": "R22",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_PRIVATE_TERM"
+      ],
+      "id": "R23",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_RAW_VALUE"
+      ],
+      "id": "R24",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "R25",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "R26",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "R27",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "R28",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "R29",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_METRIC_LABEL_UNKNOWN"
+      ],
+      "id": "R30",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [],
+      "id": "R31",
+      "passed": true,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_METRIC_VALUE_MISMATCH"
+      ],
+      "id": "R32",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "R33",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "R34",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "R35",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_METRIC_LABEL_MISMATCH"
+      ],
+      "id": "R36",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "R37",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "R38",
+      "passed": false,
+      "raised": null
+    },
+    {
+      "codes": [
+        "L1_PRIVATE_TERM"
+      ],
+      "id": "R39",
+      "passed": false,
+      "raised": null
+    }
+  ],
+  "rows": [
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "id": "A01",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_NEGATED_CLAIM"
+      ],
+      "id": "A02",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "A03",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_DIRECTION_MISMATCH"
+      ],
+      "id": "A04",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1_CLAIM_LANGUAGE"
+      ],
+      "id": "A05",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A06",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A07",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF",
+        "L1B_UNVERIFIABLE_QUANTITY",
+        "L1B_VALUE_PERIOD_MISMATCH"
+      ],
+      "id": "A08",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_COMPARISON_WORD_UNKNOWN",
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A09",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A10",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1_CLAIM_LANGUAGE"
+      ],
+      "id": "A11",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A12",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A13",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_COMPARISON_WORD_UNKNOWN",
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "A14",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A15",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A16",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A17",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1B_NUMBER_WITHOUT_METRIC_REF"
+      ],
+      "id": "A18",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "A"
+    },
+    {
+      "codes": [
+        "L1B_UNIT_MISMATCH"
+      ],
+      "id": "A19",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [],
+      "id": "A20",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_PERIOD_WORD_MISSING"
+      ],
+      "id": "A21",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_METRIC_LABEL_MISMATCH"
+      ],
+      "id": "A22",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "B"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A23",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "C"
+    },
+    {
+      "codes": [
+        "L1B_UNVERIFIABLE_QUANTITY"
+      ],
+      "id": "A24",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [],
+      "id": "A25",
+      "passed": true,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "F"
+    },
+    {
+      "codes": [
+        "L1_PRIVATE_TERM",
+        "L1_UNSAFE_TEXT"
+      ],
+      "id": "A26",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_PRIVATE_TERM"
+      ],
+      "id": "A27",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_PRIVATE_TERM"
+      ],
+      "id": "A28",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_CLAIM_LANGUAGE",
+        "L1_PRIVATE_TERM"
+      ],
+      "id": "A29",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_RAW_VALUE"
+      ],
+      "id": "A30",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "D"
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "A31",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "A32",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1_ADVICE"
+      ],
+      "id": "A33",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    },
+    {
+      "codes": [
+        "L1_CLAIM_LANGUAGE"
+      ],
+      "id": "A34",
+      "passed": false,
+      "predicted_passes": true,
+      "raised": null,
+      "target": "E"
+    }
+  ]
+}

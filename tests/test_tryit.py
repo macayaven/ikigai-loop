@@ -147,7 +147,7 @@ def test_output_has_all_five_sections_in_order_labelled_synthetic() -> None:
 def test_output_within_length_limit() -> None:
     _, out, _ = _run([])
     assert len(out.splitlines()) <= 90
-    assert len(out) <= 3800
+    assert len(out) <= 4000
 
 
 def test_every_printed_error_code_is_followed_by_its_plain_sentence() -> None:

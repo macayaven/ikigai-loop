@@ -1,0 +1,587 @@
+{
+  "attacks": [
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.screen_hours.Work/Programming",
+            "value": 4.75
+          },
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 1.75
+          }
+        ],
+        "text": "Programming screen hours fell from 1.75 screen hours in prior to 4.75 screen hours in last."
+      },
+      "code_citation": "framework/briefing/gate.py:1149 framework/briefing/gate.py:1260",
+      "id": "N01",
+      "mechanism": "The forward value-period regex allows only one middle word between a value and its period word, so the natural two-word phrase \"screen hours\" makes both swapped pairs invisible to _value_period_violations.",
+      "predicted_passes": true,
+      "target": "B",
+      "why_false": "Prior is 4.75 and last is 1.75; the sentence assigns 1.75 to prior and 4.75 to last."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.prior.screen_hours.Work/Programming",
+            "value": 4.75
+          },
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 1.75
+          }
+        ],
+        "text": "Programming screen hours fell, prior was still 1.75 and last was still 4.75."
+      },
+      "code_citation": "framework/briefing/gate.py:1157 framework/briefing/gate.py:1164",
+      "id": "N02",
+      "mechanism": "The backward and comma pair regexes require the value immediately after a pinned separator (was/were/at/...), so inserting the adverb \"still\" between \"was\" and the value breaks every pair match.",
+      "predicted_passes": true,
+      "target": "B",
+      "why_false": "Prior was 4.75, not 1.75, and last was 1.75, not 4.75."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes reached 0 in last, and the next-to-last window also reached 0."
+      },
+      "code_citation": "framework/briefing/claim_text.py:337 framework/briefing/claim_text.py:380",
+      "id": "N03",
+      "mechanism": "blank_period_phrases deletes spaced/hyphen period compounds such as \"next-to-last\" before the period scan, while a decoy plain \"last\" elsewhere in the sentence satisfies the cited period set; the second 0 is therefore never bound to the prior window it describes.",
+      "predicted_passes": true,
+      "target": "B",
+      "why_false": "The next-to-last (prior) window had 1 push, not 0."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 1.75
+          }
+        ],
+        "text": "MediaVideo Programming screen hours in last were 1.75."
+      },
+      "code_citation": "framework/briefing/gate.py:310 framework/briefing/gate.py:887",
+      "id": "N04",
+      "mechanism": "Label and conflicting-label checks use _contains_token whole-token boundaries, so the wrong category \"Video\" hidden inside the camelCase token \"MediaVideo\" never fires the conflicting-label arm, while the standalone token \"Programming\" satisfies the cited label.",
+      "predicted_passes": true,
+      "target": "B",
+      "why_false": "Read as the Media/Video category, last is 4 hours, not 1.75; 1.75 belongs to Work/Programming."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3
+          },
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          }
+        ],
+        "text": "Pushes fell by 1 from 3 in earlier to 1 in prior."
+      },
+      "code_citation": "framework/briefing/gate.py:1352 framework/briefing/gate.py:745",
+      "id": "N05",
+      "mechanism": "Number backing checks each token against any cited ref value, never the token's grammatical role, so the endpoint value 1 is re-used as the \"by\" delta and is backed by the prior ref.",
+      "predicted_passes": true,
+      "target": "A",
+      "why_false": "The fall from 3 to 1 is a drop of 2, not 1."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 1.75
+          }
+        ],
+        "text": "Programming screen hours in last were 1.75 percent."
+      },
+      "code_citation": "framework/briefing/gate.py:812 framework/briefing/gate.py:841",
+      "id": "N06",
+      "mechanism": "The unit arm only inspects hour/minute/second/day words, a pinned bare-unit list, glued units and a trailing % symbol; the spelled unit word \"percent\" after a token is in none of them, so 1.75 passes as if it were still hours.",
+      "predicted_passes": true,
+      "target": "B",
+      "why_false": "1.75 percent is a dimensionless proportion, not 1.75 hours of screen time."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 1.75
+          }
+        ],
+        "text": "Programming screen hours in last were 1.75 fortnights."
+      },
+      "code_citation": "framework/briefing/gate.py:777 framework/briefing/gate.py:844",
+      "id": "N07",
+      "mechanism": "Proximity unit checking recognises only day/week/month/year as day-class units (plus hour/minute/second and the bare-unit list); \"fortnights\" is in no unit list, so the token keeps its hours backing.",
+      "predicted_passes": true,
+      "target": "B",
+      "why_false": "1.75 fortnights is about 24.5 days, not 1.75 hours."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3
+          },
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          },
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes fell from 3 in earlier to 1 in prior to 0 in last, and the last total showed 3/1."
+      },
+      "code_citation": "framework/briefing/quantities.py:58 framework/briefing/numbers.py:107",
+      "id": "N08",
+      "mechanism": "The fraction arm fires only on fraction words, hyphenated fraction forms, vulgar-fraction characters and U+2044; an ASCII slash is just punctuation, so 3/1 tokenises as two separately backed integers 3 and 1 and is never read as the ratio 3.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "The last total is 0, not 3/1 = 3 pushes."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3
+          },
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in earlier were 3_000, and pushes in last were 0."
+      },
+      "code_citation": "framework/briefing/numbers.py:107 framework/briefing/quantities.py:584",
+      "id": "N09",
+      "mechanism": "The number regex has no underscore thousands separator, so 3_000 extracts as tokens 3 and 0 (both backed, by earlier and last), and the glued-token arm splits on the underscore so no letter-digit run fires.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "Read as a grouped thousands number, earlier had 3,000 pushes, not 3."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3
+          },
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          },
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last totalled three and one, with 3 in earlier and 1 in prior and 0 in last."
+      },
+      "code_citation": "framework/briefing/numbers.py:271 framework/briefing/gate.py:1352",
+      "id": "N10",
+      "mechanism": "Spelled number words are extracted as independent tokens and each is backed against any ref, but the parser never sums an additive phrase, so \"three and one\" after \"totalled\" is checked as a backed 3 and a backed 1, never as 4.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "Last totalled 0 pushes, not three-and-one = 4."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last reached one."
+      },
+      "code_citation": "framework/briefing/numbers.py:145 framework/briefing/numbers.py:160",
+      "id": "N11",
+      "mechanism": "\"one\" is a number token only before a pinned unit/count word or in a pinned hyphen compound, and every other spelled number is unconditional; a sentence-final \"one\" therefore produces no token at all for the backing check.",
+      "predicted_passes": true,
+      "target": "A",
+      "why_false": "Last had 0 pushes, not one."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last hit the eleventh push."
+      },
+      "code_citation": "framework/briefing/quantities.py:309 framework/briefing/quantities.py:875",
+      "id": "N12",
+      "mechanism": "The spelled-ordinal arm is a closed set stopping at \"tenth\", and the digit-ordinal arm needs digits, so \"eleventh\" states a count of at least eleven that no arm reads.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "Having an eleventh push requires at least 11 pushes in last; the value is 0."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last were xv."
+      },
+      "code_citation": "framework/briefing/quantities.py:364 framework/briefing/quantities.py:678 framework/briefing/quantities.py:868",
+      "id": "N13",
+      "mechanism": "Capital Roman numerals fire only for I/V/X-only tokens, and the lowercase-Roman arm is a closed set (ii, iii, iv, vi, vii, viii, ix, xi, xii) that omits xv, so a lowercase xv escapes both arms.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "xv is 15; last had 0 pushes."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last went push, push, push, push."
+      },
+      "code_citation": "framework/briefing/quantities.py:506 framework/briefing/claim_text.py:1456",
+      "id": "N14",
+      "mechanism": "Enumeration by repetition is not a number form: the tally arm needs tally-stroke characters, extraction needs digits or number words, and each comma clause starting with the cited label \"push\" is exempted from the imperative arm.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "The four repeated event words tally four pushes in last; the value is 0."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.earlier.pushes",
+            "value": 3
+          },
+          {
+            "metric_id": "period.prior.pushes",
+            "value": 1
+          },
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last ranged from 0 to 3, with 3 in earlier and 1 in prior."
+      },
+      "code_citation": "framework/briefing/gate.py:1352 framework/briefing/quantities.py:228",
+      "id": "N15",
+      "mechanism": "There is no range arm: range endpoints are backed one token at a time against any ref, and the forward pair check skips the 0-to-3 span because \"to\" is not an allowed middle word, so a range scoped to \"in last\" is never checked as a range.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "In last pushes only ever were 0; they did not range up to 3 in that period."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.screen_hours.Work/Programming",
+            "value": 1.75
+          }
+        ],
+        "text": "Programming screen hours in last were the square of 1.75."
+      },
+      "code_citation": "framework/briefing/quantities.py:370 framework/briefing/quantities.py:607",
+      "id": "N16",
+      "mechanism": "The qualifier arms look for \"squared\"/\"cubed\" after a number token; the operation word \"square\" placed before the number is in neither qualifier list, so the backed literal 1.75 is never squared by the checker.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "The square of 1.75 is about 3.06 hours, not the cited 1.75 hours."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "Pushes in last matched pushes in earlier."
+      },
+      "code_citation": "framework/briefing/claim_text.py:268 framework/briefing/claim_text.py:1806",
+      "id": "N17",
+      "mechanism": "Fact-only direction checking only recognises the pinned UP/DOWN/SAME word sets; the relational equality verb \"matched\" is in none of them, so claim_direction is false and both the direction and label arms are skipped while the period words are a subset of the fact's.",
+      "predicted_passes": true,
+      "target": "C",
+      "why_false": "Last (0) did not match earlier (3)."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "All pushes landed in last."
+      },
+      "code_citation": "framework/briefing/quantities.py:633 framework/briefing/quantities.py:904",
+      "id": "N18",
+      "mechanism": "The universal-quantifier arm runs only when has_metric_refs is true (the R17 fix), and fact_claim_codes has no universal check, so the same sentence that is blocked on a metric ref passes on a fact-only claim.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "f1 puts 3 pushes in earlier and 1 in prior, and last itself is 0, so not all pushes landed in last."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last were up-trending at 0."
+      },
+      "code_citation": "framework/briefing/claim_text.py:275 framework/briefing/gate.py:1023",
+      "id": "N19",
+      "mechanism": "Hyphen-compound direction extraction only decomposes X-than compounds and above-/below-norm compounds; otherwise the whole hyphen token \"up-trending\" is compared against the direction lists, where only \"uptrend\" (not \"up-trending\") appears, so no direction side is read on a single-ref claim.",
+      "predicted_passes": true,
+      "target": "C",
+      "why_false": "Pushes trended down to 0; they were not up-trending."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last trebled to 0."
+      },
+      "code_citation": "framework/briefing/quantities.py:77",
+      "id": "N20",
+      "mechanism": "The multiplicative set lists triple/tripled/tripling but not the British form \"trebled\", and it is also absent from the direction lists, so the times-three assertion produces no quantity hit and no direction side.",
+      "predicted_passes": true,
+      "target": "C",
+      "why_false": "Pushes fell to 0; they did not treble."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last aumentan at 0."
+      },
+      "code_citation": "framework/briefing/claim_text.py:603 framework/briefing/claim_text.py:722 framework/claim_text.py:1553",
+      "id": "N21",
+      "mechanism": "The pinned Spanish direction list holds aumentaron/aumento but not the present-tense form aumentan, and the language arm fires only on pinned foreign tokens or three stopwords from one list, so this unpinned paradigm form is unread in an otherwise English claim.",
+      "predicted_passes": true,
+      "target": "C",
+      "why_false": "A Spanish reader reads \"aumentan\" as \"they increase\"; pushes decreased to 0."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "The notes mention QuiIIon today."
+      },
+      "code_citation": "framework/briefing/normalize.py:16 framework/briefing/claim_text.py:1287",
+      "id": "N22",
+      "mechanism": "Normalize folds only pinned cross-script confusables, never ASCII capital I to l, so casefolding gives \"quiiion\", which is two substitutions from \"quillon\" and defeats the Damerau distance-at-most-1 private-term arm while rendering identically in sans-serif fonts.",
+      "predicted_passes": true,
+      "target": "D",
+      "why_false": "A reader reads the private term Quillon (both l's written as capital I) in the claim."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "The notes mention Finchzebra today."
+      },
+      "code_citation": "framework/briefing/gate.py:154 framework/briefing/claim_text.py:1311",
+      "id": "N23",
+      "mechanism": "Private-term matching is substring/squashed-substring plus per-token edit, wildcard and exact-reversal checks; swapping the two syllables of the compound Zebrafinch into Finchzebra matches none of them, because the joined-token arm only concatenates neighbouring tokens in their written order.",
+      "predicted_passes": true,
+      "target": "D",
+      "why_false": "A reader unscrambles the swapped compound and reads the private term Zebrafinch."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "The notes read Quebec Uniform India Lima Lima Oscar November today."
+      },
+      "code_citation": "framework/briefing/claim_text.py:1208 framework/briefing/claim_text.py:1605",
+      "id": "N24",
+      "mechanism": "The spelled-out-letters arm matches single letters separated by spaces or punctuation; NATO phonetic-alphabet words are full multi-letter tokens, and no private-term arm (substring, squashed, edit distance, reversal) can reassemble them into the term.",
+      "predicted_passes": true,
+      "target": "D",
+      "why_false": "The NATO words spell Q-u-i-l-l-o-n, leaking the private term Quillon to any reader who decodes them."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "The calendar note reads Dentist in the morning on Tuesday."
+      },
+      "code_citation": "framework/briefing/claim_text.py:1352 framework/briefing/gate.py:191",
+      "id": "N25",
+      "mechanism": "The raw-literal bag rule requires every content token within a window of len(content)+2 tokens, and the literal sequence rule requires consecutive tokens; five tokens between \"Dentist\" and \"Tuesday\" defeat both while keeping the appointment readable.",
+      "predicted_passes": true,
+      "target": "D",
+      "why_false": "A reader still recovers the forbidden raw literal's content: a dentist appointment on Tuesday."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "Verzend een kleine wijziging in het volgende vrije uur."
+      },
+      "code_citation": "framework/briefing/claim_text.py:632 framework/briefing/claim_text.py:1533",
+      "id": "N26",
+      "mechanism": "The language arms pin only Spanish, French, German, Italian and Portuguese direction/number/advice tokens and stopword lists; a Dutch imperative in plain ASCII matches no pinned token and cannot reach three stopwords from any one pinned list.",
+      "predicted_passes": true,
+      "target": "E",
+      "why_false": "A Dutch reader reads a direct instruction: \"Send a small change in the next free hour.\""
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "Reader ship a small change in the next free hour."
+      },
+      "code_citation": "framework/briefing/claim_text.py:1456 framework/briefing/claim_text.py:1482 framework/briefing/claim_text.py:1513",
+      "id": "N27",
+      "mechanism": "The imperative arm fires only on a clause-initial strong verb (after pinned openers) or one preceded by so/then, and the joined arm only after and/but/or or a dash; a comma-less vocative first token puts \"ship\" in second position where no arm looks.",
+      "predicted_passes": true,
+      "target": "E",
+      "why_false": "Addressed to the reader, this is an instruction to ship a small change in the next free hour."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "Would the next free hour suit shipping a small change."
+      },
+      "code_citation": "framework/briefing/claim_text.py:1620 framework/briefing/claim_text.py:873",
+      "id": "N28",
+      "mechanism": "The question arm of the advice rule is a single check for a literal \"?\" character, and the phrase list has \"would you\" but not inverted \"Would the...\"; an interrogative with declarative punctuation is therefore never treated as a suggestion.",
+      "predicted_passes": true,
+      "target": "E",
+      "why_false": "In inverted question word order this proposes shipping a small change in the next free hour to the reader."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "Shipping a small change in the next free hour is overdue."
+      },
+      "code_citation": "framework/briefing/claim_text.py:974 framework/briefing/claim_text.py:1456",
+      "id": "N29",
+      "mechanism": "Imperative detection matches exact strong-verb tokens such as \"ship\"; the gerund \"Shipping\" as clause subject is a different token in no verb list, and no advice phrase covers a nominalised \"X is overdue\" recommendation.",
+      "predicted_passes": true,
+      "target": "E",
+      "why_false": "It tells the reader the commitment action is overdue and should be done in the next free hour."
+    },
+    {
+      "claim": {
+        "fact_ids": [
+          "f1"
+        ],
+        "metric_refs": [],
+        "text": "You shall ship a small change in the next free hour."
+      },
+      "code_citation": "framework/briefing/gate.py:82 framework/briefing/claim_text.py:873 framework/briefing/claim_text.py:1456",
+      "id": "N30",
+      "mechanism": "Deontic \"shall\" is absent from the advice single words (should/must only), from the claim advice phrases (which list you can/may/might/will/would but not shall), and a clause starting \"You\" never reaches the imperative verb check.",
+      "predicted_passes": true,
+      "target": "E",
+      "why_false": "\"You shall ship\" is a direct obligation placed on the reader to perform the commitment."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pull requests multiplied in last, and pushes were 0 in last."
+      },
+      "code_citation": "framework/briefing/gate.py:887 framework/briefing/labels.py:10",
+      "id": "N31",
+      "mechanism": "The conflicting-label arm only iterates metrics present in the snapshot, so a metric family the snapshot does not hold (pull requests) is invisible to it; \"multiplied\" is also outside the multiplicative and direction lists, leaving the cited pushes clause to pass alone.",
+      "predicted_passes": true,
+      "target": "F",
+      "why_false": "The claim asserts pull requests multiplied in last, a quantity no cited ref or fixed-context metric backs at all."
+    },
+    {
+      "claim": {
+        "fact_ids": [],
+        "metric_refs": [
+          {
+            "metric_id": "period.last.pushes",
+            "value": 0
+          }
+        ],
+        "text": "Pushes in last were anything but 0."
+      },
+      "code_citation": "framework/briefing/claim_text.py:298 framework/briefing/claim_text.py:1386",
+      "id": "N32",
+      "mechanism": "Negation fails closed only for the pinned negator words, the n't regex and \"rather than\"/\"non-zero\"; the idiomatic negator \"anything but\" contains none of them, so the claim is not treated as negated and its 0 token is backed.",
+      "predicted_passes": true,
+      "target": "A",
+      "why_false": "\"Anything but 0\" states last pushes were not 0; the cited value is exactly 0."
+    }
+  ]
+}

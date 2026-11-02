@@ -28,7 +28,7 @@ Exit 0 is a pass, 1 means violations, 2 means bad input. Add `--json` for machin
 | `claims` | Required, at least one. Each claim has a non-blank `id`, unique in the file, at most 200 characters; non-blank `text`, at most 2,000 characters; and the evidence it cites: `fact_ids`, a list of fact ids, and `metric_refs`, a list of `{"metric_id": ..., "value": ...}`, at most 100. A claim with neither fails. Every number in the text needs a cited value behind it. |
 | `facts` | Required, may be empty. Dict of id to string, from your records, never from the agent's output. A cited fact is only checked to exist. |
 | `metrics` | Required, may be empty. Dict of id to number, from your records, never from the agent's output. `3` and `3.0` match. Strings, booleans and null are bad input. |
-| `labels` | Optional. Dict of metric id to the words a claim citing it must contain, at most 10, each at most 100 characters. Every listed word must appear as a whole word, case-insensitive. Alternatives can't be expressed, so pick the form the agent writes. |
+| `labels` | Optional. Dict of metric id to the words a claim citing it must contain, at most 10, each at most 100 characters. Every listed word must appear as a whole word, case-insensitive. Alternatives can't be expressed, so pick the form the agent writes. A claim citing a labelled metric fails when it holds every word of a labelled metric it does not cite, or a time word outside its cited metric's listed words. At most MAX_LABEL_CHECKS (2,000,000) label checks run per input, distinct label lists times the claims citing a labelled or ordered metric; over that the input is rejected naming the cap. |
 | `order` | Optional. List of series, each 2 to 366 metric ids, earliest first, each id once across all series. Direction words are checked against it, and a word only an uncited member of the series lists must not appear in the claim. |
 | `deny_terms` | Optional. A term of 3 characters or fewer matches whole words only, a longer term matches anywhere in the text, case-insensitive. At most 1,000, each at most 100 characters. |
 | `advice_words` | Optional. Whole word, case-insensitive. No default list. At most 1,000, each at most 100 characters. |
@@ -42,9 +42,11 @@ This check covers parseable numbers, cited sources, labels and direction. It doe
 Also:
 
 - A false sentence around correct numbers.
-- Without labels, a number only has to match some ref on its claim, and a metric with no `labels` or `order` entry gets no label or direction check.
+- Without labels, a number only has to match some ref on its claim, and a metric with no `labels` or `order` entry gets no label or direction check. On a claim citing a labelled metric, only labelled metrics back its numbers.
 - Inside one series, a value is not bound to its place in the sentence unless a direction word exposes it: "rose from 9 in October to 5 in November" passes when October was 5 and November was 9.
 - Direction words outside the gate's lists are not seen.
-- Rounding and sign: a number is backed when a cited value rounds to it at the precision written, with the sign ignored, so 5 passes for 4.75 and -7 for 7.
+- Rounding and sign: a number with decimals is backed when a cited value rounds to it at the precision written, so 4.8 passes for 4.75; a whole number is backed only when the value rounds to it at two decimal places, so 5 passes for 4.9999999; a minus sign counts against a positive value, and not the other way round, so -7 fails for 7 while 7 passes for -7.
+- Units: verify does not know a metric's unit, so a value in hours passes when the claim says minutes. To require a unit, list it among the metric's label words, so the claim must name it.
 - Number forms the parser does not read, such as `7k` or `8th`, plus dates and clock times. The full list is at the top of [framework/briefing/numbers.py](../../framework/briefing/numbers.py).
 - Claim ids are echoed as given, so never put private terms in ids.
+- The public subset leaves to the gate: negation, quantity words and forms, imperatives, comparisons read in time order rather than by the periods a sentence names, period compounds, value and period binding, language, look-alike private terms, and raw literals.
