@@ -423,6 +423,11 @@ Built on branch `e2-source-audit` per [docs/plans/020-source-audit.md](docs/plan
 The idea came from an outside review round on Nov 1, where GPT Sol 6.1, run through Codex, proposed it, and GPT Sol 6.1, GPT Terra 6.1 and GPT Astra 6, all run through Codex, Muse Wonder Full, and Claude as advisor voted for it, 5 of 5.
 
 Prompts and review by Claude Code; plan on muse-wonder-1.0 (effort high), implementation on muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code ran the live fetches, the counts on scratch copies of my store and the break tests outside those sessions. The since-line finding was this ticket's, and Ticket 13 changed its rule because of it.
+## Docs 3 — the README's first screen (2026-11-02)
+
+The top of `README.md` rewritten for a stranger: what it is in one sentence, status true at the moment of merge, how it works in plain words, Try it, the checker, what works and what doesn't, what the loop needs, the words used below, and the design list renamed `The pieces`; Status lines the merged code made untrue fixed against the code (Glimmer code facts, learner core, Telegram card, the Wonder proposal step, R1b, the closing paragraph), with "choice" and "tap" in place of "ruling" throughout. Docs only: no behaviour, schema, fixture or test change. Evidence in [docs/sessions/docs3-first-screen.md](docs/sessions/docs3-first-screen.md).
+
+Prompts and review by Claude Code. Implementation on muse-spark-1.3 (effort medium), in a headless session Claude Code started, with the commit step at effort low, in Contributor mode on this public repo. The opening sentence and the How it works paragraph were drafted by Claude Code in a working doc, then I edited and approved them. This pass also fixes the "Built during the hackathon" sentence, which had claimed Muse Code wrote all the code. GPT Terra 6.1's no-context test and section 3 of GPT Astra 6's pre-mortem, both run through Codex, asked for this pass; GPT Sol 6.1, GPT Terra 6.1, GPT Astra 6, Muse Wonder Full and Claude Code's advisor voted for it unanimously.
 
 ## Clock fix — a test that broke as the date moved (2026-11-02)
 
