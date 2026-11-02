@@ -7,6 +7,7 @@ become placeholder values so the gate, not assembly, reports them.
 from __future__ import annotations
 
 import hashlib
+import json
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 
@@ -66,7 +67,6 @@ def assemble_briefing(
     """Fill every briefing field the draft does not carry."""
     _ = parent_snapshot
     has_parent = parent is not None
-    digest = hashlib.sha256(draft.commitment_id.encode()).hexdigest()[:8]
     stamp = slot.astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
     sections: list[Section] = []
     for section in _SECTIONS:
@@ -109,11 +109,19 @@ def assemble_briefing(
             ],
         )
     )
-    return Briefing(
-        id=f"brf-{profile_id}-{stamp}-{digest}",
+    pending = Briefing(
+        id="brf-pending",
         profile_id=profile_id,
         subject_id=subject_id,
         slot=slot,
         parent_briefing_id=parent.id if parent is not None else None,
         sections=sections,
     )
+    body = pending.model_dump(mode="json")
+    del body["id"]
+    digest = hashlib.sha256(
+        json.dumps(
+            body, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        ).encode()
+    ).hexdigest()[:16]
+    return pending.model_copy(update={"id": f"brf-{profile_id}-{stamp}-{digest}"})

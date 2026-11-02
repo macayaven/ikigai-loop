@@ -11,9 +11,9 @@ import json
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Literal, cast
+from typing import Annotated, Any, Literal, cast
 
-from pydantic import AwareDatetime, field_validator
+from pydantic import AwareDatetime, Field, field_validator
 
 from framework.briefing.schemas import Commitment
 from framework.schemas.base import SchemaModel
@@ -21,6 +21,10 @@ from framework.schemas.events import NonEmptyStr
 
 # No valid draft comes near this size; it bounds the time the gate's text scan can take on a runaway reply.
 MAX_DRAFT_CHARS = 64_000
+
+# One cap for the claims in each draft section, shared by the sent schema
+# and the local model so the two cannot drift apart again.
+MAX_SECTION_CLAIMS = 3
 
 
 class ClaimDraft(SchemaModel):
@@ -42,10 +46,10 @@ class ProposalDraft(SchemaModel):
     """The narrow draft: one commitment plus claim lists."""
 
     commitment_id: NonEmptyStr
-    overall_state: list[ClaimDraft]
-    working: list[ClaimDraft]
-    not_working: list[ClaimDraft]
-    since_last: list[ClaimDraft]
+    overall_state: Annotated[list[ClaimDraft], Field(max_length=MAX_SECTION_CLAIMS)]
+    working: Annotated[list[ClaimDraft], Field(max_length=MAX_SECTION_CLAIMS)]
+    not_working: Annotated[list[ClaimDraft], Field(max_length=MAX_SECTION_CLAIMS)]
+    since_last: Annotated[list[ClaimDraft], Field(max_length=MAX_SECTION_CLAIMS)]
 
 
 class FallbackProposal(SchemaModel):
@@ -95,7 +99,7 @@ def _section_schema(claim: dict[str, Any], *, min_items: int = 0) -> dict[str, A
     schema: dict[str, Any] = {
         "type": "array",
         "items": claim,
-        "maxItems": 3,
+        "maxItems": MAX_SECTION_CLAIMS,
     }
     if min_items:
         schema["minItems"] = min_items

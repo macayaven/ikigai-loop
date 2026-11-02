@@ -143,18 +143,176 @@ def test_latest_proposal_round_trip_and_fallback_never_parent(
             _result("fallback", attempts=(_attempt(),), reasons=("FALLBACK_X",)),
             snapshot={},
         )
-        found = store.latest_proposal(
-            "subject-1", "builder", before_slot=SLOT + timedelta(hours=1)
+        # The fallback was recorded last at the slot, so it hides the proposal:
+        # no parent comes from that slot when nothing earlier exists.
+        assert (
+            store.latest_proposal(
+                "subject-1", "builder", before_slot=SLOT + timedelta(hours=1)
+            )
+            is None
         )
-        assert found is not None
-        briefing, snapshot, _ = found
-        assert briefing.id == proposal.briefing.id  # type: ignore[union-attr]
-        assert snapshot.values == {"period.last.pushes": 3.0}
+        (shown,) = store.results_for_slot("subject-1", SLOT)
+        assert shown.kind == "fallback"
         assert (
             store.latest_proposal("subject-1", "builder", before_slot=proposal.slot)
             is None
         )
         assert store.latest_proposal("subject-2", "builder", before_slot=SLOT) is None
+    finally:
+        store.close()
+
+
+def _agree_with_slot_results(
+    store: ProposalStore, profile: str, before_slot: datetime
+) -> None:
+    """The parent is exactly the proposal row last recorded at its slot."""
+    found = store.latest_proposal("subject-1", profile, before_slot=before_slot)
+    if found is None:
+        (shown,) = store.results_for_slot("subject-1", SLOT)
+        assert shown.profile_id == profile
+        assert shown.kind != "proposal"
+        return
+    _, _, parent_slot = found
+    mine = [
+        result
+        for result in store.results_for_slot("subject-1", parent_slot)
+        if result.profile_id == profile
+    ]
+    assert len(mine) == 1
+    assert mine[0].kind == "proposal"
+
+
+def test_latest_proposal_earlier_proposal_survives_later_fallback(
+    tmp_path: Path,
+) -> None:
+    from dataclasses import replace
+
+    store = _store(tmp_path)
+    try:
+        proposal = _proposal_briefing_result()
+        earlier = replace(proposal, slot=SLOT - timedelta(days=1))
+        store.record(earlier, snapshot={"period.last.pushes": 2.0})
+        store.record(proposal, snapshot={"period.last.pushes": 3.0})
+        store.record(
+            _result("fallback", attempts=(_attempt(),), reasons=("FALLBACK_X",)),
+            snapshot={},
+        )
+        found = store.latest_proposal(
+            "subject-1", "builder", before_slot=SLOT + timedelta(hours=1)
+        )
+        assert found is not None
+        _, snapshot, slot = found
+        assert slot == SLOT - timedelta(days=1)
+        assert snapshot.values == {"period.last.pushes": 2.0}
+        _agree_with_slot_results(store, "builder", SLOT + timedelta(hours=1))
+    finally:
+        store.close()
+
+
+def test_latest_proposal_same_slot_last_row_of_any_kind_wins(
+    tmp_path: Path,
+) -> None:
+    from dataclasses import replace
+
+    store = _store(tmp_path)
+    try:
+        proposal = _proposal_briefing_result()
+        store.record(proposal, snapshot={"period.last.pushes": 3.0})
+        # A noop recorded after the proposal hides it, like the fallback does.
+        store.record(
+            _result("noop", attempts=(), reasons=("NOOP_NO_FREE_HOUR",)),
+            snapshot={},
+        )
+        assert (
+            store.latest_proposal(
+                "subject-1", "builder", before_slot=SLOT + timedelta(hours=1)
+            )
+            is None
+        )
+        _agree_with_slot_results(store, "builder", SLOT + timedelta(hours=1))
+    finally:
+        store.close()
+    store = _store(tmp_path / "fallback-first.db")
+    try:
+        store.record(
+            _result("fallback", attempts=(_attempt(),), reasons=("FALLBACK_X",)),
+            snapshot={},
+        )
+        proposal = _proposal_briefing_result()
+        store.record(proposal, snapshot={"period.last.pushes": 3.0})
+        found = store.latest_proposal(
+            "subject-1", "builder", before_slot=SLOT + timedelta(hours=1)
+        )
+        assert found is not None
+        briefing, _, slot = found
+        assert briefing.id == proposal.briefing.id  # type: ignore[union-attr]
+        assert slot == SLOT
+        _agree_with_slot_results(store, "builder", SLOT + timedelta(hours=1))
+    finally:
+        store.close()
+    store = _store(tmp_path / "two-proposals.db")
+    try:
+        proposal = _proposal_briefing_result()
+        assert proposal.briefing is not None
+        store.record(proposal, snapshot={"period.last.pushes": 3.0})
+        relabelled = replace(
+            proposal,
+            briefing=proposal.briefing.model_copy(update={"id": "brf-builder-second"}),
+        )
+        store.record(relabelled, snapshot={"period.last.pushes": 3.0})
+        found = store.latest_proposal(
+            "subject-1", "builder", before_slot=SLOT + timedelta(hours=1)
+        )
+        assert found is not None
+        briefing, _, _ = found
+        assert briefing.id == "brf-builder-second"
+        _agree_with_slot_results(store, "builder", SLOT + timedelta(hours=1))
+    finally:
+        store.close()
+
+
+def test_latest_proposal_one_slot_two_offsets_is_one_slot(tmp_path: Path) -> None:
+    from dataclasses import replace
+    from datetime import UTC
+
+    store = _store(tmp_path)
+    try:
+        proposal = _proposal_briefing_result()
+        store.record(proposal, snapshot={"period.last.pushes": 3.0})
+        same_instant = replace(
+            _result("fallback", attempts=(_attempt(),), reasons=("FALLBACK_X",)),
+            slot=SLOT.astimezone(UTC),
+        )
+        store.record(same_instant, snapshot={})
+        assert (
+            store.latest_proposal(
+                "subject-1", "builder", before_slot=SLOT + timedelta(hours=1)
+            )
+            is None
+        )
+        _agree_with_slot_results(store, "builder", SLOT + timedelta(hours=1))
+    finally:
+        store.close()
+    store = _store(tmp_path / "other-profile.db")
+    try:
+        proposal = _proposal_briefing_result()
+        store.record(proposal, snapshot={"period.last.pushes": 3.0})
+        store.record(
+            _result(
+                "fallback",
+                profile="disconnect",
+                attempts=(_attempt(),),
+                reasons=("FALLBACK_X",),
+            ),
+            snapshot={},
+        )
+        found = store.latest_proposal(
+            "subject-1", "builder", before_slot=SLOT + timedelta(hours=1)
+        )
+        assert found is not None
+        briefing, _, _ = found
+        assert briefing.id == proposal.briefing.id  # type: ignore[union-attr]
+        _agree_with_slot_results(store, "builder", SLOT + timedelta(hours=1))
     finally:
         store.close()
 

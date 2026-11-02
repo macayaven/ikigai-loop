@@ -48,6 +48,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 PROPOSAL_DIR = REPO_ROOT / "framework" / "proposal"
 FAKE_KEY = "synthetic-fake-key-VALUE"
 
+# The 4 MiB cap, spelled out here so this file still collects on the base:
+# the guard test below pins it to the shared constant on the branch.
+_CAP = 4 * 1024 * 1024
+
 
 def _envelope(
     content: Any,
@@ -235,10 +239,253 @@ def test_reported_model_sanitised_and_unreported() -> None:
         lambda req: _FakeResponse(_envelope("{}", model="a/b/muse-wonder-1.0"))
     )
     assert _client(transport).complete(_request()).model_reported == ("muse-wonder-1.0")
-    transport = RecordingTransport(
-        lambda req: _FakeResponse(_envelope("{}", model=None))
+
+
+def _model_body(model: Any) -> bytes:
+    body = json.loads(_envelope("{}").decode())
+    body["model"] = model
+    return json.dumps(body).encode()
+
+
+def test_reported_contributor_model_fails_closed_on_raw_value() -> None:
+    for reported in (
+        "muse-wonder-1.0-contributor",
+        "MUSE-WONDER-1.0-CONTRIBUTOR",
+        "clean-prefix/muse-wonder-1.0-contributor",
+    ):
+        transport = RecordingTransport(
+            lambda req, reported=reported: _FakeResponse(_model_body(reported))
+        )
+        with pytest.raises(MetaUnavailableError) as excinfo:
+            _client(transport).complete(_request())
+        exc = excinfo.value
+        assert str(exc) == "contributor model", reported
+        assert exc.__cause__ is None
+        assert exc.__context__ is None
+
+
+def test_missing_empty_or_non_string_model_fails_with_no_evidence() -> None:
+    parsed_envelope = json.loads(_envelope("{}").decode())
+    bodies = [
+        json.dumps(
+            {key: value for key, value in parsed_envelope.items() if key != "model"}
+        ).encode(),
+        _model_body(""),
+        _model_body(None),
+        _model_body(123),
+        _model_body(["muse-wonder-1.0"]),
+    ]
+    for body in bodies:
+        transport = RecordingTransport(lambda req, body=body: _FakeResponse(body))
+        with pytest.raises(MetaUnavailableError) as excinfo:
+            _client(transport).complete(_request())
+        exc = excinfo.value
+        assert str(exc) == "no model evidence", body[:80]
+        assert exc.__cause__ is None
+        assert exc.__context__ is None
+
+
+def test_sanitised_unreported_model_is_not_evidence() -> None:
+    for reported in ("unreported", "///", "a/b/"):
+        transport = RecordingTransport(
+            lambda req, reported=reported: _FakeResponse(_model_body(reported))
+        )
+        with pytest.raises(MetaUnavailableError) as excinfo:
+            _client(transport).complete(_request())
+        assert str(excinfo.value) == "no model evidence", reported
+
+
+def _serve_body(body: bytes, *, chunked: bool):  # type: ignore[no-untyped-def]
+    """Loopback server answering every POST with one fixed body."""
+    import threading
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    ready = threading.Event()
+    holders: dict[str, Any] = {}
+
+    class _Handler(BaseHTTPRequestHandler):
+        protocol_version = "HTTP/1.1"
+
+        def log_message(self, format: str, *args: Any) -> None:
+            pass
+
+        def do_POST(self) -> None:
+            length = int(self.headers.get("Content-Length") or 0)
+            if length:
+                self.rfile.read(length)
+            self.close_connection = True
+            if chunked:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Transfer-Encoding", "chunked")
+                self.end_headers()
+                self.wfile.write(b"%X\r\n" % len(body))
+                self.wfile.write(body + b"\r\n0\r\n\r\n")
+            else:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+    def _run() -> None:
+        server = HTTPServer(("127.0.0.1", 0), _Handler)
+        holders["server"] = server
+        ready.set()
+        server.serve_forever()
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+    assert ready.wait(timeout=15.0)
+    return holders["server"], thread
+
+
+def _loopback_client(port: int) -> MetaClient:
+    return MetaClient(
+        api_key=FAKE_KEY,
+        private_terms_available=True,
+        base_url=f"http://127.0.0.1:{port}",
+        timeout_s=30,
+        resend_pause_s=0.0,
     )
-    assert _client(transport).complete(_request()).model_reported == "unreported"
+
+
+def _no_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("no_proxy", "127.0.0.1")
+    monkeypatch.setenv("NO_PROXY", "127.0.0.1")
+
+
+def _close_server(server: Any, thread: Any) -> None:
+    """Shut a loopback server down and close its socket, leaving nothing open."""
+    try:
+        server.shutdown()
+        thread.join(timeout=15.0)
+    finally:
+        server.server_close()
+
+
+def test_loopback_body_past_cap_is_output_too_large(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _no_proxy(monkeypatch)
+    server, thread = _serve_body(b"x" * (_CAP + 1), chunked=False)
+    try:
+        with pytest.raises(MetaUnavailableError) as excinfo:
+            _loopback_client(server.server_address[1]).complete(_request())
+        assert str(excinfo.value) == "output too large"
+    finally:
+        _close_server(server, thread)
+
+
+def test_loopback_chunked_body_past_cap_is_output_too_large(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _no_proxy(monkeypatch)
+    server, thread = _serve_body(b"x" * (_CAP + 1), chunked=True)
+    try:
+        with pytest.raises(MetaUnavailableError) as excinfo:
+            _loopback_client(server.server_address[1]).complete(_request())
+        assert str(excinfo.value) == "output too large"
+    finally:
+        _close_server(server, thread)
+
+
+def test_loopback_exact_cap_body_is_not_refused_for_size(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _no_proxy(monkeypatch)
+    server, thread = _serve_body(b"y" * _CAP, chunked=False)
+    try:
+        with pytest.raises(MetaUnavailableError) as excinfo:
+            _loopback_client(server.server_address[1]).complete(_request())
+        assert str(excinfo.value) == "invalid response"
+    finally:
+        _close_server(server, thread)
+
+
+def test_loopback_helper_closes_server_socket(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The loopback helper shuts the server down and closes its socket."""
+    _no_proxy(monkeypatch)
+    server, thread = _serve_body(_envelope("{}"), chunked=False)
+    try:
+        response = _loopback_client(server.server_address[1]).complete(_request())
+        assert response.text == "{}"
+    finally:
+        _close_server(server, thread)
+    assert server.socket.fileno() == -1
+
+
+def test_capped_response_reads_at_most_one_byte_past_cap() -> None:
+    """The default transport's capped read is bounded, not checked after.
+
+    Around a source much larger than the cap it hands back at most one byte
+    past the cap and asks its source for no more than that in total, so a
+    transport that read to the end and sliced afterwards would fail here.
+    """
+    from framework.proposal.client import _CappedResponse
+
+    requested: list[int] = []
+
+    class _Endless:
+        def __enter__(self) -> Self:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def read(self, size: int) -> bytes:
+            requested.append(size)
+            return b"x" * size
+
+    with _CappedResponse(_Endless()) as response:
+        body = response.read()
+    assert len(body) == _CAP + 1
+    assert sum(requested) <= _CAP + 1
+
+
+def test_injected_body_past_cap_is_output_too_large() -> None:
+    transport = RecordingTransport(lambda req: _FakeResponse(b"x" * (_CAP + 1)))
+    with pytest.raises(MetaUnavailableError) as excinfo:
+        _client(transport).complete(_request())
+    assert str(excinfo.value) == "output too large"
+
+
+def test_cap_matches_shared_constant() -> None:
+    from framework.proposal.client import MAX_RESPONSE_BYTES
+
+    assert MAX_RESPONSE_BYTES == _CAP
+
+
+def test_boolean_negative_and_zero_token_counts() -> None:
+    body = json.loads(_envelope("{}").decode())
+    body["usage"] = {
+        "prompt_tokens": True,
+        "completion_tokens": -5,
+        "total_tokens": 0,
+        "completion_tokens_details": {"reasoning_tokens": -1},
+        "prompt_tokens_details": {"cached_tokens": True},
+    }
+    transport = RecordingTransport(lambda req: _FakeResponse(json.dumps(body).encode()))
+    response = _client(transport).complete(_request())
+    assert response.prompt_tokens is None
+    assert response.completion_tokens is None
+    assert response.reasoning_tokens is None
+    assert response.cached_tokens is None
+    body["usage"] = {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "completion_tokens_details": {"reasoning_tokens": 0},
+        "prompt_tokens_details": {"cached_tokens": 0},
+    }
+    transport = RecordingTransport(lambda req: _FakeResponse(json.dumps(body).encode()))
+    response = _client(transport).complete(_request())
+    assert response.prompt_tokens == 0
+    assert response.completion_tokens == 0
+    assert response.reasoning_tokens == 0
+    assert response.cached_tokens == 0
 
 
 def test_reasoning_tokens_parsed_when_present() -> None:

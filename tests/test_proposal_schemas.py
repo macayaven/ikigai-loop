@@ -213,6 +213,51 @@ def test_parse_draft_discards_since_last_without_a_parent() -> None:
     assert draft.since_last == []
 
 
+def _section_claims(count: int) -> list[dict[str, Any]]:
+    return [
+        {"text": f"Claim number {index} here", "fact_ids": [], "metric_refs": []}
+        for index in range(count)
+    ]
+
+
+def _four_section_payload(count: int) -> dict[str, Any]:
+    return {
+        "commitment_id": "cm-a",
+        "overall_state": _section_claims(count),
+        "working": _section_claims(count),
+        "not_working": _section_claims(count),
+        "since_last": _section_claims(count),
+    }
+
+
+def test_parse_draft_section_cap_is_three_claims() -> None:
+    for section in ("overall_state", "working", "not_working", "since_last"):
+        passing = parse_draft(
+            json.dumps(_four_section_payload(3)),
+            has_facts=False,
+            has_metrics=False,
+            has_parent=True,
+        )
+        assert isinstance(passing, ProposalDraft), section
+        assert len(getattr(passing, section)) == 3, section
+        over = _four_section_payload(0)
+        over[section] = _section_claims(4)
+        result = parse_draft(
+            json.dumps(over), has_facts=False, has_metrics=False, has_parent=True
+        )
+        assert isinstance(result, UnparseableDraft), section
+
+
+def test_parse_draft_over_cap_since_last_without_parent_still_parses() -> None:
+    payload = _four_section_payload(0)
+    payload["since_last"] = _section_claims(4)
+    draft = parse_draft(
+        json.dumps(payload), has_facts=False, has_metrics=False, has_parent=False
+    )
+    assert isinstance(draft, ProposalDraft)
+    assert draft.since_last == []
+
+
 def test_letterless_claim_text_is_unparseable() -> None:
     for text in ("", "   ", "...", "123 456", "-- .. --"):
         payload = {

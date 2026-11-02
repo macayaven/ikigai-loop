@@ -47,6 +47,7 @@
       "items": {
         "$ref": "#/$defs/ClaimDraft"
       },
+      "maxItems": 3,
       "title": "Not Working",
       "type": "array"
     },
@@ -54,6 +55,7 @@
       "items": {
         "$ref": "#/$defs/ClaimDraft"
       },
+      "maxItems": 3,
       "title": "Overall State",
       "type": "array"
     },
@@ -61,6 +63,7 @@
       "items": {
         "$ref": "#/$defs/ClaimDraft"
       },
+      "maxItems": 3,
       "title": "Since Last",
       "type": "array"
     },
@@ -68,6 +71,7 @@
       "items": {
         "$ref": "#/$defs/ClaimDraft"
       },
+      "maxItems": 3,
       "title": "Working",
       "type": "array"
     }

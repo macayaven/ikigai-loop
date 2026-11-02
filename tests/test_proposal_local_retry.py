@@ -62,6 +62,29 @@ def _usage(models: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _provider() -> dict[str, Any]:
+    return {
+        "kind": "task_lifecycle",
+        "event": {
+            "kind": "status",
+            "details": {
+                "phase": "stream_succeeded",
+                "facets": [
+                    {"kind": "external_attempt"},
+                    {
+                        "kind": "producer",
+                        "detail": {
+                            "kind": "provider",
+                            "model": "muse-wonder-1.0",
+                            "provider": "meta",
+                        },
+                    },
+                ],
+            },
+        },
+    }
+
+
 def _ok_stdout(text: str = SUCCESS_TEXT) -> bytes:
     models = [
         {
@@ -72,7 +95,8 @@ def _ok_stdout(text: str = SUCCESS_TEXT) -> bytes:
             "reasoning_tokens": 2,
         }
     ]
-    return ("\n".join([_line(_usage(models)), _line(_terminal(text))]) + "\n").encode()
+    lines = [_line(_usage(models)), _line(_provider()), _line(_terminal(text))]
+    return ("\n".join(lines) + "\n").encode()
 
 
 def _request() -> WonderRequest:
@@ -238,6 +262,55 @@ def test_muse_terminal_is_never_retried() -> None:
     assert str(exc_info.value) == "muse terminal"
     assert sleeps == []
     assert retry.failures == ()
+
+
+def test_output_too_large_is_never_retried() -> None:
+    """An oversized run keeps the plain class after exactly one inner call.
+
+    Without the cap check ahead of the exit branch, the `None` return
+    code reads as a fast `exit None`, a `LocalStartFailure`, and this
+    client would sleep and retry it instead of passing it through.
+    """
+    fake = FakeRunner([RunResult(None, b"", False, b"", oversized=True)])
+    sleeps: list[float] = []
+    retry = LocalRetryClient(_client(fake), sleep=sleeps.append)
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        retry.complete(_request())
+    assert type(exc_info.value) is MetaUnavailableError
+    assert str(exc_info.value) == "output too large"
+    assert sleeps == []
+    assert retry.failures == ()
+    assert fake.calls == 1
+
+
+def test_no_model_evidence_is_never_retried() -> None:
+    """A completed run without the provider's model is passed through as is.
+
+    Without the evidence check `complete` would accept this stream, so
+    this raises only when the check fires, and then only once.
+    """
+    models = [
+        {
+            "model": "muse-wonder-1.0",
+            "input_tokens": 10,
+            "cached_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_tokens": 2,
+        }
+    ]
+    stdout = (
+        "\n".join([_line(_usage(models)), _line(_terminal(SUCCESS_TEXT))]) + "\n"
+    ).encode()
+    fake = FakeRunner([RunResult(0, stdout, False)])
+    sleeps: list[float] = []
+    retry = LocalRetryClient(_client(fake), sleep=sleeps.append)
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        retry.complete(_request())
+    assert type(exc_info.value) is MetaUnavailableError
+    assert str(exc_info.value) == "no model evidence"
+    assert sleeps == []
+    assert retry.failures == ()
+    assert fake.calls == 1
 
 
 def test_invalid_response_without_terminal_is_a_local_start() -> None:

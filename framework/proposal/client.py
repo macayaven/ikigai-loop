@@ -16,7 +16,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Self, cast
 
 from framework.briefing.gate import scan_outbound_text
 from framework.glimmer.llm import sanitise_model_id
@@ -32,6 +32,25 @@ BASE_URL = "https://api.meta.ai/v1"
 MAX_TOKENS = 32768
 TIMEOUT_S = 300
 EFFORTS = frozenset({"minimal", "low", "medium", "high"})
+
+# One cap for both Wonder transports: well above the largest real stream
+# measured and below the garbage reply the review used.
+MAX_RESPONSE_BYTES = 4 * 1024 * 1024
+
+
+def is_contributor_model(value: Any) -> bool:
+    """True when a reported model name carries the contributor marker."""
+    return isinstance(value, str) and "contributor" in value.casefold()
+
+
+def token_count(value: Any) -> int | None:
+    """A usable token count, or None; booleans and negatives never count."""
+    if isinstance(value, bool):
+        return None
+    if not isinstance(value, int) or value < 0:
+        return None
+    return value
+
 
 Transport = Callable[[urllib.request.Request, float], Any]
 
@@ -61,8 +80,33 @@ def _open_no_redirect(
     return _OPENER.open(request, timeout=timeout)
 
 
+class _CappedResponse:
+    """One response body, read at most one byte past the cap into memory."""
+
+    def __init__(self, response: Any) -> None:
+        self._response = response
+
+    def __enter__(self) -> Self:
+        self._response.__enter__()
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self._response.__exit__(*args)
+
+    def read(self) -> bytes:
+        chunks: list[bytes] = []
+        remaining = MAX_RESPONSE_BYTES + 1
+        while remaining > 0:
+            chunk = self._response.read(remaining)
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        return b"".join(chunks)
+
+
 def _default_transport(request: urllib.request.Request, timeout: float) -> Any:
-    return _open_no_redirect(request, timeout=timeout)
+    return _CappedResponse(_open_no_redirect(request, timeout=timeout))
 
 
 @dataclass(frozen=True)
@@ -85,7 +129,7 @@ def load_meta_config(environ: Mapping[str, str] | None = None) -> MetaConfig:
 
 def refuse_contributor_model(model: str) -> None:
     """Refuse any model id carrying the contributor marker."""
-    if "contributor" in model.casefold():
+    if is_contributor_model(model):
         raise ContributorModelRefused("contributor models are refused")
 
 
@@ -202,6 +246,10 @@ class MetaClient:
                 failure, latency_ms=int((time.monotonic() - start) * 1000)
             )
         latency_ms = int((time.monotonic() - start) * 1000)
+        if len(raw) > MAX_RESPONSE_BYTES:
+            # Raised outside the handler so an injected transport that hands
+            # back a whole body gets the same result as the capped default.
+            raise MetaUnavailableError("output too large", latency_ms=latency_ms)
         try:
             parsed: Any = json.loads(raw)
             choice: Any = parsed["choices"][0]
@@ -224,44 +272,40 @@ class MetaClient:
             raise MetaUnavailableError(
                 "invalid response", latency_ms=latency_ms
             ) from None
+        reported: Any = parsed.get("model")
+        if is_contributor_model(reported):
+            # The raw value is checked before sanitising, so a contributor
+            # name arriving as a path cannot launder itself.
+            raise MetaUnavailableError("contributor model", latency_ms=latency_ms)
+        model_reported = sanitise_model_id(reported)
+        if (
+            not isinstance(reported, str)
+            or not reported
+            or model_reported == "unreported"
+        ):
+            raise MetaUnavailableError("no model evidence", latency_ms=latency_ms)
         finish: Any = choice.get("finish_reason")
-        prompt_tokens: int | None = None
-        completion_tokens: int | None = None
-        reasoning_tokens: int | None = None
-        cached_tokens: int | None = None
         usage_raw: Any = parsed.get("usage")
         usage_map = (
             cast("dict[str, Any]", usage_raw) if isinstance(usage_raw, dict) else {}
         )
-        maybe_prompt: Any = usage_map.get("prompt_tokens")
-        if isinstance(maybe_prompt, int):
-            prompt_tokens = maybe_prompt
-        maybe_completion: Any = usage_map.get("completion_tokens")
-        if isinstance(maybe_completion, int):
-            completion_tokens = maybe_completion
         details_raw: Any = usage_map.get("completion_tokens_details")
         details_map = (
             cast("dict[str, Any]", details_raw) if isinstance(details_raw, dict) else {}
         )
-        maybe_reasoning: Any = details_map.get("reasoning_tokens")
-        if isinstance(maybe_reasoning, int):
-            reasoning_tokens = maybe_reasoning
         prompt_details_raw: Any = usage_map.get("prompt_tokens_details")
         prompt_details_map = (
             cast("dict[str, Any]", prompt_details_raw)
             if isinstance(prompt_details_raw, dict)
             else {}
         )
-        maybe_cached: Any = prompt_details_map.get("cached_tokens")
-        if isinstance(maybe_cached, int):
-            cached_tokens = maybe_cached
         return WonderResponse(
             text=text,
-            model_reported=sanitise_model_id(parsed.get("model")),
+            model_reported=model_reported,
             latency_ms=latency_ms,
             finish_reason=finish if isinstance(finish, str) else None,
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-            reasoning_tokens=reasoning_tokens,
-            cached_tokens=cached_tokens,
+            prompt_tokens=token_count(usage_map.get("prompt_tokens")),
+            completion_tokens=token_count(usage_map.get("completion_tokens")),
+            reasoning_tokens=token_count(details_map.get("reasoning_tokens")),
+            cached_tokens=token_count(prompt_details_map.get("cached_tokens")),
         )

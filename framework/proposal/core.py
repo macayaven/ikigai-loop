@@ -659,8 +659,29 @@ def _finish_fallback(
     extra: tuple[str, ...],
 ) -> ProposalResult:
     assert hour is not None
+    prompt_hash = attempts[0].prompt_hash if attempts else ""
+    stale = cycle_age_s > stale_after_s
+    qualified = [c for c in eligible if c.profile_id == profile_id]
+    if not qualified:
+        return ProposalResult(
+            kind="noop",
+            profile_id=profile_id,
+            subject_id=subject_id,
+            cycle_id=cycle_id,
+            run=run,
+            slot=slot,
+            hour=hour,
+            briefing=None,
+            fallback=None,
+            reason_codes=_with_stale(
+                ("NOOP_NO_ELIGIBLE_COMMITMENT",), extra, stale=stale
+            ),
+            attempts=attempts,
+            cycle_age_s=cycle_age_s,
+            prompt_hash=prompt_hash,
+        )
     choice = min(
-        eligible,
+        qualified,
         key=lambda commitment: (
             offered.get(commitment.id) is not None,
             offered.get(commitment.id) or _EARLIEST,
@@ -674,8 +695,6 @@ def _finish_fallback(
         limits=context.limits,
         busy_intervals=context.busy_intervals,
     )
-    prompt_hash = attempts[0].prompt_hash if attempts else ""
-    stale = cycle_age_s > stale_after_s
     aged = _with_stale(reasons, extra, stale=stale)
     if window_codes:
         return ProposalResult(

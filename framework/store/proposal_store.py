@@ -364,22 +364,33 @@ class ProposalStore:
     def latest_proposal(
         self, subject_id: str, profile_id: str, *, before_slot: datetime
     ) -> tuple[Briefing, MetricSnapshot, datetime] | None:
-        """Latest proposal strictly before the slot; fallbacks never qualify."""
+        """Latest proposal strictly before the slot; fallbacks never qualify.
+
+        For each slot instant the row recorded last, of any kind, decides:
+        the slot qualifies only when that row is a proposal, and the parent
+        is the latest qualifying slot strictly before ``before_slot``.
+        """
         rows = self._conn.execute(
-            "SELECT rowid, slot, briefing_json, snapshot FROM proposal_results"
-            " WHERE subject_id = ? AND profile_id = ? AND kind = 'proposal'",
+            "SELECT rowid, slot, kind, briefing_json, snapshot FROM proposal_results"
+            " WHERE subject_id = ? AND profile_id = ?",
             (subject_id, profile_id),
         ).fetchall()
-        best: tuple[Any, ...] | None = None
-        for rowid, slot_text, briefing_json, snapshot_text in rows:
+        by_slot: dict[datetime, tuple[int, str, str, str]] = {}
+        for rowid, slot_text, kind, briefing_json, snapshot_text in rows:
             slot = datetime.fromisoformat(slot_text)
+            if slot not in by_slot or rowid > by_slot[slot][0]:
+                by_slot[slot] = (rowid, kind, briefing_json, snapshot_text)
+        best: tuple[Any, ...] | None = None
+        for slot, (_, kind, briefing_json, snapshot_text) in by_slot.items():
+            if kind != "proposal":
+                continue
             if not slot < before_slot:
                 continue
-            if best is None or (slot, rowid) > (best[0], best[1]):
-                best = (slot, rowid, briefing_json, snapshot_text)
+            if best is None or slot > best[0]:
+                best = (slot, briefing_json, snapshot_text)
         if best is None:
             return None
-        slot, _, briefing_json, snapshot_text = best
+        slot, briefing_json, snapshot_text = best
         return (
             Briefing.model_validate(json.loads(briefing_json)),
             MetricSnapshot(values=json.loads(snapshot_text)),

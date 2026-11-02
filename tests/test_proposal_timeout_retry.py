@@ -239,8 +239,30 @@ def test_timed_out_run_through_the_real_client_retries() -> None:
         }
     ]
     usage = {"kind": "run_usage", "models": models, "calls": 1, "completed_calls": 1}
+    provider = {
+        "kind": "task_lifecycle",
+        "event": {
+            "kind": "status",
+            "details": {
+                "phase": "stream_succeeded",
+                "facets": [
+                    {"kind": "external_attempt"},
+                    {
+                        "kind": "producer",
+                        "detail": {
+                            "kind": "provider",
+                            "model": "muse-wonder-1.0",
+                            "provider": "meta",
+                        },
+                    },
+                ],
+            },
+        },
+    }
     terminal = {"kind": "run_terminal", "terminal": "completed", "text": SUCCESS_TEXT}
-    good = (_line(usage) + "\n" + _line(terminal) + "\n").encode()
+    good = (
+        _line(usage) + "\n" + _line(provider) + "\n" + _line(terminal) + "\n"
+    ).encode()
 
     calls = 0
 
@@ -265,3 +287,72 @@ def test_timed_out_run_through_the_real_client_retries() -> None:
     assert retry.complete(_request()).text == SUCCESS_TEXT
     assert calls == 2
     assert retry.retries == 1
+
+
+def _exec_client(
+    script: list[Any],
+) -> tuple[MuseExecClient, list[int]]:
+    """A real client over a scripted runner, counting its inner calls."""
+    calls: list[int] = []
+
+    def _fake_runner(
+        argv: Any, *, env: Any, timeout_s: float, cwd: str | None
+    ) -> RunResult:
+        calls.append(1)
+        outcome = script.pop(0)
+        if isinstance(outcome, BaseException):
+            raise outcome
+        assert isinstance(outcome, RunResult)
+        return outcome
+
+    inner = MuseExecClient(
+        private_terms=(),
+        private_terms_available=True,
+        muse_bin="/fake/muse",
+        runner=_fake_runner,
+    )
+    return inner, calls
+
+
+def test_output_too_large_is_never_retried() -> None:
+    """An oversized run keeps the plain class after exactly one inner call.
+
+    Only the `timeout` reason is ever retried, so this passes through even
+    with a full call's time remaining.
+    """
+    inner, calls = _exec_client([RunResult(None, b"", False, b"", oversized=True)])
+    retry = TimeoutRetryClient(
+        inner, seconds_left=lambda: 1000.0, min_seconds_left=120.0
+    )
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        retry.complete(_request())
+    assert type(exc_info.value) is MetaUnavailableError
+    assert str(exc_info.value) == "output too large"
+    assert len(calls) == 1
+    assert retry.retries == 0
+
+
+def test_no_model_evidence_is_never_retried() -> None:
+    """A completed run without the provider's model is passed through as is."""
+    models = [
+        {
+            "model": "muse-wonder-1.0",
+            "input_tokens": 10,
+            "cached_tokens": 0,
+            "output_tokens": 5,
+            "reasoning_tokens": 2,
+        }
+    ]
+    usage = {"kind": "run_usage", "models": models, "calls": 1, "completed_calls": 1}
+    terminal = {"kind": "run_terminal", "terminal": "completed", "text": SUCCESS_TEXT}
+    stdout = (_line(usage) + "\n" + _line(terminal) + "\n").encode()
+    inner, calls = _exec_client([RunResult(0, stdout, False)])
+    retry = TimeoutRetryClient(
+        inner, seconds_left=lambda: 1000.0, min_seconds_left=120.0
+    )
+    with pytest.raises(MetaUnavailableError) as exc_info:
+        retry.complete(_request())
+    assert type(exc_info.value) is MetaUnavailableError
+    assert str(exc_info.value) == "no model evidence"
+    assert len(calls) == 1
+    assert retry.retries == 0

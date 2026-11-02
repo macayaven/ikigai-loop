@@ -77,7 +77,7 @@ Moving to Muse Code and measuring it live found eight more, in the same shape:
 
 - The default preset let the model read files outside the workspace, so I added `--preset empty` and checked on the Spark that a planted instruction gets no tool: 4 runs, 0 tool results, the canary file never in a run.
 - A failure creating, writing or removing a temp file could escape as a raw `OSError`, even after a good reply, so all of them take the unavailable path with the closed reason `temp files`.
-- A run that resolved to a contributor model would have been accepted, so the client now fails closed on the model the run's own events report, with the closed reason `contributor model`.
+- A run that resolved to a contributor model would have been accepted, so the client now fails closed on the model the run's own events report, with the closed reason `contributor model`. Correction, 1 November 2026: I was wrong there because that check read the configured and usage fields, which stay clean in a real Contributor run, so it never fired on one, and Ticket 11b fixes it.
 - A personal rules file goes into every call and no flag removes it, so each attempt stores whether one was present, never its contents.
 - 22 of 30 first claims said only that the commitment fits or suits the hour, and 17 of 30 cited a whole-window total, so the prompt now asks what the cited number or fact leaves undone or overdone and how the commitment answers it. After the change 0 of 30 say that and all 30 cite a period metric.
 - A test with a 2 MB run of one letter sat in the gate's text scan for 16 minutes before it was killed, because that scan is quadratic on one unbroken run of word characters, and the client's timeout can't stop it since the child has already exited. A scripted claim of 160,000 x's took 130 s for its two attempts. So a reply over 64,000 characters now takes the unparseable path before the gate. The longest of 181 real replies was 1,443 characters, and a claim of 63,500 x's, the worst the cap lets through, costs 20 s for its two attempts.
@@ -116,7 +116,7 @@ All test data is synthetic, and the real commitments file and the path in `HIDDE
 - Temperature and max_tokens can't be set on this transport, so I don't pretend to. Effort can.
 - The harness states the real date, and the prompt states the hour. I set them apart on the Spark in 3 calls, with hours on 2026-10-31, 2026-03-10 and 2027-02-14 against a real date of 2026-11-01, and the model took its date from the prompt's hour in all 3. In production they're the same date.
 - `--no-session-log` works. Positive control: a marker in a logged run appeared in 5 files under Muse's data folders on the Spark and in 3 on my Mac. A marker in a no-log run appeared in 0 on both.
-- Each attempt row records the transport and the `muse --version` line, because the harness prompt can change between versions. Every Muse Code row below reads `Muse Code 1.4.14 (1.4.14-R7309.1)`, and no row reports a `-contributor` model, including on my Mac, whose settings default to one.
+- Each attempt row records the transport and the `muse --version` line, because the harness prompt can change between versions. Every Muse Code row below reads `Muse Code 1.4.14 (1.4.14-R7309.1)`, and no row reports a `-contributor` model, including on my Mac, whose settings default to one. Correction, 1 November 2026: that held only because the parser read a field that stays clean in a real Contributor run, and Ticket 11b reads the provider model name instead.
 
 ## Live measurements
 

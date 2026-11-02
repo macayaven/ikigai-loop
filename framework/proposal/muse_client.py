@@ -10,19 +10,26 @@ from __future__ import annotations
 import json
 import os
 import re
+import selectors
 import signal
 import subprocess
 import tempfile
 import threading
 import time
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
 
 from framework.briefing.gate import scan_outbound_text
 from framework.glimmer.llm import sanitise_model_id
-from framework.proposal.client import EFFORTS, refuse_contributor_model
+from framework.proposal.client import (
+    EFFORTS,
+    MAX_RESPONSE_BYTES,
+    is_contributor_model,
+    refuse_contributor_model,
+    token_count,
+)
 from framework.proposal.core import (
     MetaUnavailableError,
     OutboundBlocked,
@@ -66,6 +73,7 @@ class RunResult:
     stdout: bytes
     timed_out: bool
     stderr: bytes = b""
+    oversized: bool = field(default=False, kw_only=True)
 
 
 class Runner(Protocol):
@@ -122,6 +130,14 @@ def _kill_group(pid: int) -> None:
         pass
 
 
+def _reap(proc: subprocess.Popen[bytes], *, timeout: float = 5) -> None:
+    """Wait for the direct child, giving up after the bounded wait."""
+    try:
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        pass
+
+
 def _default_runner(
     argv: Sequence[str],
     *,
@@ -133,10 +149,12 @@ def _default_runner(
 
     The file is unlinked on creation, so nothing is left behind on any
     path, even when the run is killed outright. It is read, at most the
-    first 8 KiB, only when the child exited non-zero; on success or a
-    timeout the result's stderr stays empty and the file is never read.
-    The stdout read stays exactly as it is, and the process group always
-    dies first.
+    first 8 KiB, only when the child exited non-zero; on the cap path and
+    the timeout path the result carries no stderr and the file is never
+    read. Stdout is read incrementally in fixed 64 KiB reads against one
+    deadline, so memory never exceeds the cap plus one read. Past the cap
+    the process group dies at once and the call returns no output and no
+    exit code; the pipe is closed without reading it to end of stream.
     """
     with tempfile.TemporaryFile(prefix="ikigai-muse-stderr-") as err_handle:
         proc = subprocess.Popen(
@@ -148,24 +166,65 @@ def _default_runner(
             stderr=err_handle,
             start_new_session=True,
         )
+        assert proc.stdout is not None
+        os.set_blocking(proc.stdout.fileno(), False)
+        data = bytearray()
+        deadline = time.monotonic() + timeout_s
+        oversized = False
+        timed_out = False
+        selector = selectors.DefaultSelector()
         try:
-            stdout_data, _ = proc.communicate(timeout=timeout_s)
-        except subprocess.TimeoutExpired:
-            _kill_group(proc.pid)
+            selector.register(proc.stdout, selectors.EVENT_READ)
             try:
-                proc.communicate(timeout=5)
+                while True:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        timed_out = True
+                        break
+                    if not selector.select(timeout=remaining):
+                        timed_out = True
+                        break
+                    try:
+                        chunk = os.read(proc.stdout.fileno(), 65536)
+                    except BlockingIOError:
+                        continue
+                    if not chunk:
+                        break
+                    data.extend(chunk)
+                    if len(data) > MAX_RESPONSE_BYTES:
+                        oversized = True
+                        break
+            except BaseException:
+                _kill_group(proc.pid)
+                _reap(proc)
+                proc.stdout.close()
+                raise
+            if oversized:
+                _kill_group(proc.pid)
+                _reap(proc)
+                proc.stdout.close()
+                return RunResult(None, b"", False, b"", oversized=True)
+            if timed_out:
+                _kill_group(proc.pid)
+                _reap(proc)
+                proc.stdout.close()
+                return RunResult(None, b"", True)
+            try:
+                returncode = proc.wait(timeout=max(deadline - time.monotonic(), 0))
             except subprocess.TimeoutExpired:
-                pass
-            return RunResult(None, b"", True)
-        except BaseException:
-            _kill_group(proc.pid)
-            raise
-        if proc.returncode != 0:
-            err_handle.seek(0)
-            stderr_data = err_handle.read(STDERR_HEAD_BYTES)
-        else:
-            stderr_data = b""
-        return RunResult(proc.returncode, stdout_data or b"", False, stderr_data)
+                _kill_group(proc.pid)
+                _reap(proc)
+                proc.stdout.close()
+                return RunResult(None, b"", True)
+            proc.stdout.close()
+            if returncode != 0:
+                err_handle.seek(0)
+                stderr_data = err_handle.read(STDERR_HEAD_BYTES)
+            else:
+                stderr_data = b""
+            return RunResult(returncode, bytes(data), False, stderr_data)
+        finally:
+            selector.close()
 
 
 def _write_exclusive(path: str, data: bytes) -> None:
@@ -180,9 +239,10 @@ def _write_exclusive(path: str, data: bytes) -> None:
 
 
 def _add_token(current: int | None, value: Any) -> int | None:
-    if isinstance(value, int) and not isinstance(value, bool):
-        return (current or 0) + value
-    return current
+    counted = token_count(value)
+    if counted is None:
+        return current
+    return (current or 0) + counted
 
 
 def _has_terminal_event(stdout: bytes) -> bool:
@@ -193,7 +253,7 @@ def _has_terminal_event(stdout: bytes) -> bool:
             continue
         try:
             decoded: Any = json.loads(line)
-        except ValueError:
+        except (ValueError, RecursionError):
             continue
         if not isinstance(decoded, dict):
             continue
@@ -398,6 +458,14 @@ class MuseExecClient:
                     completion_tokens = None
                     reasoning_tokens = None
                     model_reported = "unreported"
+                elif outcome.oversized or len(outcome.stdout) > MAX_RESPONSE_BYTES:
+                    failure = "output too large"
+                    text = ""
+                    prompt_tokens = None
+                    cached_tokens = None
+                    completion_tokens = None
+                    reasoning_tokens = None
+                    model_reported = "unreported"
                 elif outcome.timed_out:
                     failure = "timeout"
                     text = ""
@@ -462,25 +530,60 @@ class MuseExecClient:
         )
 
 
-def _is_contributor_model(value: Any) -> bool:
-    return isinstance(value, str) and "contributor" in value.lower()
+def _walk_payload(payload: dict[str, Any]) -> tuple[bool, str | None]:
+    """Scan one event payload: contributor hit, and the provider's model.
+
+    Every string under a key named exactly ``model`` or ``model_id`` is
+    tested at any depth with an explicit stack, so nesting cannot raise;
+    free text under any other key is never tested. A mapping whose ``kind``
+    is exactly ``provider`` and which holds a non-empty string under
+    ``model`` names the provider model, unless it sanitises to unreported.
+    """
+    contributor = False
+    provider_model: str | None = None
+    stack: list[Any] = [payload]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            entry = cast("dict[str, Any]", node)
+            for key, value in entry.items():
+                if (
+                    key in ("model", "model_id")
+                    and isinstance(value, str)
+                    and is_contributor_model(value)
+                ):
+                    contributor = True
+                if isinstance(value, (dict, list)):
+                    stack.append(value)
+            if entry.get("kind") == "provider":
+                model_value = entry.get("model")
+                if (
+                    isinstance(model_value, str)
+                    and model_value
+                    and sanitise_model_id(model_value) != "unreported"
+                    and provider_model is None
+                ):
+                    provider_model = model_value
+        elif isinstance(node, list):
+            stack.extend(cast("list[Any]", node))
+    return contributor, provider_model
 
 
 def _parse_stdout(
     stdout: bytes,
 ) -> tuple[str | None, str, int | None, int | None, int | None, int | None, str]:
-    """Read the last ``run_terminal`` and ``run_usage`` payloads."""
-    last_terminal: dict[str, Any] | None = None
+    """Read the terminals, the last ``run_usage`` and the provider model."""
+    terminals: list[dict[str, Any]] = []
     last_usage: dict[str, Any] | None = None
-    last_configured_model_id: Any = None
-    have_configured_model_id = False
+    contributor = False
+    provider_model: str | None = None
     for raw_line in stdout.split(b"\n"):
         line = raw_line.strip()
         if not line:
             continue
         try:
             decoded: Any = json.loads(line)
-        except ValueError:
+        except (ValueError, RecursionError):
             continue
         if not isinstance(decoded, dict):
             continue
@@ -488,33 +591,33 @@ def _parse_stdout(
         if not isinstance(payload, dict):
             continue
         entry = cast("dict[str, Any]", payload)
+        hit, provider = _walk_payload(entry)
+        contributor = contributor or hit
+        if provider is not None and provider_model is None:
+            provider_model = provider
         kind: Any = entry.get("kind")
         if kind == "run_terminal":
-            last_terminal = entry
+            terminals.append(entry)
         elif kind == "run_usage":
             last_usage = entry
-        elif kind == "run_model_configured":
-            last_configured_model_id = entry.get("model_id")
-            have_configured_model_id = True
+    if contributor:
+        return ("contributor model", "", None, None, None, None, "unreported")
+    if not terminals:
+        return ("invalid response", "", None, None, None, None, "unreported")
+    if len(terminals) != 1:
+        return ("muse terminal", "", None, None, None, None, "unreported")
+    terminal_state: Any = terminals[0].get("terminal")
+    if not isinstance(terminal_state, str) or terminal_state != "completed":
+        return ("muse terminal", "", None, None, None, None, "unreported")
+    text: Any = terminals[0].get("text")
+    if not isinstance(text, str):
+        return ("invalid response", "", None, None, None, None, "unreported")
+    if provider_model is None:
+        return ("no model evidence", "", None, None, None, None, "unreported")
     rows: list[Any] = []
     usage_models: Any = last_usage.get("models") if last_usage is not None else None
     if isinstance(usage_models, list):
         rows = cast("list[Any]", usage_models)
-    if have_configured_model_id and _is_contributor_model(last_configured_model_id):
-        return ("contributor model", "", None, None, None, None, "unreported")
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        if _is_contributor_model(cast("dict[str, Any]", row).get("model")):
-            return ("contributor model", "", None, None, None, None, "unreported")
-    if last_terminal is None:
-        return ("invalid response", "", None, None, None, None, "unreported")
-    terminal_state: Any = last_terminal.get("terminal")
-    if not isinstance(terminal_state, str) or terminal_state != "completed":
-        return ("muse terminal", "", None, None, None, None, "unreported")
-    text: Any = last_terminal.get("text")
-    if not isinstance(text, str):
-        return ("invalid response", "", None, None, None, None, "unreported")
     prompt_tokens: int | None = None
     cached_tokens: int | None = None
     completion_tokens: int | None = None
@@ -532,6 +635,12 @@ def _parse_stdout(
         head: Any = rows[0]
         if isinstance(head, dict):
             first_model = cast("dict[str, Any]", head).get("model")
+    if (
+        not isinstance(first_model, str)
+        or not first_model
+        or sanitise_model_id(first_model) == "unreported"
+    ):
+        first_model = provider_model
     return (
         None,
         text,
