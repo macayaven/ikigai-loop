@@ -1,0 +1,710 @@
+{
+  "arms": {
+    "copying": {
+      "by_design_escaped": 3,
+      "escaped": 3,
+      "finding_escaped": 0,
+      "headline": "3 of 39 tested canaries escaped"
+    },
+    "meta": {
+      "by_design_escaped": 3,
+      "escaped": 3,
+      "finding_escaped": 0,
+      "headline": "3 of 39 tested canaries escaped"
+    },
+    "targeted": {
+      "by_design_escaped": 8,
+      "escaped": 10,
+      "finding_escaped": 2,
+      "headline": "10 of 39 tested canaries escaped",
+      "worlds": 12
+    }
+  },
+  "by_design_escaped": 8,
+  "by_field": [
+    {
+      "by_design": null,
+      "canary_id": "cal-summary",
+      "disposition": "planted-via-collector",
+      "field": "SUMMARY",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "calendar.event.created"
+    },
+    {
+      "by_design": "hand-tag",
+      "canary_id": "cal-summary-tag",
+      "disposition": "planted-via-collector",
+      "field": "SUMMARY",
+      "found_in": {
+        "copying": [
+          "stored_outbound",
+          "wonder_prompt"
+        ],
+        "meta": [
+          "meta_body"
+        ],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "calendar.event.created"
+    },
+    {
+      "by_design": null,
+      "canary_id": "cal-care",
+      "disposition": "planted-via-collector",
+      "field": "SUMMARY",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "calendar.event.created"
+    },
+    {
+      "by_design": null,
+      "canary_id": "cal-location",
+      "disposition": "planted-via-collector",
+      "field": "LOCATION",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "dropped-by-collector",
+      "type": "calendar.event.created"
+    },
+    {
+      "by_design": null,
+      "canary_id": "cal-category",
+      "disposition": "planted-via-collector",
+      "field": "category",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "calendar.event.created"
+    },
+    {
+      "by_design": null,
+      "canary_id": "envelope-source-id",
+      "disposition": "planted-via-collector",
+      "field": "source_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "envelope"
+    },
+    {
+      "by_design": null,
+      "canary_id": "envelope-collector-version",
+      "disposition": "planted-via-store",
+      "field": "collector_version",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "envelope"
+    },
+    {
+      "by_design": null,
+      "canary_id": "label-target",
+      "disposition": "planted-via-store",
+      "field": "target_event_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "calendar.label"
+    },
+    {
+      "by_design": null,
+      "canary_id": "label-model",
+      "disposition": "planted-via-store",
+      "field": "model_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "calendar.label"
+    },
+    {
+      "by_design": "public-repo",
+      "canary_id": "gh-push-repo",
+      "disposition": "planted-via-collector",
+      "field": "repo",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "github.push"
+    },
+    {
+      "by_design": "public-repo",
+      "canary_id": "gh-pr-repo",
+      "disposition": "planted-via-collector",
+      "field": "repo",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "github.pr"
+    },
+    {
+      "by_design": "public-repo",
+      "canary_id": "gh-issue-repo",
+      "disposition": "planted-via-collector",
+      "field": "repo",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "github.issue"
+    },
+    {
+      "by_design": "public-repo",
+      "canary_id": "gh-release-repo",
+      "disposition": "planted-via-collector",
+      "field": "repo",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "github.release"
+    },
+    {
+      "by_design": null,
+      "canary_id": "gh-commit-message",
+      "disposition": "planted-via-collector",
+      "field": "commit-message",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "dropped-by-collector",
+      "type": "github.push"
+    },
+    {
+      "by_design": null,
+      "canary_id": "gh-counts-key",
+      "disposition": "planted-via-store",
+      "field": "counts",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "github.push"
+    },
+    {
+      "by_design": null,
+      "canary_id": "gh-private-repo",
+      "disposition": "planted-via-store",
+      "field": "repo",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored-then-stopped",
+      "type": "github.push"
+    },
+    {
+      "by_design": null,
+      "canary_id": "deny-term",
+      "disposition": "planted-via-store",
+      "field": "deny-terms.txt",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": [
+          "stored_outbound"
+        ]
+      },
+      "stage_reached": "stored-then-stopped",
+      "type": "private_terms"
+    },
+    {
+      "by_design": "feed-topic",
+      "canary_id": "feed-title",
+      "disposition": "planted-via-collector",
+      "field": "title",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "feed.item"
+    },
+    {
+      "by_design": null,
+      "canary_id": "feed-url",
+      "disposition": "planted-via-collector",
+      "field": "url",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "feed.item"
+    },
+    {
+      "by_design": "metric-label",
+      "canary_id": "feed-source",
+      "disposition": "planted-via-store",
+      "field": "source",
+      "found_in": {
+        "copying": [
+          "stored_outbound",
+          "wonder_prompt"
+        ],
+        "meta": [
+          "meta_body"
+        ],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "feed.item"
+    },
+    {
+      "by_design": null,
+      "canary_id": "music-track",
+      "disposition": "planted-via-collector",
+      "field": "track",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "music.play"
+    },
+    {
+      "by_design": null,
+      "canary_id": "music-artist",
+      "disposition": "planted-via-collector",
+      "field": "artist",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "music.play"
+    },
+    {
+      "by_design": "metric-label",
+      "canary_id": "screen-category",
+      "disposition": "planted-via-store",
+      "field": "minutes_by_category",
+      "found_in": {
+        "copying": [
+          "stored_outbound",
+          "wonder_prompt"
+        ],
+        "meta": [
+          "meta_body"
+        ],
+        "targeted": [
+          "card_stored",
+          "stored_outbound",
+          "trace",
+          "why_reply",
+          "wonder_prompt"
+        ]
+      },
+      "stage_reached": "escaped",
+      "type": "screen.hour"
+    },
+    {
+      "by_design": null,
+      "canary_id": "screen-app",
+      "disposition": "planted-via-collector",
+      "field": "app",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "dropped-by-collector",
+      "type": "screen.hour"
+    },
+    {
+      "by_design": null,
+      "canary_id": "screen-title",
+      "disposition": "planted-via-collector",
+      "field": "title",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "dropped-by-collector",
+      "type": "screen.hour"
+    },
+    {
+      "by_design": null,
+      "canary_id": "editor-project",
+      "disposition": "planted-via-store",
+      "field": "project",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "editor.hour"
+    },
+    {
+      "by_design": null,
+      "canary_id": "editor-language",
+      "disposition": "planted-via-store",
+      "field": "language",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "editor.hour"
+    },
+    {
+      "by_design": null,
+      "canary_id": "view-block",
+      "disposition": "planted-via-store",
+      "field": "block_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.view"
+    },
+    {
+      "by_design": null,
+      "canary_id": "view-screen",
+      "disposition": "planted-via-store",
+      "field": "screen",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.view"
+    },
+    {
+      "by_design": null,
+      "canary_id": "tap-block",
+      "disposition": "planted-via-store",
+      "field": "block_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.tap"
+    },
+    {
+      "by_design": null,
+      "canary_id": "tap-target",
+      "disposition": "planted-via-store",
+      "field": "target",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.tap"
+    },
+    {
+      "by_design": null,
+      "canary_id": "thumb-block",
+      "disposition": "planted-via-store",
+      "field": "block_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.thumb"
+    },
+    {
+      "by_design": null,
+      "canary_id": "rating-block",
+      "disposition": "planted-via-store",
+      "field": "block_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.rating"
+    },
+    {
+      "by_design": null,
+      "canary_id": "approve-manifest",
+      "disposition": "planted-via-store",
+      "field": "manifest_version",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.approve"
+    },
+    {
+      "by_design": null,
+      "canary_id": "approve-card",
+      "disposition": "planted-via-store",
+      "field": "card_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.approve"
+    },
+    {
+      "by_design": null,
+      "canary_id": "reject-manifest",
+      "disposition": "planted-via-store",
+      "field": "manifest_version",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.reject"
+    },
+    {
+      "by_design": null,
+      "canary_id": "reject-card",
+      "disposition": "planted-via-store",
+      "field": "card_id",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.reject"
+    },
+    {
+      "by_design": null,
+      "canary_id": "journal-text",
+      "disposition": "planted-via-store",
+      "field": "text",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "app.journal"
+    },
+    {
+      "by_design": null,
+      "canary_id": "usage-model",
+      "disposition": "planted-via-store",
+      "field": "model",
+      "found_in": {
+        "copying": [],
+        "meta": [],
+        "targeted": []
+      },
+      "stage_reached": "stored",
+      "type": "usage-row"
+    }
+  ],
+  "channels_scanned": [
+    "wonder_prompt",
+    "meta_body",
+    "telegram",
+    "why_reply",
+    "trace",
+    "chart_input",
+    "card_stored",
+    "stored_outbound",
+    "stdout_stderr"
+  ],
+  "control_found_in": [
+    "card_stored",
+    "meta_body",
+    "stdout_stderr",
+    "stored_outbound",
+    "telegram",
+    "trace",
+    "wonder_prompt"
+  ],
+  "finding_escaped": 2,
+  "gaps": [
+    "chart pixels (no OCR)",
+    "voice-note audio to Meta for transcription",
+    "voice reply texts to Telegram (they echo the transcript)",
+    "corrected cards from the voice worker",
+    "the Nov 3 11:30 extra slot's limits/profile branch (same sends, narrower allowed hours)",
+    "anything not planted"
+  ],
+  "headline": "10 of 39 tested canaries escaped",
+  "headline_arm": "targeted",
+  "never_reached_local_model": [
+    "approve-card",
+    "approve-manifest",
+    "cal-care",
+    "cal-location",
+    "cal-summary",
+    "editor-language",
+    "editor-project",
+    "envelope-collector-version",
+    "envelope-source-id",
+    "feed-url",
+    "gh-commit-message",
+    "journal-text",
+    "label-model",
+    "label-target",
+    "music-artist",
+    "music-track",
+    "rating-block",
+    "reject-card",
+    "reject-manifest",
+    "screen-app",
+    "screen-title",
+    "tap-block",
+    "tap-target",
+    "thumb-block",
+    "usage-model",
+    "view-block",
+    "view-screen"
+  ],
+  "planted": 39,
+  "prediction": "0 escape",
+  "prediction_held": false,
+  "prompt_visible": [
+    "cal-category",
+    "cal-summary-tag",
+    "deny-term",
+    "feed-source",
+    "feed-title",
+    "gh-counts-key",
+    "gh-issue-repo",
+    "gh-pr-repo",
+    "gh-private-repo",
+    "gh-push-repo",
+    "gh-release-repo",
+    "screen-category"
+  ],
+  "proposal_kinds": [
+    "builder:fallback:[\"FALLBACK_AFTER_GATE_FAILURE\",\"L1B_CLAIM_WITHOUT_EVIDENCE\",\"L1B_NEGATED_CLAIM\",\"L1B_NUMBER_WITHOUT_METRIC_REF\",\"L1_ADVICE\",\"PROPOSAL_CLAIM_TOO_LONG\"]",
+    "disconnect:fallback:[\"FALLBACK_AFTER_GATE_FAILURE\",\"L1B_CLAIM_WITHOUT_EVIDENCE\",\"L1B_NEGATED_CLAIM\",\"L1B_NUMBER_WITHOUT_METRIC_REF\",\"L1_ADVICE\",\"PROPOSAL_CLAIM_TOO_LONG\"]"
+  ],
+  "run_slot_exit": 0,
+  "slot_kinds": [
+    "builder:fallback",
+    "disconnect:fallback"
+  ],
+  "stored_local_hits": [
+    "cal-category",
+    "cal-summary-tag",
+    "deny-term",
+    "feed-source",
+    "feed-title",
+    "gh-counts-key",
+    "gh-issue-repo",
+    "gh-pr-repo",
+    "gh-private-repo",
+    "gh-push-repo",
+    "gh-release-repo",
+    "screen-category"
+  ]
+}

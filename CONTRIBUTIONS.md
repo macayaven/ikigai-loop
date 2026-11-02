@@ -385,6 +385,7 @@ GPT Terra 6.1, run through Codex, ran the no-context test that got the checker i
 Built on branch `t13b-stall-retry`, no plan file, the ticket text was the spec. A Wonder call in a slot that ends in a timeout gets one more attempt when a full call's time remains before the propose deadline, counted as `timeout_retries` apart from `local_retries`. With both models hung the timeline does not change. Evidence in [docs/sessions/013b-stall-retry.md](docs/sessions/013b-stall-retry.md).
 
 Prompts and review by Claude Code; implementation on muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only; Claude Code ran the live exercise outside those sessions, on made-up data. The stall itself was seen by the driver of Ticket 14, in its logs.
+
 ## Ticket 22 — public provenance (2026-11-02)
 
 Built on branch `e7-provenance` per [docs/plans/022-provenance.md](docs/plans/022-provenance.md):
@@ -531,6 +532,33 @@ Built on branch `t13c-1130-slot` per [docs/plans/013c-1130-slot.md](docs/plans/0
 one more pinned Builder card on Nov 3 at 11:30 Madrid, since I have my phone from 11:00 that day; the daily schedule, the Builder-only times and the daily limits are untouched, and only that instant classifies as a pinned slot with limits starting at 11:30. Those limits reach the hour finder and the gate at the three places that already passed them on, a voice correction to that card re-proposes with its limits, and the Glimmer proof refuses its window before that card. Evidence in [docs/sessions/013c-1130-slot.md](docs/sessions/013c-1130-slot.md).
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started; those sessions ran in Contributor mode, on this public repo and made-up data only.
+
+## Ticket 15b — proof harness (2026-11-02)
+
+Built on branch `t15b-proof-harness` per [docs/plans/015b-proof-harness.md](docs/plans/015b-proof-harness.md):
+the receipts R2 (privacy), R3 (steering) and R4 (evidence sensitivity) from [docs/PREREG.md](docs/PREREG.md),
+implemented as pre-registered, with the Nov 1 deviations and the Nov 2 one PREREG lists. `evals/r2.py` plants distinct synthetic
+canaries in every inventoried free-text field and runs whole slots through the product's `run_slot` against
+adversarial fakes, scanning every recorded outbound body; `evals/r3.py` runs the 20 registered pairs through
+Ticket 11's prompt, retry and gate, resumable, with an unavailable stop; `evals/r4.py` reruns the registered
+cited-vs-control sensitivity check from R3's stored base draws; a pure scorer and renderer beside each runner;
+`evals/results/r2.json` plus identity-named JSONL under `evals/results/r3/` and `evals/results/r4/`; generated
+[docs/r2.md](docs/r2.md), [docs/r3.md](docs/r3.md) and [docs/r4.md](docs/r4.md); `make r2`, `make r3-doc` and
+`make r4-doc`; and 11 new pytest files with the wiring test. I changed nothing under `framework/`. Evidence in
+[docs/sessions/015b-proof-harness.md](docs/sessions/015b-proof-harness.md).
+
+Prompts and review by Claude Code. The plan ran on muse-wonder-full-1.0 at high effort, in two sessions.
+Implementation and fixes ran on muse-spark-1.3 at medium effort, except six short mechanical sessions that ran on muse-spark-1.3 at low effort: one test fix, the commit, the PREREG line, and three docs fixes. All ran in Muse Code, in headless sessions
+Claude Code started, in Contributor mode, on this public repo and made-up data. Claude Code ran the live R3
+and R4 receipts from its own shell through MuseExecClient in Standard mode.
+
+Claude Code's review changed code eleven times: the unavailable stop that never fired above concurrency 1;
+exit 0 with work left; two processes drawing a slot twice, now refused by a lock; uninformative pairs printed
+as fail; overlapping canary words that produced a false R2 finding; a targeted model copying text it hadn't
+seen; a stopped canary counted as escaped; a partial R4 reading as held; R4 picking the wrong R3 file;
+runner tests that read the wall clock and failed near every quiet window; and R4's method sentence naming
+a two-layer stack for rows made through three.
+The D1/I2 block was added after I saw R3's first run, and is labelled that way in the report.
 
 ## AI assistance outside the Muse family
 

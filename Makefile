@@ -1,4 +1,4 @@
-.PHONY: check test eval demo r1b verify-page try glimmer-proof audit-control metrics
+.PHONY: check test eval demo r1b r2 r3-doc r4-doc verify-page try glimmer-proof audit-control metrics
 
 check:
 	uv run ruff check .
@@ -27,6 +27,15 @@ demo:
 
 r1b:
 	uv run python -m evals.r1b --all $(R1B_ARGS)
+
+r2:
+	uv run python -m evals.r2
+
+r3-doc:
+	uv run python -m evals.r3 --summary --write-doc
+
+r4-doc:
+	uv run python -m evals.r4 --summary --write-doc
 
 try:
 	uv run --no-default-groups try-ikigai

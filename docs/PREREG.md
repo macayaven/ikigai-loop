@@ -193,3 +193,5 @@ This entry lands between cards, after the 15:30 card on Nov 2 and before any liv
 I wrote this on Nov 2, before the Nov 3 11:30 card goes out.
 
 18. **One extra Builder card at 11:30 Madrid on 2026-11-03 only.** I added an 11:30 Madrid slot on 2026-11-03 only, because I have my phone from 11:00 that day. It is Builder only. It has no registered ruling prediction. It is not one of the 13 registered run slots, so every registered number leaves it out and any per-slot analysis reports it on its own. It moves no threshold or prediction. It falls in no learner bucket, because buckets start at 13:00, so it goes out with no learner pick and its ruling is not a learner observation. If it is delivered as a proposal, the Nov 3 13:30 card takes it as its Builder parent, so that card's "since last" reads from 11:30.
+
+2026-11-02: R3's report and the video show D1 and I2 beside the registered D6 and I1, chosen after seeing the first run's results, because D6 was uninformative (Disconnect already picked d-screens before the change); labelled so wherever shown.
