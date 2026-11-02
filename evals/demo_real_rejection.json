@@ -1,0 +1,32 @@
+{
+  "synthetic": true,
+  "label": "synthetic data only",
+  "model": "muse-wonder-1.0",
+  "effort": "high",
+  "arm": "product",
+  "case_id": "r1b-030",
+  "trap": "confusable-metrics",
+  "gate_commit": "e18dd3251d3cab9b0671108c8de366aea9d34e00",
+  "gate_hash": "42b57031c11b72ec5cf221f2e9ccb9eddd4fd84e455e103dfc8f6bd1d792f2a2",
+  "draft_text": "{\"commitment_id\": \"cm-bakingday\", \"not_working\": [{\"fact_ids\": [], \"metric_refs\": [], \"text\": \"Feed was 30.\"}], \"overall_state\": [{\"fact_ids\": [\"fact:synthetic-let-d\"], \"metric_refs\": [], \"text\": \"Rosemary bundles wait for the rolls, so this hour goes to baking rolls together.\"}, {\"fact_ids\": [\"fact:synthetic-let-b\"], \"metric_refs\": [], \"text\": \"Home rose from 2 hours in the earlier period to 4 hours in the last period.\"}], \"working\": [{\"fact_ids\": [\"fact:synthetic-let-c\"], \"metric_refs\": [], \"text\": \"News fell from 2.5 hours in the earlier period to 1 hour in the last period.\"}]}",
+  "codes": [
+    [
+      "L1B_CLAIM_WITHOUT_EVIDENCE",
+      "sections[not_working].claims[c-not_working-1]"
+    ],
+    [
+      "L1B_NUMBER_WITHOUT_METRIC_REF",
+      "sections[not_working].claims[c-not_working-1]"
+    ],
+    [
+      "L1B_NUMBER_WITHOUT_METRIC_REF",
+      "sections[overall_state].claims[c-overall_state-2]"
+    ],
+    [
+      "L1B_NUMBER_WITHOUT_METRIC_REF",
+      "sections[working].claims[c-working-1]"
+    ]
+  ],
+  "retry_text": "{\"commitment_id\": \"cm-gazette\", \"not_working\": [], \"overall_state\": [{\"fact_ids\": [], \"metric_refs\": [\"period.last.screen_hours.Media/News\"], \"text\": \"News was 1 hour in the last period, so this hour goes to printed reading away from screens.\"}, {\"fact_ids\": [\"fact:synthetic-let-c\"], \"metric_refs\": [\"period.earlier.screen_hours.Media/News\", \"period.last.screen_hours.Media/News\"], \"text\": \"News fell from 2.5 hours in the earlier period to 1 hour in the last period.\"}], \"working\": [{\"fact_ids\": [\"fact:synthetic-let-b\"], \"metric_refs\": [\"period.earlier.tag_hours.iki-home\", \"period.last.tag_hours.iki-home\"], \"text\": \"Home rose from 2 hours in the earlier period to 4 hours in the last period.\"}]}",
+  "retry_passed": true
+}
