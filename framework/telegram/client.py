@@ -21,6 +21,8 @@ from framework.telegram.models import utf16_len
 
 API_BASE = "https://api.telegram.org"
 TOKEN_RE = re.compile(r"^[0-9]+:[A-Za-z0-9_-]+$")
+FILE_PATH_RE = re.compile(r"[A-Za-z0-9_./-]{1,200}")
+VOICE_MAX_BYTES = 5_000_000
 REDACTED = "[redacted]"
 
 NETWORK_BACKOFF = (1.0, 2.0, 4.0)
@@ -73,6 +75,10 @@ class TelegramRateLimited(TelegramApiError):
     ) -> None:
         super().__init__(message, description)
         self.retry_after = retry_after
+
+
+class TelegramFileUnreadable(TelegramError):
+    """A voice file that will never read: refused path, 400/404, over cap."""
 
 
 @dataclass(frozen=True)
@@ -175,6 +181,44 @@ def _open_url(
     return opener.open(request, timeout=timeout)  # type: ignore[no-any-return]
 
 
+def _bot_token() -> str | None:
+    """Read the bot value at call time; None when missing or malformed."""
+    value = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    if not TOKEN_RE.fullmatch(value):
+        return None
+    return value
+
+
+def _file_request(api_base: str, file_path: str) -> urllib.request.Request:
+    """Build the download GET; the URL lives only in this frame."""
+    value = _bot_token()
+    if value is None:
+        raise TelegramConfigError("TELEGRAM_BOT_TOKEN is not set or is malformed")
+    return urllib.request.Request(
+        f"{api_base}/file/bot{value}/{file_path}", method="GET"
+    )
+
+
+def _download_once(
+    request: urllib.request.Request, timeout_s: float, max_bytes: int
+) -> tuple[str, bytes]:
+    """Run one download attempt; the opener exception never leaves."""
+    try:
+        with _open_url(request, timeout_s) as response:
+            raw = response.read(max_bytes + 1)
+    except urllib.error.HTTPError as exc:
+        if exc.code in (400, 404):
+            return ("unreadable", b"")
+        logger.debug("telegram download network failure")
+        return ("transport", b"")
+    except Exception:  # noqa: BLE001 - any opener failure is transport
+        logger.debug("telegram download network failure")
+        return ("transport", b"")
+    if len(raw) > max_bytes:
+        return ("too_large", b"")
+    return ("ok", bytes(raw))
+
+
 def _request_once(
     method: str, request: _PendingRequest, timeout_s: float
 ) -> tuple[int | None, dict[str, str], bytes, str | None]:
@@ -186,9 +230,8 @@ def _request_once(
     from ``h.request`` into ``URLError`` and lets ``getresponse`` and read
     failures through raw. Any other exception means delivery is unknown.
     """
-    raw_value = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-    value = raw_value.strip()
-    if not TOKEN_RE.fullmatch(value):
+    value = _bot_token()
+    if value is None:
         return (None, {}, b"", "config")
     url = f"{request.api_base}/bot{value}/{method}"
     try:
@@ -415,6 +458,54 @@ class TelegramClient:
             _failure_message(method, code, description), description
         )
 
+    def get_file_path(self, file_id: str) -> str:
+        """Return the download path for a voice file id.
+
+        A 400 or 404 is terminal and reads as unreadable; any other
+        failure keeps its transport shape for the caller to retry.
+        """
+        try:
+            result: Any = self.call("getFile", {"file_id": file_id})
+        except TelegramApiError as exc:
+            if "(status 400)" in str(exc) or "(status 404)" in str(exc):
+                raise TelegramFileUnreadable("getFile file unavailable") from None
+            raise
+        payload = as_dict(result)
+        if payload is not None:
+            path: Any = payload.get("file_path")
+            if isinstance(path, str):
+                return path
+        raise TelegramTransportError("getFile invalid response")
+
+    def download_file(
+        self, file_path: str, *, max_bytes: int, timeout_s: float = 30.0
+    ) -> bytes:
+        """GET one file's bytes; refused paths send no request.
+
+        A refused path, a 400/404, or a body over the cap reads as
+        unreadable (terminal); anything else is a transport failure.
+        No value, URL, or path appears in any exception.
+        """
+        if (
+            FILE_PATH_RE.fullmatch(file_path) is None
+            or file_path.startswith("/")
+            or ".." in file_path.split("/")
+        ):
+            raise TelegramFileUnreadable("refused file path")
+        http_request = _file_request(self.api_base, file_path)
+        for attempt in range(2):
+            kind, data = _download_once(http_request, timeout_s, max_bytes)
+            if kind == "ok":
+                return data
+            if kind == "too_large":
+                raise TelegramFileUnreadable("download file too large")
+            if kind == "unreadable":
+                raise TelegramFileUnreadable("download file unavailable")
+            if attempt == 1:
+                raise TelegramTransportError("download network error")
+            self.sleep_fn(NETWORK_BACKOFF[0])
+        raise TelegramTransportError("download network error")
+
     def send_photo(
         self,
         chat_id: int,
@@ -423,6 +514,7 @@ class TelegramClient:
         reply_markup: dict[str, Any],
         *,
         timeout_s: float = 30.0,
+        disable_notification: bool = False,
     ) -> dict[str, Any]:
         """Send one photo message; return the decoded message dict."""
         if utf16_len(caption) > 1024:
@@ -432,6 +524,10 @@ class TelegramClient:
                 ("chat_id", str(chat_id)),
                 ("caption", caption),
                 ("reply_markup", json.dumps(reply_markup, ensure_ascii=False)),
+                (
+                    "disable_notification",
+                    "true" if disable_notification else "false",
+                ),
             ],
             "photo",
             "card.png",

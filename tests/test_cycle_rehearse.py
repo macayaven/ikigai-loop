@@ -113,6 +113,7 @@ class _TapTelegram:
         caption: str,
         markup: dict[str, Any],
         timeout_s: float = 60.0,
+        disable_notification: bool = False,
     ) -> dict[str, Any]:
         data = markup["inline_keyboard"][0][0]["callback_data"]
         self.card_id = str(data).split(":")[0]
@@ -435,3 +436,14 @@ def test_rehearse_seeds_sit_at_set_distances_from_slot(
     assert rows["rehearse-push-2"].time == slot - timedelta(hours=3)
     assert rows["rehearse-pr-1"].time == slot - timedelta(minutes=70)
     assert rows["rehearse-screen-1"].time == slot - timedelta(hours=2)
+
+
+def test_replaces_map_is_shared_with_orchestrator() -> None:
+    """One shared helper: rehearse reuses the orchestrator's copy."""
+    from framework.cycle import orchestrator as orchestrator_module
+    from framework.cycle import rehearse as rehearse_module
+    from framework.cycle.orchestrator import replaces_map
+
+    assert rehearse_module.replaces_map is replaces_map
+    assert orchestrator_module.replaces_map is replaces_map
+    assert not hasattr(rehearse_module, "_replaces_map")

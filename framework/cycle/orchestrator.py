@@ -16,7 +16,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from datetime import time as day_time
@@ -42,6 +42,7 @@ from framework.cycle.card_build import (
     build_card,
     build_chart_data,
     build_tally,
+    chain_groups,
     minimal_chart_data,
     since_counts,
     since_line,
@@ -101,8 +102,15 @@ from framework.telegram.client import (
     TelegramRateLimited,
     TelegramTransportError,
 )
-from framework.telegram.models import Card, ChartData
+from framework.telegram.ledger import CardLedger
+from framework.telegram.models import RULING_TARGETS, Card, ChartData
 from framework.telegram.service import RULING_WINDOW_START, send_card
+from framework.voice.state import (
+    CommitmentStateEntry,
+    filter_eligible,
+    load_voice_state,
+    standing_chain_ruling,
+)
 
 MADRID = ZoneInfo("Europe/Madrid")
 
@@ -186,6 +194,9 @@ class EligibilityState:
     disconnect_sent_today: int
     now_local: datetime
     hour_start_local: datetime | None
+    entries: Mapping[str, CommitmentStateEntry] = field(
+        default_factory=dict[str, CommitmentStateEntry]
+    )
 
 
 def eligible_commitments(
@@ -201,21 +212,23 @@ def eligible_commitments(
     after 23:00 it returns nothing. The 21:00 rule reads the hour the
     proposal is for when one was picked, else the slot. The count in
     ``state`` stays for the daily-cap step; this function does not read it.
+    Voice corrections in ``state.entries`` filter last, at the slot.
     """
     own = tuple(
         commitment for commitment in commitments if commitment.profile_id == profile_id
     )
     if profile_id != "disconnect":
-        return own
+        return filter_eligible(own, state.entries, slot=slot_local)
     effective = state.hour_start_local or slot_local
     mark = effective.astimezone(MADRID).time()
     if mark >= _CUTOFF:
         return ()
     if mark >= _NIGHT_START:
-        return tuple(
+        night = tuple(
             commitment for commitment in own if commitment.kind in ("music", "rest")
         )
-    return own
+        return filter_eligible(night, state.entries, slot=slot_local)
+    return filter_eligible(own, state.entries, slot=slot_local)
 
 
 def disconnect_send_blocked(card_carries_disconnect: bool, now_local: datetime) -> bool:
@@ -254,18 +267,45 @@ def _ruling_for(
         return None
 
 
+def replaces_map(db_path: Path, card_rows: Sequence[SlotCardRow]) -> dict[str, str]:
+    """Map each stored card id to the card id it replaces, when it does."""
+    cards = CardLedger(db_path)
+    out: dict[str, str] = {}
+    for row in card_rows:
+        if row.card_id in out:
+            continue
+        loaded = cards.load(row.card_id)
+        if loaded is not None and loaded.replaces_card_id:
+            out[row.card_id] = loaded.replaces_card_id
+    return out
+
+
 def rebuild_state(
-    taps: Sequence[Event], card_rows: Sequence[SlotCardRow]
+    taps: Sequence[Event],
+    card_rows: Sequence[SlotCardRow],
+    replaces: Mapping[str, str | None] | None = None,
 ) -> tuple[PolicyState, int]:
     """Replay taps in handled-at order; count skipped rulings.
 
     Every ``app.tap`` feeds ``observe``, ``wrong`` and ``why`` included.
     A tap with no stored row, a row with a ``NULL`` pick, or a rejected
-    ruling is skipped and counted, never fatal.
+    ruling is skipped and counted, never fatal. With ``replaces``, chained
+    cards share one standing ruling: a ruling tap on a card whose chain's
+    standing ruling is on another card is left out, not counted as
+    skipped; ``wrong`` and ``why`` taps still count per card.
     """
     by_card: dict[str, list[SlotCardRow]] = {}
     for row in card_rows:
         by_card.setdefault(row.card_id, []).append(row)
+    standing_by_card: dict[str, tuple[str, str]] = {}
+    if replaces:
+        for members in chain_groups(
+            list(dict.fromkeys(row.card_id for row in card_rows)), replaces
+        ).values():
+            standing = standing_chain_ruling(taps, members)
+            if standing is not None:
+                for member in members:
+                    standing_by_card[member] = standing
     ordered = sorted(taps, key=lambda event: (event.time, event.id))
     state = initial_state()
     skipped = 0
@@ -278,6 +318,10 @@ def rebuild_state(
         if not rows:
             skipped += 1
             continue
+        if event.data.target in RULING_TARGETS:
+            standing = standing_by_card.get(event.data.block_id)
+            if standing is not None and standing[0] != event.data.block_id:
+                continue
         ruling = _ruling_for(event.data.block_id, event.data.target, rows)
         if ruling is None:
             skipped += 1
@@ -552,6 +596,8 @@ _BUSY_TYPES = (
 
 _SENTINEL_START = datetime.min.replace(tzinfo=UTC)
 _SENTINEL_END = datetime.max.replace(tzinfo=UTC)
+_VOICE_EARLY = datetime(2000, 1, 1, tzinfo=UTC)
+_VOICE_FUTURE_DAYS = 2
 
 
 def calendar_is_stale(ledger: SlotLedger, as_of: datetime) -> bool:
@@ -1227,7 +1273,10 @@ def _run_slot_stores(
                 clock() + timedelta(days=1),
                 types=["app.tap"],
             )
-            rebuilt, learner_skipped = rebuild_state(taps, ledger.all_slot_cards())
+            stored_cards = ledger.all_slot_cards()
+            rebuilt, learner_skipped = rebuild_state(
+                taps, stored_cards, replaces_map(ledger.db_path, stored_cards)
+            )
             ledger.append_learner_state(slot, state_json(rebuilt))
             ledger.append_step(
                 slot,
@@ -1244,6 +1293,15 @@ def _run_slot_stores(
             learner_state = rebuilt
         except Exception as exc:  # noqa: BLE001 -- closed code, never the value
             step_failed("learner", exc)
+    try:
+        entries, disputed = load_voice_state(
+            store,
+            subject_id,
+            start=_VOICE_EARLY,
+            end=clock() + timedelta(days=_VOICE_FUTURE_DAYS),
+        )
+    except Exception as exc:  # noqa: BLE001 -- closed code, never the value
+        step_failed("voice_state", exc)
     slot_local = slot.astimezone(MADRID)
     now_local = clock().astimezone(MADRID)
     sent_today = ledger.disconnect_count(slot_local.date())
@@ -1252,6 +1310,7 @@ def _run_slot_stores(
         disconnect_sent_today=sent_today,
         now_local=now_local,
         hour_start_local=hour_local,
+        entries=entries,
     )
     profiles = [profile for profile in slot_profiles(slot)]
     cap_hit = False
@@ -1457,6 +1516,7 @@ def _run_slot_stores(
                 cycle_id=chosen_cycle,
                 policy_by_profile={profile: policy_by_profile.get(profile, "")},
                 parents=parents,
+                disputed=disputed,
             )
         except Exception as exc:  # noqa: BLE001 -- closed code, never the value
             _record_local_retries(ledger, slot, profile, retrying)
@@ -1561,7 +1621,10 @@ def _run_slot_stores(
             clock() + timedelta(days=1),
             types=["app.tap"],
         )
-        tally = build_tally(tally_events, ledger.all_slot_cards())
+        tally_cards = ledger.all_slot_cards()
+        tally = build_tally(
+            tally_events, tally_cards, replaces_map(ledger.db_path, tally_cards)
+        )
         chart_start = as_of - timedelta(days=4)
         chart_events = store.events_between(subject_id, chart_start, as_of)
         chart = build_chart_data(chart_events, as_of, tally)

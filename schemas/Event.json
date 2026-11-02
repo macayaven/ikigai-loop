@@ -54,6 +54,175 @@
       "title": "AppCheckinData",
       "type": "object"
     },
+    "AppCorrectionData": {
+      "additionalProperties": false,
+      "properties": {
+        "commitment_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Commitment Id"
+        },
+        "message_id": {
+          "minimum": 0,
+          "title": "Message Id",
+          "type": "integer"
+        },
+        "operation": {
+          "enum": [
+            "skip",
+            "defer",
+            "drop",
+            "done",
+            "keep",
+            "fact_correction",
+            "none"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "reported_by": {
+          "const": "user",
+          "title": "Reported By",
+          "type": "string"
+        },
+        "said_at": {
+          "format": "date-time",
+          "title": "Said At",
+          "type": "string"
+        },
+        "slot": {
+          "format": "date-time",
+          "title": "Slot",
+          "type": "string"
+        },
+        "type": {
+          "const": "app.correction",
+          "default": "app.correction",
+          "title": "Type",
+          "type": "string"
+        },
+        "until": {
+          "anyOf": [
+            {
+              "enum": [
+                "slot",
+                "today",
+                "tomorrow",
+                "this_week",
+                "open"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Until"
+        }
+      },
+      "required": [
+        "commitment_id",
+        "operation",
+        "until",
+        "slot",
+        "said_at",
+        "message_id",
+        "reported_by"
+      ],
+      "title": "AppCorrectionData",
+      "type": "object"
+    },
+    "AppFactDisputeData": {
+      "additionalProperties": false,
+      "properties": {
+        "card_id": {
+          "minLength": 1,
+          "title": "Card Id",
+          "type": "string"
+        },
+        "cycle_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cycle Id"
+        },
+        "fact_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fact Id"
+        },
+        "message_id": {
+          "minimum": 0,
+          "title": "Message Id",
+          "type": "integer"
+        },
+        "metric_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric Id"
+        },
+        "metric_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric Value"
+        },
+        "reported_by": {
+          "const": "user",
+          "title": "Reported By",
+          "type": "string"
+        },
+        "type": {
+          "const": "app.fact_dispute",
+          "default": "app.fact_dispute",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "card_id",
+        "message_id",
+        "reported_by"
+      ],
+      "title": "AppFactDisputeData",
+      "type": "object"
+    },
     "AppJournalData": {
       "additionalProperties": false,
       "properties": {
@@ -223,6 +392,172 @@
         "block_id"
       ],
       "title": "AppViewData",
+      "type": "object"
+    },
+    "AppVoiceNoteData": {
+      "additionalProperties": false,
+      "properties": {
+        "commitment_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commitment Id"
+        },
+        "compile_effort": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Compile Effort"
+        },
+        "compile_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Compile Model"
+        },
+        "message_id": {
+          "minimum": 0,
+          "title": "Message Id",
+          "type": "integer"
+        },
+        "muse_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Muse Version"
+        },
+        "new_card_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "New Card Id"
+        },
+        "old_card_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Old Card Id"
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operation"
+        },
+        "outcome": {
+          "minLength": 1,
+          "title": "Outcome",
+          "type": "string"
+        },
+        "reported_by": {
+          "const": "user",
+          "title": "Reported By",
+          "type": "string"
+        },
+        "rules_file_present": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rules File Present"
+        },
+        "step_seconds": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Step Seconds",
+          "type": "object"
+        },
+        "total_s": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Total S",
+          "type": "number"
+        },
+        "type": {
+          "const": "app.voice_note",
+          "default": "app.voice_note",
+          "title": "Type",
+          "type": "string"
+        },
+        "until": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Until"
+        },
+        "validation_codes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Codes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "message_id",
+        "outcome",
+        "reported_by"
+      ],
+      "title": "AppVoiceNoteData",
       "type": "object"
     },
     "CalendarEventCancelledData": {
@@ -863,12 +1198,15 @@
         "mapping": {
           "app.approve": "#/$defs/AppApproveData",
           "app.checkin": "#/$defs/AppCheckinData",
+          "app.correction": "#/$defs/AppCorrectionData",
+          "app.fact_dispute": "#/$defs/AppFactDisputeData",
           "app.journal": "#/$defs/AppJournalData",
           "app.rating": "#/$defs/AppRatingData",
           "app.reject": "#/$defs/AppRejectData",
           "app.tap": "#/$defs/AppTapData",
           "app.thumb": "#/$defs/AppThumbData",
           "app.view": "#/$defs/AppViewData",
+          "app.voice_note": "#/$defs/AppVoiceNoteData",
           "calendar.event.cancelled": "#/$defs/CalendarEventCancelledData",
           "calendar.event.created": "#/$defs/CalendarEventCreatedData",
           "calendar.event.updated": "#/$defs/CalendarEventUpdatedData",
@@ -952,6 +1290,15 @@
         },
         {
           "$ref": "#/$defs/AppJournalData"
+        },
+        {
+          "$ref": "#/$defs/AppCorrectionData"
+        },
+        {
+          "$ref": "#/$defs/AppFactDisputeData"
+        },
+        {
+          "$ref": "#/$defs/AppVoiceNoteData"
         }
       ],
       "title": "Data"
@@ -1013,7 +1360,10 @@
         "app.approve",
         "app.reject",
         "app.checkin",
-        "app.journal"
+        "app.journal",
+        "app.correction",
+        "app.fact_dispute",
+        "app.voice_note"
       ],
       "title": "Type",
       "type": "string"

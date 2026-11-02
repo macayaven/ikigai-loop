@@ -61,7 +61,10 @@ class FileClient:
     def __init__(self, path):
         self.path = path
 
-    def send_photo(self, chat_id, photo, caption, markup, timeout_s=60.0):
+    def send_photo(
+        self, chat_id, photo, caption, markup, timeout_s=60.0,
+        disable_notification=False,
+    ):
         with open(self.path, "ab") as handle:
             fcntl.flock(handle, fcntl.LOCK_EX)
             handle.write(b"sendPhoto\\n")
@@ -319,7 +322,15 @@ def test_delivered_row_lands_after_lock_released(
             def __init__(self) -> None:
                 self.calls = 0
 
-            def send_photo(self, chat_id, photo, caption, markup, timeout_s=60.0):
+            def send_photo(
+                self,
+                chat_id,
+                photo,
+                caption,
+                markup,
+                timeout_s=60.0,
+                disable_notification=False,
+            ):
                 self.calls += 1
                 if not started:
                     started.append(

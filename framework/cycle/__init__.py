@@ -26,6 +26,12 @@ from framework.schemas.core import Fact, FactWindow
 from framework.store.fact_store import FactStore
 from framework.store.proposal_store import ProposalStore
 from framework.store.store import EventStore
+from framework.voice.state import (
+    MADRID,
+    DisputedCitations,
+    apply_disputes,
+    disputes_for_cycle,
+)
 
 LABEL_TYPES = frozenset({"calendar.label"})
 CALENDAR_TYPES = frozenset(
@@ -138,6 +144,7 @@ def run_proposals(
     cycle_id: str | None = None,
     policy_by_profile: dict[str, str] | None = None,
     parents: dict[str, tuple[Briefing, MetricSnapshot]] | None = None,
+    disputed: DisputedCitations | None = None,
 ) -> tuple[ProposalResult, ...]:
     """Resolve the cycle, pick one hour, propose per profile, record all."""
     as_of = fixed_offset(as_of)
@@ -201,9 +208,18 @@ def run_proposals(
                 parent_briefing, parent_metrics = None, None
             else:
                 parent_briefing, parent_metrics, _ = found
+        if disputed is not None:
+            narrowed = disputes_for_cycle(
+                disputed, cycle["cycle_id"], as_of.astimezone(MADRID).date()
+            )
+            context_facts, context_snapshot, parent_metrics = apply_disputes(
+                facts, snapshot, parent_metrics, narrowed
+            )
+        else:
+            context_facts, context_snapshot = facts, snapshot
         context = GateContext(
-            facts={fact.id: fact for fact in facts},
-            metrics=snapshot,
+            facts={fact.id: fact for fact in context_facts},
+            metrics=context_snapshot,
             parent_briefing=parent_briefing,
             parent_metrics=parent_metrics,
             free_intervals=free,

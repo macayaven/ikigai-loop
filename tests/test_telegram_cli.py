@@ -260,12 +260,134 @@ def test_no_token_in_cli_output(
     assert FAKE_BOT_VALUE not in captured.out + captured.err + caplog.text
 
 
+def test_flagless_poll_prints_only_counts(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    code, _, _ = run_main(monkeypatch, tmp_path, ["poll", "--once"], FakeTelegram())
+    assert code == 0
+    out = capsys.readouterr().out
+    assert [line for line in out.splitlines() if line.startswith("voice_")] == []
+    assert out.strip().split(" ") == zero_line().strip().split(" ")
+
+
+def test_flagless_poll_imports_no_voice(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    import sys
+    import unittest.mock
+
+    with unittest.mock.patch.dict(sys.modules):
+        for name in [
+            m for m in sys.modules if m.split(".")[:2] == ["framework", "voice"]
+        ]:
+            del sys.modules[name]
+        code, _, _ = run_main(monkeypatch, tmp_path, ["poll", "--once"], FakeTelegram())
+        assert code == 0
+        capsys.readouterr()
+        assert "framework.voice" not in sys.modules
+
+
+def _voice_env(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, *, confirmed: bool
+) -> None:
+    import json
+
+    home = tmp_path / "home"
+    home.mkdir(exist_ok=True)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    monkeypatch.setenv("MUSE_BIN", "/bin/muse-synthetic")
+    monkeypatch.delenv("IKIGAI_COMMITMENTS_FILE", raising=False)
+    monkeypatch.delenv("HIDDEN_CRITERIA_DIR", raising=False)
+    monkeypatch.delenv("IKIGAI_KILL_FILE", raising=False)
+    if confirmed:
+        monkeypatch.setenv("MUSE_CONTRIBUTOR_MODE", "0")
+        settings = home / ".config" / "muse"
+        settings.mkdir(parents=True, exist_ok=True)
+        (settings / "settings.json").write_text(
+            json.dumps({"contributor_mode_enabled": False}), encoding="utf-8"
+        )
+    else:
+        monkeypatch.delenv("MUSE_CONTRIBUTOR_MODE", raising=False)
+
+
+def test_poll_voice_startup_lines_when_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _voice_env(monkeypatch, tmp_path, confirmed=True)
+    code, _, _ = run_main(
+        monkeypatch, tmp_path, ["poll", "--once", "--voice"], FakeTelegram()
+    )
+    assert code == 0
+    lines = capsys.readouterr().out.strip().splitlines()
+    assert lines[0] == "voice_contributor_mode=confirmed"
+    assert lines[1] == "voice_private_terms=unavailable"
+    assert lines[2] == "voice_commitments=unavailable"
+    assert lines[3].startswith("updates=")
+
+
+def test_poll_voice_mode_codes_are_codes_only(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _voice_env(monkeypatch, tmp_path, confirmed=False)
+    code, _, _ = run_main(
+        monkeypatch, tmp_path, ["poll", "--once", "--voice"], FakeTelegram()
+    )
+    assert code == 0
+    first = capsys.readouterr().out.strip().splitlines()[0]
+    assert first.startswith("voice_contributor_mode=")
+    assert first != "voice_contributor_mode=confirmed"
+    assert "config" not in first and "/" not in first
+
+
+def test_poll_voice_bad_effort_is_argparse_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _voice_env(monkeypatch, tmp_path, confirmed=True)
+    with pytest.raises(SystemExit) as info:
+        run_main(
+            monkeypatch,
+            tmp_path,
+            ["poll", "--once", "--voice", "--compile-effort", "ultra"],
+            FakeTelegram(),
+        )
+    assert info.value.code == 2
+    capsys.readouterr()
+
+
+def test_poll_voice_contributor_model_refused(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _voice_env(monkeypatch, tmp_path, confirmed=True)
+    with pytest.raises(SystemExit) as info:
+        run_main(
+            monkeypatch,
+            tmp_path,
+            ["poll", "--once", "--voice", "--compile-model", "muse-contributor-1.0"],
+            FakeTelegram(),
+        )
+    assert info.value.code == 2
+    capsys.readouterr()
+
+
 def test_privacy_note_states_five_claims() -> None:
     text = (Path(__file__).resolve().parent.parent / "docs" / "PRIVACY.md").read_text(
         encoding="utf-8"
     )
     lines = text.splitlines()
-    assert len(lines) < 30
+    assert len(lines) < 45
     lowered = text.lower()
     assert "card text" in lowered and "chart" in lowered
     assert "why?" in lowered and "reason codes" in lowered

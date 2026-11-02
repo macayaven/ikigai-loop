@@ -1,0 +1,84 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "card_id": {
+      "minLength": 1,
+      "title": "Card Id",
+      "type": "string"
+    },
+    "cycle_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cycle Id"
+    },
+    "fact_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fact Id"
+    },
+    "message_id": {
+      "minimum": 0,
+      "title": "Message Id",
+      "type": "integer"
+    },
+    "metric_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Metric Id"
+    },
+    "metric_value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Metric Value"
+    },
+    "reported_by": {
+      "const": "user",
+      "title": "Reported By",
+      "type": "string"
+    },
+    "type": {
+      "const": "app.fact_dispute",
+      "default": "app.fact_dispute",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "card_id",
+    "message_id",
+    "reported_by"
+  ],
+  "title": "AppFactDisputeData",
+  "type": "object"
+}

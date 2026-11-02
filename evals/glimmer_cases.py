@@ -349,6 +349,29 @@ def _dropped_payload(etype: str, journal_text: str) -> dict[str, Any]:
             "model_id": "mock-model",
             "valid": True,
         }
+    if etype == "app.correction":
+        return {
+            "commitment_id": "cm-synthetic-1",
+            "operation": "skip",
+            "until": "today",
+            "slot": _dt(30, 12).isoformat(),
+            "said_at": _dt(30, 11).isoformat(),
+            "message_id": 1,
+            "reported_by": "user",
+        }
+    if etype == "app.fact_dispute":
+        return {
+            "fact_id": "fact:synthetic-1",
+            "card_id": "card-" + "0" * 16,
+            "message_id": 1,
+            "reported_by": "user",
+        }
+    if etype == "app.voice_note":
+        return {
+            "message_id": 1,
+            "outcome": "applied_no_card",
+            "reported_by": "user",
+        }
     raise AssertionError(f"unhandled dropped type: {etype}")
 
 
