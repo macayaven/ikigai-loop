@@ -102,6 +102,7 @@ def _briefing(
     profile: str,
     slot: datetime,
     sections: dict[str, list[Claim]],
+    parent_briefing_id: str | None = None,
 ) -> Briefing:
     order = ("overall_state", "since_last", "working", "not_working")
     built = [
@@ -128,7 +129,12 @@ def _briefing(
         )
     )
     return Briefing(
-        id=bid, profile_id=profile, subject_id=SUBJECT, slot=slot, sections=built
+        id=bid,
+        profile_id=profile,
+        subject_id=SUBJECT,
+        slot=slot,
+        parent_briefing_id=parent_briefing_id,
+        sections=built,
     )
 
 
@@ -165,6 +171,7 @@ def _record(
     run: int = 1,
     model: str = "muse-wonder-1.0",
     effort: str = "high",
+    snapshot: dict[str, float] | None = None,
 ) -> str:
     start = slot + timedelta(minutes=30)
     store = ProposalStore(db)
@@ -185,7 +192,7 @@ def _record(
                 cycle_age_s=0.0,
                 prompt_hash="hash-1",
             ),
-            snapshot={},
+            snapshot=dict(snapshot) if snapshot is not None else {},
         )
     finally:
         store.close()
@@ -836,11 +843,100 @@ def test_reproposed_side_recovers_both_cards(
     assert _parse(out)["claims_atomic_total"] == "2"
 
 
-def test_since_last_signed_changes(
+def test_corrected_card_without_slot_rows_uses_display_profile(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _env(monkeypatch, tmp_path)
     slot = slot_at("15:30")
+    builder_text = "Builder work was steady in the last window."
+    disconn_text = "Rest was quiet in the last window."
+    builder_new = "Builder work rose in the last window."
+    builder_first = _briefing(
+        "brf-b1",
+        "builder",
+        slot,
+        {"overall_state": [_claim("c-b1", builder_text, ("f-b1",))]},
+    )
+    disconn_first = _briefing(
+        "brf-d1",
+        "disconnect",
+        slot,
+        {"overall_state": [_claim("c-d1", disconn_text, ("f-d1",))]},
+    )
+    builder_second = _briefing(
+        "brf-b2",
+        "builder",
+        slot,
+        {"overall_state": [_claim("c-b2", builder_new, ("f-b2",))]},
+    )
+    _record(db, slot=slot, profile="builder", briefing=builder_first)
+    _record(
+        db, slot=slot, profile="disconnect", briefing=disconn_first, cycle_id="cycle-1"
+    )
+    _record(
+        db,
+        slot=slot,
+        profile="builder",
+        briefing=builder_second,
+        cycle_id="cycle-2",
+    )
+    _record_facts(db, "cycle-1", 1, {"f-b1": builder_text, "f-d1": disconn_text}, slot)
+    _record_facts(db, "cycle-2", 1, {"f-b2": builder_new}, slot)
+    from framework.cycle.card_build import build_statements
+
+    old = _card(
+        slot,
+        build_statements(
+            (("A", "Builder", builder_first), ("B", "Disconnect", disconn_first))
+        ),
+    )
+    _deliver(db, old, slot, _rows(old, slot))
+    corrected = _card(
+        slot,
+        build_statements(
+            (("A", "Builder", builder_second), ("B", "Disconnect", disconn_first))
+        ),
+        replaces=old.card_id,
+    )
+    _deliver(db, corrected, slot, ())
+    code, out = _run_pack(monkeypatch, capsys, db, tmp_path / "pack")
+    assert code == 0, out
+    counts = _parse(out)
+    assert counts["statements_unmatched"] == "0"
+    assert counts["sides_profile_from_display"] == "2"
+    assert counts["claims_atomic_total"] == "3"
+    page = next((tmp_path / "pack").glob("*.html")).read_text(encoding="utf-8")
+    assert builder_new in page
+    assert disconn_text in page
+    key_path = next((tmp_path / "pack").glob("*.key.json"))
+    items = json.loads(key_path.read_text(encoding="utf-8"))["items"]
+    shown = [item for item in items.values() if item["claim_id"] == "c-d1"]
+    assert len(shown) == 1
+    assert shown[0]["delivered_cards_shown"] == 2
+
+
+def test_since_last_signed_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _env(monkeypatch, tmp_path)
+    parent_slot = slot_at("13:30")
+    slot = slot_at("15:30")
+    builder_parent = _briefing(
+        "brf-b-parent",
+        "builder",
+        parent_slot,
+        {
+            "overall_state": [
+                _claim("c-p-base", "Code stands ready for the hour.", ("f1",))
+            ]
+        },
+    )
+    disconnect_parent = _briefing(
+        "brf-d-parent",
+        "disconnect",
+        parent_slot,
+        {"overall_state": [_claim("c-p-ob", "Rest was quiet.", ("f2",))]},
+    )
     builder = _briefing(
         "brf-b",
         "builder",
@@ -864,6 +960,7 @@ def test_since_last_signed_changes(
                 ),
             ],
         },
+        parent_briefing_id="brf-b-parent",
     )
     disconn = _briefing(
         "brf-d",
@@ -880,14 +977,47 @@ def test_since_last_signed_changes(
                 ),
             ],
         },
+        parent_briefing_id="brf-d-parent",
     )
     # build_statements puts the first overall_state claim first, then the rest.
     from framework.cycle.card_build import build_statements
 
     stmts = build_statements((("A", "Builder", builder), ("B", "Disconnect", disconn)))
     assert len(stmts) == 7
-    _record(db, slot=slot, profile="builder", briefing=builder)
-    _record(db, slot=slot, profile="disconnect", briefing=disconn)
+    _record(
+        db,
+        slot=parent_slot,
+        profile="builder",
+        briefing=builder_parent,
+        snapshot={
+            "period.last.screen_hours.Work/Programming": 1.0,
+            "period.last.pushes": 4.0,
+        },
+    )
+    _record(
+        db,
+        slot=parent_slot,
+        profile="disconnect",
+        briefing=disconnect_parent,
+        snapshot={"feed.item.count": 4.0},
+    )
+    _record(
+        db,
+        slot=slot,
+        profile="builder",
+        briefing=builder,
+        snapshot={
+            "period.last.screen_hours.Work/Programming": 2.5,
+            "period.last.pushes": 2.0,
+        },
+    )
+    _record(
+        db,
+        slot=slot,
+        profile="disconnect",
+        briefing=disconn,
+        snapshot={"feed.item.count": 4.0},
+    )
     _record_facts(
         db,
         "cycle-1",
@@ -899,8 +1029,22 @@ def test_since_last_signed_changes(
     _deliver(db, card, slot, _rows(card, slot))
     code, out = _run_pack(monkeypatch, capsys, db, tmp_path / "pack")
     assert code == 0, out
-    assert _parse(out)["claims_atomic_total"] == "5"
+    counts = _parse(out)
+    assert counts["claims_atomic_total"] == "5"
+    assert counts["claims_since_last_unresolved"] == "0"
     page = next((tmp_path / "pack").glob("*.html")).read_text(encoding="utf-8")
+    assert (
+        "Programming screen time in the last period: 1 hours on the previous card, "
+        "2.5 hours on this card, +1.5 hours since the previous card" in page
+    )
+    assert (
+        "Pushes in the last period: 4 on the previous card, "
+        "2 on this card, -2 since the previous card" in page
+    )
+    assert (
+        "Feed items across the whole three-day window: 4 on the previous card, "
+        "4 on this card, 0 since the previous card" in page
+    )
     assert "+1.5 hours since the previous card" in page
     assert "-2 since the previous card" in page
     assert "0 since the previous card" in page
@@ -1396,3 +1540,286 @@ def test_real_slot_harness_then_pack(
     assert pack_code == 0, out
     counts = _parse(out)
     assert int(counts["claims_atomic_total"]) >= 1
+
+
+# -- Ticket 16c: since_last evidence shows both cards' values --
+
+
+def _since_last_happy_pair(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    deliver_parent: bool = True,
+) -> tuple[Path, datetime, datetime]:
+    """Made-up parent/child pair: previous 6, this card 9, change +3."""
+    db = _env(monkeypatch, tmp_path)
+    earlier = slot_at("13:30")
+    later = slot_at("15:30")
+    parent = _briefing(
+        "brf-parent-1",
+        "builder",
+        earlier,
+        {
+            "overall_state": [
+                _claim("c-p-base", "Pushes were 6 in the last period.", ("f1",))
+            ]
+        },
+    )
+    child = _briefing(
+        "brf-child-1",
+        "builder",
+        later,
+        {
+            "since_last": [
+                _claim(
+                    "c-since",
+                    "Prs rose by 3 in the last period.",
+                    (),
+                    (("period.last.prs", 3.0),),
+                )
+            ]
+        },
+        parent_briefing_id="brf-parent-1",
+    )
+    _record(
+        db,
+        slot=earlier,
+        profile="builder",
+        briefing=parent,
+        snapshot={"period.last.prs": 6.0},
+    )
+    _record(
+        db,
+        slot=later,
+        profile="builder",
+        briefing=child,
+        cycle_id="cycle-2",
+        snapshot={"period.last.prs": 9.0},
+    )
+    _record_facts(
+        db, "cycle-1", 1, {"f1": "Pushes were 6 in the last period."}, earlier
+    )
+    if deliver_parent:
+        parent_card = _card(
+            earlier, ("A · Builder", "Pushes were 6 in the last period.")
+        )
+        _deliver(db, parent_card, earlier, _rows(parent_card, earlier))
+    child_card = _card(later, ("A · Builder", "Prs rose by 3 in the last period."))
+    _deliver(db, child_card, later, _rows(child_card, later))
+    return db, earlier, later
+
+
+def test_since_last_shows_both_values(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db, _, _ = _since_last_happy_pair(tmp_path, monkeypatch)
+    code, out = _run_pack(monkeypatch, capsys, db, tmp_path / "pack")
+    assert code == 0, out
+    counts = _parse(out)
+    assert counts["claims_atomic_total"] == "2"
+    assert counts["claims_since_last_unresolved"] == "0"
+    page = next((tmp_path / "pack").glob("*.html")).read_text(encoding="utf-8")
+    assert (
+        "Pull requests in the last period: 6 on the previous card, "
+        "9 on this card, +3 since the previous card" in page
+    )
+
+
+def _since_last_unresolved_store(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    trigger: str,
+) -> Path:
+    """One made-up store per failure trigger; only the child card is delivered."""
+    db = _env(monkeypatch, tmp_path)
+    earlier = slot_at("13:30")
+    later = slot_at("15:30")
+    parent_id = "brf-parent-1"
+    child_parent: str | None = parent_id
+    parent_snapshot: dict[str, float] = {"period.last.prs": 6.0}
+    child_snapshot: dict[str, float] = {"period.last.prs": 9.0}
+    extra_parents: tuple[dict[str, float], ...] = ()
+    if trigger == "no-parent-id":
+        child_parent = None
+    elif trigger == "dangling-parent-id":
+        child_parent = "brf-no-such-briefing"
+    elif trigger == "parent-lacks-metric":
+        parent_snapshot = {"period.last.pushes": 6.0}
+    elif trigger == "child-lacks-metric":
+        child_snapshot = {}
+    elif trigger == "arithmetic-disagrees":
+        child_snapshot = {"period.last.prs": 10.0}
+    elif trigger == "duplicate-parents-disagree":
+        extra_parents = ({"period.last.prs": 7.0},)
+    else:
+        raise AssertionError(f"unknown trigger {trigger}")
+    parent = _briefing(
+        "brf-parent-1",
+        "builder",
+        earlier,
+        {
+            "overall_state": [
+                _claim("c-p-base", "Pushes were 6 in the last period.", ("f1",))
+            ]
+        },
+    )
+    child = _briefing(
+        "brf-child-1",
+        "builder",
+        later,
+        {
+            "since_last": [
+                _claim(
+                    "c-since",
+                    "Prs rose by 3 in the last period.",
+                    (),
+                    (("period.last.prs", 3.0),),
+                )
+            ]
+        },
+        parent_briefing_id=child_parent,
+    )
+    _record(
+        db, slot=earlier, profile="builder", briefing=parent, snapshot=parent_snapshot
+    )
+    for index, extra_snapshot in enumerate(extra_parents):
+        _record(
+            db,
+            slot=earlier,
+            profile="builder",
+            briefing=parent,
+            cycle_id=f"cycle-extra-{index}",
+            snapshot=extra_snapshot,
+        )
+    _record(
+        db,
+        slot=later,
+        profile="builder",
+        briefing=child,
+        cycle_id="cycle-2",
+        snapshot=child_snapshot,
+    )
+    child_card = _card(later, ("A · Builder", "Prs rose by 3 in the last period."))
+    _deliver(db, child_card, later, _rows(child_card, later))
+    return db
+
+
+@pytest.mark.parametrize(
+    "trigger",
+    [
+        "no-parent-id",
+        "dangling-parent-id",
+        "parent-lacks-metric",
+        "child-lacks-metric",
+        "arithmetic-disagrees",
+        "duplicate-parents-disagree",
+    ],
+)
+def test_since_last_unresolved(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    trigger: str,
+) -> None:
+    db = _since_last_unresolved_store(tmp_path, monkeypatch, trigger)
+    code, out = _run_pack(monkeypatch, capsys, db, tmp_path / "pack")
+    assert code == 0, out
+    counts = _parse(out)
+    assert counts["claims_since_last_unresolved"] == "1", trigger
+    assert counts["claims_atomic_total"] == "0", trigger
+    page = next((tmp_path / "pack").glob("*.html")).read_text(encoding="utf-8")
+    assert "Prs rose by 3 in the last period." not in page, trigger
+
+
+def test_since_last_duplicate_parent_agreeing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _env(monkeypatch, tmp_path)
+    earlier = slot_at("13:30")
+    later = slot_at("15:30")
+    parent = _briefing(
+        "brf-parent-1",
+        "builder",
+        earlier,
+        {
+            "overall_state": [
+                _claim("c-p-base", "Pushes were 6 in the last period.", ("f1",))
+            ]
+        },
+    )
+    child = _briefing(
+        "brf-child-1",
+        "builder",
+        later,
+        {
+            "since_last": [
+                _claim(
+                    "c-since",
+                    "Prs rose by 3 in the last period.",
+                    (),
+                    (("period.last.prs", 3.0),),
+                )
+            ]
+        },
+        parent_briefing_id="brf-parent-1",
+    )
+    _record(
+        db,
+        slot=earlier,
+        profile="builder",
+        briefing=parent,
+        snapshot={"period.last.prs": 6.0},
+    )
+    _record(
+        db,
+        slot=earlier,
+        profile="builder",
+        briefing=parent,
+        cycle_id="cycle-1b",
+        snapshot={"period.last.prs": 6.0},
+    )
+    _record(
+        db,
+        slot=later,
+        profile="builder",
+        briefing=child,
+        cycle_id="cycle-2",
+        snapshot={"period.last.prs": 9.0},
+    )
+    child_card = _card(later, ("A · Builder", "Prs rose by 3 in the last period."))
+    _deliver(db, child_card, later, _rows(child_card, later))
+    code, out = _run_pack(monkeypatch, capsys, db, tmp_path / "pack")
+    assert code == 0, out
+    counts = _parse(out)
+    assert counts["claims_since_last_unresolved"] == "0"
+    assert counts["claims_atomic_total"] == "1"
+    page = next((tmp_path / "pack").glob("*.html")).read_text(encoding="utf-8")
+    assert (
+        "Pull requests in the last period: 6 on the previous card, "
+        "9 on this card, +3 since the previous card" in page
+    )
+
+
+def test_since_last_fact_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _env(monkeypatch, tmp_path)
+    slot = slot_at("15:30")
+    statement = "Paper lists held steady since the previous card."
+    briefing = _briefing(
+        "brf-1",
+        "builder",
+        slot,
+        {"since_last": [_claim("c-a", statement, ("f1",))]},
+    )
+    _record(db, slot=slot, profile="builder", briefing=briefing)
+    _record_facts(db, "cycle-1", 1, {"f1": statement}, slot)
+    card = _card(slot, ("A · Builder", statement))
+    _deliver(db, card, slot, _rows(card, slot))
+    code, out = _run_pack(monkeypatch, capsys, db, tmp_path / "pack")
+    assert code == 0, out
+    counts = _parse(out)
+    assert counts["claims_atomic_total"] == "1"
+    assert counts["claims_since_last_unresolved"] == "0"
+    page = next((tmp_path / "pack").glob("*.html")).read_text(encoding="utf-8")
+    assert statement in page

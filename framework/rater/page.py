@@ -79,7 +79,7 @@ border:1px solid #111;padding:.6rem;font-size:.95rem;}
         + str(count)
         + """ sentences,
 one at a time, each with the facts and numbers it rests on.</p>
-<p>Each card looked at the three days before it as three back-to-back 24-hour periods called earlier, prior and last, last being the most recent. Across the whole three-day window means all three together. A change since the previous card compares this card's number with the number on the card before.</p>
+<p>Each card looked at the three days before it as three back-to-back 24-hour periods called earlier, prior and last, last being the most recent. Across the whole three-day window means all three together. A line about a change since the previous card shows the number on the previous card and the number on this card, then the change. Each card counts its own three periods, so the same period name on two cards covers different hours.</p>
 <p>Each sentence comes from a card the app showed Carlos, with the data it cites under it. Judge only whether the sentence follows from that data, not whether it is a good idea.</p>
 <p><strong>Yes</strong> means the data shown backs up everything the sentence says about it. <strong>No</strong> means the data shown says something different, or does not back up what the sentence says. <strong>Can't tell</strong> means you cannot decide from what is shown. Nothing is sent anywhere; your answers stay on this device until you send the result file back.</p>
 <p id="preview-note">If the Start button does nothing, open this file in a web

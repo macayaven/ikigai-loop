@@ -12,8 +12,9 @@ import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from framework.briefing.context import load_private_terms
 from framework.briefing.gate import scan_outbound_text
@@ -159,6 +160,21 @@ class _Candidate:
     cycle_id: str
     run: int
     briefing: Briefing
+    snapshot: dict[str, Any]
+
+
+def _snapshot_mapping(raw: Any) -> dict[str, Any]:
+    """Parse a stored snapshot; unparseable JSON lacks every metric."""
+    if raw is None:
+        return {}
+    try:
+        parsed: Any = json.loads(str(raw))
+    except ValueError:
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    raw_mapping = cast("dict[Any, Any]", parsed)
+    return {str(key): value for key, value in raw_mapping.items()}
 
 
 def _candidates(
@@ -167,11 +183,11 @@ def _candidates(
     rows = column_rows(
         conn,
         "proposal_results",
-        "rowid, proposal_key, cycle_id, run, slot, profile_id, briefing_json",
+        "rowid, proposal_key, cycle_id, run, slot, profile_id, briefing_json, snapshot",
         " WHERE kind = 'proposal'",
     )
     out: list[_Candidate] = []
-    for rowid, key, cycle_id, run, stamp, profile, raw in rows:
+    for rowid, key, cycle_id, run, stamp, profile, raw, snapshot_raw in rows:
         if str(profile) != profile_id or raw is None:
             continue
         try:
@@ -191,10 +207,57 @@ def _candidates(
                 cycle_id=str(cycle_id),
                 run=int(run),
                 briefing=briefing,
+                snapshot=_snapshot_mapping(snapshot_raw),
             )
         )
     out.sort(key=lambda item: item.rowid)
     return out
+
+
+def _parent_snapshots(conn: sqlite3.Connection) -> dict[str, list[dict[str, Any]]]:
+    """Map each stored briefing id to every snapshot recorded with that id."""
+    index: dict[str, list[dict[str, Any]]] = {}
+    for _, raw_briefing, raw_snapshot in column_rows(
+        conn,
+        "proposal_results",
+        "rowid, briefing_json, snapshot",
+        " WHERE kind = 'proposal'",
+    ):
+        if raw_briefing is None:
+            continue
+        try:
+            briefing = Briefing.model_validate(json.loads(str(raw_briefing)))
+        except ValueError:
+            continue
+        index.setdefault(briefing.id, []).append(_snapshot_mapping(raw_snapshot))
+    return index
+
+
+def _is_json_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _resolve_since_last(
+    metric_id: str,
+    change: float,
+    source_snapshot: dict[str, Any],
+    carriers: list[dict[str, Any]],
+) -> tuple[Any, Any] | None:
+    """Resolve (previous, this) under the delta arithmetic, exactly or not at all."""
+    this_value = source_snapshot.get(metric_id)
+    if not _is_json_number(this_value):
+        return None
+    if not carriers:
+        return None
+    previous_values = [carrier.get(metric_id) for carrier in carriers]
+    if any(not _is_json_number(value) for value in previous_values):
+        return None
+    first = previous_values[0]
+    if any(value != first for value in previous_values[1:]):
+        return None
+    if Decimal(str(this_value)) - Decimal(str(first)) != Decimal(str(change)):
+        return None
+    return first, this_value
 
 
 def _collapse(value: str) -> str:
@@ -234,7 +297,12 @@ def _unit(family: str) -> str:
     return ""
 
 
-def _render_ref(metric_id: str, value: float, section_type: str) -> str | None:
+def _render_ref(
+    metric_id: str,
+    value: float,
+    section_type: str,
+    resolved: tuple[Any, Any] | None = None,
+) -> str | None:
     binding = metric_label_binding(metric_id)
     if binding is None:
         return None
@@ -247,13 +315,21 @@ def _render_ref(metric_id: str, value: float, section_type: str) -> str | None:
     shown = display_value(value)
     unit = _unit(binding.family)
     if section_type == "since_last":
+        if resolved is None:
+            return None
+        previous, current = resolved
+        shown_previous = f"{display_value(previous)}{unit}"
+        shown_current = f"{display_value(current)}{unit}"
         if value > 0:
             change = f"+{shown}{unit}"
         elif value < 0:
             change = f"-{display_value(abs(value))}{unit}"
         else:
             change = f"0{unit}"
-        rendered = f"{what} {period}: {change} since the previous card"
+        rendered = (
+            f"{what} {period}: {shown_previous} on the previous card, "
+            f"{shown_current} on this card, {change} since the previous card"
+        )
     else:
         rendered = f"{what} {period}: {shown}{unit}"
     return rendered[:1].upper() + rendered[1:]
@@ -302,14 +378,17 @@ def collect(
             return cached
 
         counts = dict(join.counts)
+        parent_index: dict[str, list[dict[str, Any]]] | None = None
         counts.update(
             {
                 "statements_total": 0,
                 "statements_distinct": 0,
                 "statements_unmatched": 0,
                 "statements_ambiguous": 0,
+                "sides_profile_from_display": 0,
                 "facts_missing": 0,
                 "metrics_unbound": 0,
+                "claims_since_last_unresolved": 0,
                 "so_clauses_cut": 0,
                 "so_clauses_kept_with_digit": 0,
                 "possibly_compound": 0,
@@ -364,7 +443,17 @@ def collect(
             for letter in fallback_letters:
                 grouped.pop(letter, None)
             for letter in [letter for letter in grouped if letter not in profiles]:
-                counts["statements_unmatched"] += len(grouped.pop(letter))
+                display_name = next(
+                    side.profile for side in card.proposals if side.letter == letter
+                )
+                candidate = display_name.lower()
+                if candidate in ("builder", "disconnect") and (
+                    candidate.capitalize() == display_name
+                ):
+                    profiles[letter] = candidate
+                    counts["sides_profile_from_display"] += 1
+                else:
+                    counts["statements_unmatched"] += len(grouped.pop(letter))
             sides = sorted(grouped)
             if not sides:
                 continue
@@ -420,11 +509,46 @@ def collect(
                     if any(fid not in known for fid in claim.fact_ids):
                         counts["facts_missing"] += 1
                         continue
+                    pairs: list[tuple[Any, Any]] | None = None
+                    if sections[index] == "since_last" and claim.metric_refs:
+                        if parent_index is None:
+                            parent_index = _parent_snapshots(conn)
+                        parent_id = source.briefing.parent_briefing_id
+                        carriers = (
+                            parent_index.get(parent_id, [])
+                            if parent_id is not None
+                            else []
+                        )
+                        resolved: list[tuple[Any, Any]] = []
+                        gated_unbound = False
+                        gated_unresolved = False
+                        for ref in claim.metric_refs:
+                            if metric_label_binding(ref.metric_id) is None:
+                                gated_unbound = True
+                                break
+                            pair = _resolve_since_last(
+                                ref.metric_id,
+                                ref.value,
+                                source.snapshot,
+                                carriers,
+                            )
+                            if pair is None:
+                                gated_unresolved = True
+                                break
+                            resolved.append(pair)
+                        if gated_unbound:
+                            counts["metrics_unbound"] += 1
+                            continue
+                        if gated_unresolved:
+                            counts["claims_since_last_unresolved"] += 1
+                            continue
+                        pairs = resolved
                     lines: list[str] = []
                     unbound = False
-                    for ref in claim.metric_refs:
+                    for position, ref in enumerate(claim.metric_refs):
+                        pair = pairs[position] if pairs is not None else None
                         rendered = _render_ref(
-                            ref.metric_id, ref.value, sections[index]
+                            ref.metric_id, ref.value, sections[index], pair
                         )
                         if rendered is None:
                             unbound = True
