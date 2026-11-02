@@ -42,6 +42,7 @@
 - **Private categories** from the interview never appear in any public output (repo, app, demo, public logs). The list lives outside the repo in `HIDDEN_CRITERIA_DIR`; the L1 scan fails the build on any hit.
 - **Evenings with my partner, 20:00–22:30:** until 2026-11-04 (Europe/Madrid) this window has no restriction. From 2026-11-05 the original limit returns: the window is not negotiable; the app may still notify me then (I can mute and ignore), but only low-priority items, unless it is a declared *spike*: something that lasts ≤ 1 month and clearly moves me towards my purpose. The hackathon until Nov 4 is a spike.
 - **Quiet hours:** no notifications outside 13:00–23:30 until Nov 18, then outside 08:00–21:00.
+- **One extra card, 2026-11-03 11:30 (Europe/Madrid):** a Builder card may be sent at 11:30 that day, before the 13:00 start above, because I have my phone from 11:00 on Nov 3. That day only; every other day the 13:00 start stands.
 - **Calendar** reaches Meta only as busy intervals and `iki-*` tags; titles never leave my machine — a local model reads them only when I turn local labels on ([docs/PRIVACY.md](docs/PRIVACY.md)).
 - **Feeds (X, Perplexity, Reddit):** at most 30 min per night, and never after 23:30.
 - **Never read:** LinkedIn, Gmail, and any work data from HP or the speech-therapy startup.

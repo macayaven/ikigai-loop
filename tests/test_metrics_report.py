@@ -1845,3 +1845,25 @@ def test_report_counts_only_with_new_sections(
         "recovery.assumption",
     ):
         assert key in fields, key
+
+
+def test_1130_run_scope_still_thirteen_without_dated_slot() -> None:
+    """Pinning: the registered run stays 13 instants with no Nov 3 11:30."""
+    slots = run_slots()
+    assert len(slots) == 13
+    assert datetime(2026, 11, 3, 11, 30, tzinfo=MADRID) not in slots
+
+
+def test_1130_ledger_slot_counts_outside_not_unpinned(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A ledger start row at Nov 3 11:30 counts as outside the run."""
+    db = tmp_path / "store.db"
+    slot = datetime(2026, 11, 3, 11, 30, tzinfo=MADRID)
+    SlotLedger(db).append_step(slot, "start", "ok", 0.5, None, {})
+    _record(db, "proposal", slot=slot, profile="builder")
+    code, out = _run_report(capsys, "--db", str(db))
+    assert code == 0, out
+    fields = _parse(out)
+    assert fields["scope.slots_outside_run"] == "1"
+    assert fields["scope.slots_unpinned"] == "0"

@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any, cast
 from zoneinfo import ZoneInfo
 
-from framework.cycle.orchestrator import FACTS_SLOT_RESERVE, SLOT_TIMES
+from framework.cycle.orchestrator import EXTRA_SLOT, FACTS_SLOT_RESERVE, SLOT_TIMES
 from framework.glimmer.facts import LLMUnavailableError
 from framework.glimmer.label_step import (
     LABEL_CALL_TIMEOUT_S,
@@ -77,8 +77,8 @@ def window_refusal(now: datetime) -> tuple[datetime, datetime] | None:
     local = now.astimezone(MADRID)
     for day_offset in (-1, 0, 1):
         day = (local + timedelta(days=day_offset)).date()
-        for slot_time in SLOT_TIMES:
-            slot = datetime(
+        candidates = [
+            datetime(
                 day.year,
                 day.month,
                 day.day,
@@ -86,6 +86,11 @@ def window_refusal(now: datetime) -> tuple[datetime, datetime] | None:
                 slot_time.minute,
                 tzinfo=MADRID,
             )
+            for slot_time in SLOT_TIMES
+        ]
+        if day == EXTRA_SLOT.date():
+            candidates.append(EXTRA_SLOT)
+        for slot in candidates:
             start = slot - timedelta(minutes=WINDOW_LEAD_MINUTES)
             end = slot - FACTS_SLOT_RESERVE
             if start - timedelta(seconds=WINDOW_REFUSE_AHEAD_S) <= local <= end:

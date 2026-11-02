@@ -132,6 +132,28 @@ SLOT_LIMITS = ProfileLimits(
     allowed_end=day_time(23, 30),
     max_actions=3,
 )
+
+EXTRA_SLOT = datetime(2026, 11, 3, 11, 30, tzinfo=MADRID)
+
+EXTRA_SLOT_LIMITS = ProfileLimits(
+    timezone="Europe/Madrid",
+    allowed_start=day_time(11, 30),
+    allowed_end=day_time(23, 30),
+    max_actions=3,
+)
+
+
+def limits_for_slot(slot: datetime) -> ProfileLimits:
+    """The allowed-hours limits for one slot.
+
+    The dated 11:30 card may propose from 11:30; every other slot gets
+    the daily ``SLOT_LIMITS`` object itself, not a copy.
+    """
+    if slot == EXTRA_SLOT:
+        return EXTRA_SLOT_LIMITS
+    return SLOT_LIMITS
+
+
 MODEL_PARAMS = ModelParams(
     first_model=DEFAULT_MODEL,
     first_effort=DEFAULT_EFFORT,
@@ -153,6 +175,8 @@ def slot_profiles(slot: datetime) -> tuple[str, ...]:
     never reaches any other time."""
     if slot.tzinfo is None or slot.tzinfo.utcoffset(slot) is None:
         raise ValueError("slot must carry a UTC offset")
+    if slot == EXTRA_SLOT:
+        return ("builder",)
     mark = _madrid(slot).time()
     if mark >= _CUTOFF or mark in _BUILDER_ONLY_TIMES:
         return ("builder",)
@@ -170,6 +194,8 @@ def classify_slot(slot: datetime) -> str:
         return "bad_offset"
     if slot.utcoffset() != _madrid(slot).utcoffset():
         return "bad_offset"
+    if slot == EXTRA_SLOT:
+        return "ok"
     if _madrid(slot).time() not in SLOT_TIMES:
         return "unpinned"
     return "ok"
@@ -628,7 +654,7 @@ def plan_hour(
     slot: datetime,
     subject_id: str,
     store: EventStore,
-    limits: ProfileLimits = SLOT_LIMITS,
+    limits: ProfileLimits | None = None,
 ) -> Any:
     """The free hour for one slot from the same calls ``run_proposals`` uses.
 
@@ -641,7 +667,8 @@ def plan_hour(
         subject_id, _SENTINEL_START, _SENTINEL_END, types=list(_BUSY_TYPES)
     )
     busy = future_busy_intervals(busy_events, as_of=as_of, slot=slot)
-    return pick_hour(slot, busy, limits)
+    resolved = limits if limits is not None else limits_for_slot(slot)
+    return pick_hour(slot, busy, resolved)
 
 
 class _SlotDone(Exception):
@@ -1035,6 +1062,7 @@ def _run_slot_stores(
     """Facts, hour, learner, proposals, card, wait and send."""
 
     clock = seams.clock
+    slot_limits = limits_for_slot(slot)
 
     def _elapsed() -> float:
         return max(0.0, (clock() - start_wall).total_seconds())
@@ -1407,7 +1435,7 @@ def _run_slot_stores(
                 slot=slot,
                 start=hour.start,
                 end=hour.end,
-                limits=SLOT_LIMITS,
+                limits=slot_limits,
                 busy_intervals=busy,
             )
             if window_codes:
@@ -1510,7 +1538,7 @@ def _run_slot_stores(
                 client=timed,
                 private_terms=terms,
                 eligible_by_profile={profile: eligible_here},
-                limits=SLOT_LIMITS,
+                limits=slot_limits,
                 models=MODEL_PARAMS,
                 stale_after_s=STALE_AFTER_S,
                 cycle_id=chosen_cycle,
@@ -2074,6 +2102,7 @@ __all__ = [
     "CALENDAR_STALE_AFTER",
     "CHECK_POLL_S",
     "CHECK_TIMEOUT_S",
+    "EXTRA_SLOT",
     "FACTS_SLOT_RESERVE",
     "MADRID",
     "MODEL_PARAMS",
@@ -2091,6 +2120,7 @@ __all__ = [
     "classify_slot",
     "disconnect_send_blocked",
     "eligible_commitments",
+    "limits_for_slot",
     "plan_hour",
     "production_facts_runner",
     "rank_and_block",
