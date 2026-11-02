@@ -588,7 +588,7 @@ def test_canary_exception_cli_reports_type_only(
         def complete(self, prompt: str) -> LLMResponse:
             raise RuntimeError(f"synthetic failure carrying {CANARY}")
 
-    row = _cal("evt_can_cli", "synth-can-cli@20261031T140000", 14)
+    row = _busy_row_near_now("evt_can_cli_1", "synth-can-cli-1@now")
     fake = _FakeCalendar([row], {row.id: CANARY})
 
     def _collector(*, label: str, title_sink: Any) -> Any:
