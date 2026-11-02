@@ -479,6 +479,54 @@ class ProposalStore:
                     offered[commitment_id] = slot
         return offered
 
+    @staticmethod
+    def _stored_result(subject_id: str, row: tuple[Any, ...]) -> StoredResult:
+        """One stored row as a typed result; shared by both slot reads."""
+        (
+            _,
+            _key,
+            cycle_id,
+            run,
+            profile_id,
+            slot_text,
+            kind,
+            briefing_json,
+            fallback_json,
+            hour_start,
+            hour_end,
+            reason_codes,
+            cycle_age_s,
+        ) = row
+        hour = (
+            TimeInterval(
+                start=datetime.fromisoformat(hour_start),
+                end=datetime.fromisoformat(hour_end),
+            )
+            if hour_start is not None and hour_end is not None
+            else None
+        )
+        return StoredResult(
+            profile_id=profile_id,
+            subject_id=subject_id,
+            cycle_id=cycle_id,
+            run=run,
+            slot=datetime.fromisoformat(slot_text),
+            kind=kind,
+            briefing=(
+                Briefing.model_validate(json.loads(briefing_json))
+                if briefing_json is not None
+                else None
+            ),
+            fallback=(
+                FallbackProposal.model_validate(json.loads(fallback_json))
+                if fallback_json is not None
+                else None
+            ),
+            hour=hour,
+            reason_codes=tuple(json.loads(reason_codes)),
+            cycle_age_s=cycle_age_s,
+        )
+
     def results_for_slot(
         self, subject_id: str, slot: datetime
     ) -> tuple[StoredResult, ...]:
@@ -498,55 +546,26 @@ class ProposalStore:
             profile_id = row[4]
             if profile_id not in latest or rowid > latest[profile_id][0]:
                 latest[profile_id] = row
-        results: list[StoredResult] = []
-        for profile_id in sorted(latest):
-            (
-                _,
-                _key,
-                cycle_id,
-                run,
-                _profile,
-                slot_text,
-                kind,
-                briefing_json,
-                fallback_json,
-                hour_start,
-                hour_end,
-                reason_codes,
-                cycle_age_s,
-            ) = latest[profile_id]
-            hour = (
-                TimeInterval(
-                    start=datetime.fromisoformat(hour_start),
-                    end=datetime.fromisoformat(hour_end),
-                )
-                if hour_start is not None and hour_end is not None
-                else None
-            )
-            results.append(
-                StoredResult(
-                    profile_id=profile_id,
-                    subject_id=subject_id,
-                    cycle_id=cycle_id,
-                    run=run,
-                    slot=datetime.fromisoformat(slot_text),
-                    kind=kind,
-                    briefing=(
-                        Briefing.model_validate(json.loads(briefing_json))
-                        if briefing_json is not None
-                        else None
-                    ),
-                    fallback=(
-                        FallbackProposal.model_validate(json.loads(fallback_json))
-                        if fallback_json is not None
-                        else None
-                    ),
-                    hour=hour,
-                    reason_codes=tuple(json.loads(reason_codes)),
-                    cycle_age_s=cycle_age_s,
-                )
-            )
-        return tuple(results)
+        return tuple(
+            self._stored_result(subject_id, latest[profile_id])
+            for profile_id in sorted(latest)
+        )
+
+    def all_results_for_slot(
+        self, subject_id: str, slot: datetime
+    ) -> tuple[StoredResult, ...]:
+        """Every recorded row for one subject and slot, in rowid order."""
+        rows = self._conn.execute(
+            "SELECT rowid, proposal_key, cycle_id, run, profile_id, slot, kind,"
+            " briefing_json, fallback_json, hour_start, hour_end, reason_codes,"
+            " cycle_age_s FROM proposal_results WHERE subject_id = ? ORDER BY rowid",
+            (subject_id,),
+        ).fetchall()
+        return tuple(
+            self._stored_result(subject_id, row)
+            for row in rows
+            if datetime.fromisoformat(row[5]) == slot
+        )
 
     def first_draft_report(
         self, proposal_keys: frozenset[str] | None = None

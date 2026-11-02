@@ -59,7 +59,7 @@ from framework.schemas.events import (
     AppVoiceNoteData,
     Event,
 )
-from framework.store import ConflictingEvent, EventStore
+from framework.store import ConflictingEvent, EventStore, resolve_db_path
 from framework.store.fact_store import FactStore
 from framework.store.proposal_store import ProposalStore, StoredResult
 from framework.telegram.client import (
@@ -856,9 +856,7 @@ def _append_voice_event(
 
 def _slot_rows(deps: VoiceDeps, card_id: str) -> tuple[SlotCardRow, ...]:
     """The card's ``slot_cards`` rows, or () when none were saved."""
-    if deps.db_path is None:
-        return ()
-    return SlotLedger(deps.db_path).slot_cards_for_card(card_id)
+    return SlotLedger(resolve_db_path(deps.db_path)).slot_cards_for_card(card_id)
 
 
 def _profile_id_for_side(
@@ -1157,10 +1155,10 @@ def _record_local_retries(ctx: _Ctx, clients: Mapping[str, Any]) -> None:
     A store error here never fails the note: the retries are evidence, and
     the corrected card must not depend on them.
     """
-    if ctx.deps.db_path is None or ctx.slot is None:
+    if ctx.slot is None:
         return
     try:
-        ledger = SlotLedger(ctx.deps.db_path)
+        ledger = SlotLedger(resolve_db_path(ctx.deps.db_path))
     except Exception:  # noqa: BLE001 -- retry rows never fail a note
         return
     for profile_id, client in clients.items():
@@ -1723,6 +1721,63 @@ def _result_commitment(
     return (actions[0].commitment_id, result.kind)
 
 
+def _corrected_rows(
+    old_rows: Sequence[SlotCardRow],
+    card: Card,
+    changed: frozenset[str],
+    offers: Mapping[str, tuple[str, str] | None],
+    *,
+    as_of: datetime,
+) -> tuple[SlotCardRow, ...]:
+    """The new card's ``slot_cards`` rows, copied or re-offered per side.
+
+    An unchanged side copies the old row for that profile with the new
+    card id and letter. A changed side with an offer takes that
+    commitment and kind, with slot, subject, bucket, pick and alternative
+    from the old row and ``as_of`` from the caller. A changed side with
+    no offer writes no row.
+    """
+    by_profile = {row.profile_id: row for row in old_rows}
+    by_letter = {row.letter: row for row in old_rows}
+    out: list[SlotCardRow] = []
+    for side in card.proposals:
+        old = by_letter.get(side.letter)
+        if old is not None and old.profile_id.casefold() != side.profile.casefold():
+            old = None
+        if old is None:
+            for row in old_rows:
+                if row.profile_id.casefold() == side.profile.casefold():
+                    old = row
+                    break
+        profile_id = old.profile_id if old is not None else None
+        current = by_profile.get(profile_id) if profile_id is not None else None
+        if profile_id is None or current is None:
+            continue
+        if profile_id in changed:
+            offered = offers.get(profile_id)
+            if offered is None:
+                continue
+            commitment_id, kind = offered
+            out.append(
+                SlotCardRow(
+                    card_id=card.card_id,
+                    letter=side.letter,
+                    slot=current.slot,
+                    subject_id=current.subject_id,
+                    as_of=as_of,
+                    bucket=current.bucket,
+                    profile_id=profile_id,
+                    commitment_id=commitment_id,
+                    kind=kind,
+                    policy_pick=current.policy_pick,
+                    policy_alternative=current.policy_alternative,
+                )
+            )
+        else:
+            out.append(replace(current, card_id=card.card_id, letter=side.letter))
+    return tuple(out)
+
+
 def _save_corrected_rows(
     ctx: _Ctx,
     card: Card,
@@ -1743,45 +1798,18 @@ def _save_corrected_rows(
     """
     assert ctx.newest is not None
     deps = ctx.deps
-    if deps.db_path is None:
-        return
     old_rows = _slot_rows(deps, ctx.newest.card_id)
     if not old_rows:
         return
-    by_profile = {row.profile_id: row for row in old_rows}
     by_result = {result.profile_id: result for result in fresh}
     by_id = {item.id: item for item in commitments}
-    out: list[SlotCardRow] = []
-    for side in card.proposals:
-        profile_id = _profile_id_for_side(side, commitments, old_rows)
-        old = by_profile.get(profile_id) if profile_id is not None else None
-        if profile_id is None or old is None:
-            continue
-        if profile_id in changed:
-            result = by_result.get(profile_id)
-            offered = _result_commitment(result, by_id) if result is not None else None
-            if offered is None:
-                continue
-            commitment_id, kind = offered
-            out.append(
-                SlotCardRow(
-                    card_id=card.card_id,
-                    letter=side.letter,
-                    slot=old.slot,
-                    subject_id=old.subject_id,
-                    as_of=ctx.now,
-                    bucket=old.bucket,
-                    profile_id=profile_id,
-                    commitment_id=commitment_id,
-                    kind=kind,
-                    policy_pick=old.policy_pick,
-                    policy_alternative=old.policy_alternative,
-                )
-            )
-        else:
-            out.append(replace(old, card_id=card.card_id, letter=side.letter))
+    offers = {
+        profile_id: _result_commitment(result, by_id)
+        for profile_id, result in by_result.items()
+    }
+    out = _corrected_rows(old_rows, card, changed, offers, as_of=ctx.now)
     try:
-        SlotLedger(deps.db_path).save_slot_cards(out)
+        SlotLedger(resolve_db_path(deps.db_path)).save_slot_cards(out)
     except sqlite3.IntegrityError:
         pass
 
@@ -2142,6 +2170,208 @@ def _format_row(row: VoiceRow, *, event_present: bool) -> str:
     return "\n".join(lines)
 
 
+def _stored_offer(result: StoredResult) -> tuple[str, str] | None:
+    """The (commitment id, kind) a stored result offers, or None with no offer."""
+    if result.kind == "noop":
+        return None
+    if result.kind == "fallback":
+        if result.fallback is None:
+            return None
+        return (result.fallback.commitment.id, result.kind)
+    if result.briefing is None:
+        return None
+    actions = [
+        action for section in result.briefing.sections for action in section.actions
+    ]
+    if not actions:
+        return None
+    return (actions[0].commitment_id, result.kind)
+
+
+def _stored_hour(result: StoredResult) -> tuple[datetime, datetime] | None:
+    """The window a stored result covers, or None when it covers none."""
+    if result.kind == "fallback":
+        if result.fallback is None:
+            return None
+        return (result.fallback.proposed_start, result.fallback.proposed_end)
+    if result.hour is None:
+        return None
+    return (result.hour.start, result.hour.end)
+
+
+_BACKFILL_SKIP_FIRST = (
+    "INCOMPLETE_LINK",
+    "NO_REPLACED_ROWS",
+    "MISSING_RESULT",
+    "AMBIGUOUS_RESULT",
+)
+
+
+def backfill_slot_rows(db_path: Path | None, *, apply: bool = False) -> str:
+    """Rebuild missing corrected-card rows from stored rows only.
+
+    A dry run without ``apply`` prints the rows it would write and
+    writes nothing. With ``apply`` each card's rows save in one
+    transaction; a card that already carries rows is left alone, and a
+    card that cannot be rebuilt exactly is skipped whole with its reason
+    code. Nothing here calls a model or the network, and nothing writes
+    events, cards or notes. A write error raises after the cards already
+    saved, each of them whole.
+    """
+    resolved = resolve_db_path(db_path)
+    cards = CardLedger(resolved)
+    try:
+        conn = sqlite3.connect(resolved)
+        try:
+            links = conn.execute(
+                "SELECT message_id, matched_card_id, new_card_id, applied_at"
+                " FROM voice_notes WHERE new_card_id IS NOT NULL ORDER BY message_id"
+            ).fetchall()
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        links = []
+    by_card: dict[str, list[tuple[int, str | None, str | None]]] = {}
+    for message_id, matched_card_id, new_card_id, applied_at in links:
+        by_card.setdefault(str(new_card_id), []).append(
+            (int(message_id), matched_card_id, applied_at)
+        )
+    ordered = sorted(by_card.items(), key=lambda item: item[1][0][0])
+    lines: list[str] = []
+    seen = len(ordered)
+    write_cards = 0
+    write_rows = 0
+    skipped: dict[str, int] = {}
+    for card_id, notes in ordered:
+        message_id, matched_card_id, applied_raw = notes[0]
+        new = cards.load(card_id)
+        old = cards.load(matched_card_id) if matched_card_id else None
+        if new is None or old is None or not applied_raw:
+            lines.append(
+                f"skip card_id={card_id} message_id={message_id} reason=INCOMPLETE_LINK"
+            )
+            skipped["INCOMPLETE_LINK"] = skipped.get("INCOMPLETE_LINK", 0) + 1
+            continue
+        ledger = SlotLedger(resolved)
+        if ledger.slot_cards_for_card(card_id):
+            lines.append(f"already_present card_id={card_id} message_id={message_id}")
+            continue
+        old_rows = ledger.slot_cards_for_card(matched_card_id or "")
+        if not old_rows:
+            lines.append(
+                f"skip card_id={card_id} message_id={message_id}"
+                " reason=NO_REPLACED_ROWS"
+            )
+            skipped["NO_REPLACED_ROWS"] = skipped.get("NO_REPLACED_ROWS", 0) + 1
+            continue
+        try:
+            applied_at = datetime.fromisoformat(str(applied_raw))
+        except ValueError:
+            lines.append(
+                f"skip card_id={card_id} message_id={message_id} reason=INCOMPLETE_LINK"
+            )
+            skipped["INCOMPLETE_LINK"] = skipped.get("INCOMPLETE_LINK", 0) + 1
+            continue
+        store = ProposalStore(resolved)
+        try:
+            stored = store.all_results_for_slot(
+                old_rows[0].subject_id, old_rows[0].slot
+            )
+        finally:
+            store.close()
+        old_by_display = {side.profile.casefold(): side for side in old.proposals}
+        row_by_profile = {row.profile_id.casefold(): row for row in old_rows}
+        changed: set[str] = set()
+        offers: dict[str, tuple[str, str] | None] = {}
+        reason: str | None = None
+        for side in new.proposals:
+            old_side = old_by_display.get(side.profile.casefold())
+            old_row = row_by_profile.get(side.profile.casefold())
+            if old_side is None or old_row is None:
+                reason = "INCOMPLETE_LINK"
+                break
+            if (
+                side.kind == old_side.kind
+                and side.title == old_side.title
+                and side.start == old_side.start
+                and side.end == old_side.end
+            ):
+                continue
+            kept: list[tuple[str, str]] = []
+            for result in stored:
+                if result.profile_id != old_row.profile_id:
+                    continue
+                if result.kind != side.kind:
+                    continue
+                if _stored_hour(result) != (side.start, side.end):
+                    continue
+                offer = _stored_offer(result)
+                if offer is None:
+                    continue
+                if (
+                    offer[0] == old_row.commitment_id
+                    and result.kind == old_row.kind
+                    and _stored_hour(result) == (old_side.start, old_side.end)
+                ):
+                    continue
+                kept.append(offer)
+            if not kept:
+                reason = "MISSING_RESULT"
+                break
+            if len({commitment for commitment, _ in kept}) > 1:
+                reason = "AMBIGUOUS_RESULT"
+                break
+            offers[old_row.profile_id] = kept[0]
+            changed.add(old_row.profile_id)
+        if reason is not None:
+            lines.append(
+                f"skip card_id={card_id} message_id={message_id} reason={reason}"
+            )
+            skipped[reason] = skipped.get(reason, 0) + 1
+            continue
+        rows = _corrected_rows(
+            old_rows, new, frozenset(changed), offers, as_of=applied_at
+        )
+        for row in rows:
+            lines.append(
+                f"write card_id={card_id} message_id={message_id}"
+                f" letter={row.letter} profile_id={row.profile_id}"
+                f" commitment_id={row.commitment_id} kind={row.kind}"
+            )
+        write_cards += 1
+        write_rows += len(rows)
+        if not apply:
+            continue
+        if SlotLedger(resolved).slot_cards_for_card(card_id):
+            lines = [
+                line
+                for line in lines
+                if not line.startswith(f"write card_id={card_id} ")
+            ]
+            lines.append(f"already_present card_id={card_id} message_id={message_id}")
+            write_cards -= 1
+            write_rows -= len(rows)
+            continue
+        try:
+            SlotLedger(resolved).save_slot_cards(rows)
+        except sqlite3.IntegrityError:
+            lines = [
+                line
+                for line in lines
+                if not line.startswith(f"write card_id={card_id} ")
+            ]
+            lines.append(f"already_present card_id={card_id} message_id={message_id}")
+            write_cards -= 1
+            write_rows -= len(rows)
+    lines.append(f"seen={seen}")
+    lines.append(f"to_write_cards={write_cards}")
+    lines.append(f"to_write_rows={write_rows}")
+    for reason in _BACKFILL_SKIP_FIRST:
+        if reason in skipped:
+            lines.append(f"skipped_{reason}={skipped[reason]}")
+    return "\n".join(lines)
+
+
 def show_chain(
     db_path: Path | None, *, card_id: str | None = None, message_id: int | None = None
 ) -> str:
@@ -2171,6 +2401,7 @@ def show_chain(
 __all__ = [
     "VoiceDeps",
     "VoiceWorker",
+    "backfill_slot_rows",
     "build_corrected_card",
     "build_voice_deps",
     "make_voice_handler",
