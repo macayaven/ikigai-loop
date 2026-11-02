@@ -83,16 +83,17 @@ A claim citing a labelled metric also fails when it holds every word of a labell
 
 ## What this does not catch
 
-This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.
+The checker input also takes two optional fields beside `labels`: `units` and `periods`. The [field table](examples/verify/README.md#every-input-field) lists every field and what the checker does with it.
+
+What this checker does not check: it never checks that a sentence is true; a word after a number that is not a unit, a magnitude or a percent form isn't checked; disguised spellings of your private terms aren't caught; advice and instructions in the text aren't caught unless you list advice words.
 
 Also:
 
 - A false sentence around correct numbers.
 - Without labels, a number only has to match some ref on its claim, and a metric with no `labels` or `order` entry gets no label or direction check. On a claim citing a labelled metric, only labelled metrics back its numbers.
-- Inside one series, a value is not bound to its place in the sentence unless a direction word exposes it: "rose from 9 in October to 5 in November" passes when October was 5 and November was 9.
-- Direction words outside the gate's lists are not seen.
+- Inside one declared series, when periods are declared, each cited value must sit beside its own declared period phrase.
+- Direction words outside the direction word lists are not seen.
 - Rounding and sign: a number with decimals is backed when a cited value rounds to it at the precision written, so 4.8 passes for 4.75; a whole number is backed only when the value rounds to it at two decimal places, so 5 passes for 4.9999999; a minus sign counts against a positive value, and not the other way round, so -7 fails for 7 while 7 passes for -7.
-- Units: verify does not know a metric's unit, so a value in hours passes when the claim says minutes. To require a unit, list it among the metric's label words, so the claim must name it.
-- Number forms the parser does not read, such as `7k` or `8th`, plus dates and clock times. The full list is at the top of [framework/briefing/numbers.py](../framework/briefing/numbers.py).
+- Number forms the parser does not read, such as `7k` or `8th`, plus dates and clock times.
+- A claim citing metrics with different declared units is checked against each: a unit word that agrees with one cited metric can still fail against another, because the sentence does not say which metric the word belongs to.
 - Claim ids are echoed as given, so never put private terms in ids.
-- The public subset leaves to the gate: negation, quantity words and forms, imperatives, comparisons read in time order rather than by the periods a sentence names, period compounds, value and period binding, language, look-alike private terms, and raw literals.

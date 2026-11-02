@@ -22,6 +22,7 @@ def closure_paths() -> list[str]:
     script = (
         "import sys",
         "import framework.verify",
+        "import framework.verify.hardened",
         "for name in sorted(sys.modules):",
         "    path = getattr(sys.modules[name], '__file__', None)",
         "    if path:",

@@ -50,7 +50,7 @@ CHECK_UVX = (
     "uvx --from git+https://github.com/macayaven/ikigai-loop "
     "verify-claims input.json; echo exit=$?"
 )
-CHECK_LINK = "https://macayaven.github.io/ikigai-loop/verify/"
+CHECK_LINK = "https://carloscrespomacaya.com/ikigai-loop/verify/"
 
 
 def explain_code(code: str) -> str:

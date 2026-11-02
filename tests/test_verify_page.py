@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from framework.verify import LIMITS_NOTE, verify_claims
+from framework.verify.hardened import HARDENED_LIMITS_NOTE, check_claims
 from framework.verify.page_bundle import build_bundle_text
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,19 +31,20 @@ PINNED_UVX = (
     "uvx --from git+https://github.com/macayaven/ikigai-loop verify-claims input.json"
 )
 PINNED_RAW = "https://raw.githubusercontent.com/macayaven/ikigai-loop/main/examples/verify/input.json"
-PINNED_PAGE_LINK = "https://macayaven.github.io/ikigai-loop/verify/"
+PINNED_PAGE_LINK = "https://carloscrespomacaya.com/ikigai-loop/verify/"
 
 
 def test_example_files_give_promised_verdicts() -> None:
-    passing = verify_claims((EXAMPLES / "pass.json").read_text())
+    passing = check_claims((EXAMPLES / "pass.json").read_text())
     assert passing.passed is True
-    assert passing.limits == LIMITS_NOTE
+    assert passing.limits == HARDENED_LIMITS_NOTE
+    assert passing.complete is True
 
-    bad_number = verify_claims((EXAMPLES / "false-number.json").read_text())
+    bad_number = check_claims((EXAMPLES / "false-number.json").read_text())
     assert bad_number.passed is False
     assert [v.code for v in bad_number.violations] == ["L1B_METRIC_VALUE_MISMATCH"]
 
-    leaked = verify_claims((EXAMPLES / "leaked-term.json").read_text())
+    leaked = check_claims((EXAMPLES / "leaked-term.json").read_text())
     assert leaked.passed is False
     assert [v.code for v in leaked.violations] == ["L1_PRIVATE_TERM"]
     assert "harborlight ledger" not in "\n".join(v.message for v in leaked.violations)
@@ -83,6 +84,7 @@ def test_bundle_is_fresh() -> None:
 def test_bundle_keys_equal_the_closure() -> None:
     bundle = json.loads(BUNDLE.read_text())
     assert "framework/verify/core.py" in bundle
+    assert "framework/verify/hardened.py" in bundle
     fresh = json.loads(build_bundle_text())
     assert sorted(bundle) == sorted(fresh)
     assert bundle == fresh
@@ -96,16 +98,33 @@ def test_subprocess_unpack_gives_promised_verdicts(tmp_path: Path) -> None:
         target.write_text(source)
     lines = [
         f"import sys; sys.path.insert(0, {str(tmp_path)!r}); ",
-        "import framework.verify as v; ",
+        "from framework.verify.hardened import check_claims as check; ",
         "import framework; ",
         f"assert framework.__file__.startswith({str(tmp_path)!r}), framework.__file__; ",
         "from pathlib import Path; ",
         f"ex = Path({str(EXAMPLES)!r}); ",
-        "assert v.verify_claims((ex / 'pass.json').read_text()).passed is True; ",
-        "bad = v.verify_claims((ex / 'false-number.json').read_text()); ",
+        "assert check((ex / 'pass.json').read_text()).passed is True; ",
+        "bad = check((ex / 'false-number.json').read_text()); ",
         "assert [x.code for x in bad.violations] == ['L1B_METRIC_VALUE_MISMATCH']; ",
-        "leak = v.verify_claims((ex / 'leaked-term.json').read_text()); ",
+        "leak = check((ex / 'leaked-term.json').read_text()); ",
         "assert [x.code for x in leak.violations] == ['L1_PRIVATE_TERM']; ",
+        (
+            'neg = check(\'{"claims": [{"id": "c1", "text": '
+            '"Programming in last was not 1.75 hours", "fact_ids": [], '
+            '"metric_refs": [{"metric_id": "m1", "value": 1.75}]}], '
+            '"facts": {}, "metrics": {"m1": 1.75}, '
+            '"labels": {"m1": ["programming", "last"]}}\'); '
+        ),
+        "assert [x.code for x in neg.violations] == ['L1B_NEGATED_CLAIM']; ",
+        (
+            'unit = check(\'{"claims": [{"id": "c1", "text": '
+            '"Programming in last was 1.75 minutes", "fact_ids": [], '
+            '"metric_refs": [{"metric_id": "m1", "value": 1.75}]}], '
+            '"facts": {}, "metrics": {"m1": 1.75}, '
+            '"labels": {"m1": ["programming", "last"]}, '
+            '"units": {"m1": "hours"}}\'); '
+        ),
+        "assert [x.code for x in unit.violations] == ['L1B_UNIT_MISMATCH']; ",
         "print('ok')",
     ]
     proc = subprocess.run(
@@ -122,7 +141,7 @@ def test_subprocess_unpack_gives_promised_verdicts(tmp_path: Path) -> None:
 def test_page_pins() -> None:
     page = PAGE.read_text()
     assert PINNED_HEADLINE in page
-    assert LIMITS_NOTE in page
+    assert HARDENED_LIMITS_NOTE in page
     assert PINNED_PYODIDE in page
     assert PINNED_JSDELIVR in page
     assert PINNED_CSP in page
@@ -147,13 +166,14 @@ def test_page_pins() -> None:
             (
                 "https://cdn.jsdelivr.net/pyodide/v0.27.7/",
                 "https://github.com/macayaven/",
+                "https://carloscrespomacaya.com/ikigai-loop/verify/",
             )
         ), clean
 
 
 def test_readme_quotes() -> None:
     readme = (ROOT / "README.md").read_text()
-    assert LIMITS_NOTE in readme
+    assert HARDENED_LIMITS_NOTE in readme
     assert PINNED_UVX in readme
     assert PINNED_RAW in readme
     assert PINNED_PAGE_LINK in readme
@@ -162,8 +182,13 @@ def test_readme_quotes() -> None:
 
 
 def test_docs_carry_limits_note() -> None:
-    assert LIMITS_NOTE in (ROOT / "examples" / "verify" / "README.md").read_text()
-    assert LIMITS_NOTE in (ROOT / "docs" / "ADAPTER.md").read_text()
+    assert (
+        HARDENED_LIMITS_NOTE in (ROOT / "examples" / "verify" / "README.md").read_text()
+    )
+    assert (
+        "examples/verify/README.md#every-input-field"
+        in (ROOT / "docs" / "ADAPTER.md").read_text()
+    )
 
 
 def test_adapter_prompt_byte_identical() -> None:
@@ -470,16 +495,28 @@ def test_unchecked_lines_land_inside_verdict_before_details() -> None:
 
 def test_limits_note_lives_in_json_details() -> None:
     page = PAGE.read_text()
-    assert LIMITS_NOTE in page
+    assert HARDENED_LIMITS_NOTE in page
     details = page.split("Check JSON directly")[1].split("</details>")[0]
-    assert LIMITS_NOTE in details
+    assert HARDENED_LIMITS_NOTE in details
     assert "examples/verify/README.md" in details
     assert "docs/ADAPTER.md" in details
+    assert PINNED_PAGE_LINK in page
+    assert "page_render_hardened" in page
+    assert "The plain form does not supply units or periods" in page
     before_try = page.split("Try your own")[0]
     assert "cited sources" not in before_try
     section = page.split("What this checks")[1].split("Check JSON directly")[0]
     assert "cited sources" not in section
     assert "labels and direction" not in section
+
+
+def test_embedded_examples_declare_units_and_periods() -> None:
+    embedded = _embedded_examples(PAGE.read_text())
+    for block_id in ("ex-pass", "ex-false-number", "ex-leaked-term"):
+        data = json.loads(embedded[block_id])
+        assert "units" in data, block_id
+        assert "periods" in data, block_id
+        assert check_claims(json.dumps(data)).complete is True, block_id
 
 
 def test_ready_line_points_to_example_and_try() -> None:
