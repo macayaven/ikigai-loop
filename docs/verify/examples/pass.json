@@ -44,5 +44,13 @@
       "October deploys",
       "November deploys"
     ]
-  ]
+  ],
+  "units": {
+    "October deploys": "count",
+    "November deploys": "count"
+  },
+  "periods": {
+    "October deploys": "October",
+    "November deploys": "November"
+  }
 }

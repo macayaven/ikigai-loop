@@ -7,12 +7,8 @@ import os
 import sys
 from typing import Any, cast
 
-from framework.verify.core import (
-    MAX_INPUT_BYTES,
-    VerifyInputError,
-    format_report,
-    verify_claims,
-)
+from framework.verify.core import MAX_INPUT_BYTES, VerifyInputError
+from framework.verify.hardened import check_claims, format_check_report
 
 
 def _read_input(path: str) -> bytes:
@@ -85,7 +81,7 @@ def main(argv: list[str] | None = None) -> int:
         _warn("usage: verify-claims [--json] <input.json|->\n")
         return 2
     try:
-        report = verify_claims(_read_input(positional[0]))
+        report = check_claims(_read_input(positional[0]))
     except KeyboardInterrupt:
         return 130
     except VerifyInputError as exc:
@@ -105,12 +101,24 @@ def main(argv: list[str] | None = None) -> int:
                         }
                         for item in report.violations
                     ],
+                    "coverage": [
+                        {
+                            "claim_id": entry.claim_id,
+                            "ran": list(entry.ran),
+                            "skipped": [
+                                {"check": skip.check, "reason": skip.reason}
+                                for skip in entry.skipped
+                            ],
+                        }
+                        for entry in report.coverage
+                    ],
+                    "complete": report.complete,
                 }
             )
             + "\n"
         )
     else:
-        _emit(format_report(report) + "\n")
+        _emit(format_check_report(report) + "\n")
     return 0 if report.passed else 1
 
 

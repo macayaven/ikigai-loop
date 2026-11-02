@@ -11,9 +11,8 @@ from typing import Any
 
 import pytest
 
-from framework.verify import verify_claims
 from framework.verify.__main__ import main
-from framework.verify.core import page_render
+from framework.verify.hardened import check_claims, page_render_hardened
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFY_PAGE_PATH = ROOT / "docs" / "verify" / "verify_page.py"
@@ -45,7 +44,7 @@ def _job2(checker_input: str) -> Any:
 
 
 def _render(checker_input: str) -> Any:
-    return json.loads(page_render(checker_input))
+    return json.loads(page_render_hardened(checker_input))
 
 
 def _claims(built: Any) -> Any:
@@ -57,7 +56,7 @@ def test_made_up_example_fails_only_on_value() -> None:
     built = _job1("Deploys reached 12 in November.", [("November deploys", "7")])
     assert built["problems"] == []
     assert isinstance(built["input"], str)
-    report = verify_claims(built["input"])
+    report = check_claims(built["input"])
     assert [v.code for v in report.violations] == ["L1B_METRIC_VALUE_MISMATCH"]
     explained = _job2(built["input"])
     assert explained["passed"] is False
@@ -73,7 +72,7 @@ def test_records_matching_sentence_passes() -> None:
     built = _job1("Deploys reached 12 in November.", [("November deploys", "12")])
     assert built["problems"] == []
     assert isinstance(built["input"], str)
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
     assert _job2(built["input"])["passed"] is True
 
 
@@ -84,22 +83,22 @@ def test_sentence_number_never_changes_metrics() -> None:
     assert isinstance(second["input"], str)
     assert json.loads(first["input"])["metrics"] == {"November deploys": 7}
     assert json.loads(second["input"])["metrics"] == {"November deploys": 7}
-    assert verify_claims(first["input"]).passed is False
-    assert verify_claims(second["input"]).passed is False
+    assert check_claims(first["input"]).passed is False
+    assert check_claims(second["input"]).passed is False
 
 
 def test_matching_sentence_against_matching_records_passes() -> None:
     built = _job1("Deploys reached 7 in November.", [("November deploys", "7")])
     assert built["problems"] == []
     assert isinstance(built["input"], str)
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
 
 
 def test_number_with_no_record_fails() -> None:
     built = _job1("Latency was 42 seconds.", [("November deploys", "7")])
     assert built["problems"] == []
     assert isinstance(built["input"], str)
-    report = verify_claims(built["input"])
+    report = check_claims(built["input"])
     assert report.passed is False
     assert "L1B_NUMBER_WITHOUT_METRIC_REF" in [v.code for v in report.violations]
 
@@ -128,7 +127,7 @@ def test_two_records_in_one_sentence_cite_nothing() -> None:
     assert len(claims) == 1
     assert claims[0]["metric_refs"] == []
     assert isinstance(built["input"], str)
-    assert verify_claims(built["input"]).passed is False
+    assert check_claims(built["input"]).passed is False
     lines = " ".join(built["pairings"][0]["lines"])
     assert "deploys" in lines
     assert "tickets" in lines
@@ -149,7 +148,7 @@ def test_one_record_per_sentence_passes() -> None:
         for ref in claim["metric_refs"]
     }
     assert refs == {"apples": 4, "oranges": 12}
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
     lines = " ".join(line for pairing in built["pairings"] for line in pairing["lines"])
     assert "apples was read as 4" in lines
     assert "oranges was read as 12" in lines
@@ -162,7 +161,7 @@ def test_month_date_is_not_a_number() -> None:
     assert built["problems"] == []
     claims = _claims(built)
     assert claims[0]["metric_refs"] == [{"metric_id": "deploys", "value": 12}]
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
 
 
 def test_shorter_name_outside_longer_name_counts_as_two() -> None:
@@ -174,7 +173,7 @@ def test_shorter_name_outside_longer_name_counts_as_two() -> None:
     claims = _claims(built)
     assert claims[0]["metric_refs"] == []
     assert isinstance(built["input"], str)
-    assert verify_claims(built["input"]).passed is False
+    assert check_claims(built["input"]).passed is False
     lines = " ".join(built["pairings"][0]["lines"])
     assert "deploys" in lines
     assert "failed deploys" in lines
@@ -189,7 +188,7 @@ def test_shorter_name_only_inside_longer_name_is_dropped() -> None:
     assert built["problems"] == []
     claims = _claims(built)
     assert claims[0]["metric_refs"] == [{"metric_id": "failed deploys", "value": 3}]
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
 
 
 def test_sentence_naming_no_record_cites_nothing() -> None:
@@ -223,7 +222,7 @@ def test_longer_name_wins() -> None:
     assert built["problems"] == []
     claims = _claims(built)
     assert claims[0]["metric_refs"] == [{"metric_id": "failed deploys", "value": 3}]
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
 
 
 def test_list_markers_are_dropped() -> None:
@@ -237,7 +236,7 @@ def test_list_markers_are_dropped() -> None:
         "Deploys reached 12 in November.",
         "October deploys were 5.",
     ]
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
 
 
 def test_numbered_marker_is_dropped() -> None:
@@ -256,7 +255,7 @@ def test_decimal_stays_whole() -> None:
     claims = _claims(built)
     assert len(claims) == 1
     assert claims[0]["metric_refs"] == [{"metric_id": "Latency", "value": 3.5}]
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
 
 
 def test_date_and_time_are_not_numbers() -> None:
@@ -294,7 +293,7 @@ def test_blank_rows_are_ignored() -> None:
     )
     assert built["problems"] == []
     assert isinstance(built["input"], str)
-    assert verify_claims(built["input"]).passed is True
+    assert check_claims(built["input"]).passed is True
 
 
 def test_word_number_in_records_table() -> None:
@@ -304,7 +303,7 @@ def test_word_number_in_records_table() -> None:
     assert json.loads(built["input"])["metrics"] == {"November deploys": 12}
 
 
-def test_built_input_matches_cli_and_page_render(
+def test_built_input_matches_cli_and_page_render_hardened(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     built = _job1("Deploys reached 12 in November.", [("November deploys", "7")])
@@ -334,12 +333,12 @@ def test_built_passing_input_matches_cli(
 
 
 @pytest.mark.parametrize("name", ["pass.json", "false-number.json", "leaked-term.json"])
-def test_explain_matches_page_render(name: str) -> None:
+def test_explain_matches_page_render_hardened(name: str) -> None:
     raw = (EXAMPLES / name).read_text()
     explained = _job2(raw)
     rendered = _render(raw)
     assert explained["passed"] == (rendered["exit_code"] == 0)
-    report = verify_claims(raw)
+    report = check_claims(raw)
     expected: dict[str, list[str]] = {
         claim["id"]: [] for claim in json.loads(raw)["claims"]
     }
@@ -484,11 +483,11 @@ def test_overall_says_does_not_match() -> None:
             }
         )
     )
-    assert "doesn't match your records" in failing["overall"]
+    assert "didn't pass" in failing["overall"]
     assert "differs from your records" not in failing["overall"]
     assert "PASS" not in failing["overall"]
     assert "FAIL" not in failing["overall"]
-    assert failing["overall"] == "The checked sentence doesn't match your records."
+    assert failing["overall"] == "This sentence didn't pass. See why below."
     passing = _job2(
         json.dumps(
             {
@@ -506,7 +505,10 @@ def test_overall_says_does_not_match() -> None:
     )
     assert "PASS" not in passing["overall"]
     assert "FAIL" not in passing["overall"]
-    assert passing["overall"] == "The checked sentence matches your records."
+    assert (
+        passing["overall"]
+        == "The numbers in this sentence match your records. Other words weren't checked. Some checks didn't run."
+    )
 
 
 def _overall_for(payload_claims: list[dict[str, object]]) -> str:
@@ -536,7 +538,7 @@ def test_overall_grammar_for_one_and_several() -> None:
                 },
             ]
         )
-        == "All 2 checked sentences match your records."
+        == "The numbers in all 2 checked sentences match your records. Other words weren't checked. Some checks didn't run."
     )
     assert (
         _overall_for(
@@ -553,7 +555,7 @@ def test_overall_grammar_for_one_and_several() -> None:
                 },
             ]
         )
-        == "1 of 2 checked sentences doesn't match your records."
+        == "1 of 2 checked sentences didn't pass. See why below."
     )
     assert (
         _overall_for(
@@ -570,14 +572,15 @@ def test_overall_grammar_for_one_and_several() -> None:
                 },
             ]
         )
-        == "2 of 2 checked sentences don't match your records."
+        == "2 of 2 checked sentences didn't pass. See why below."
     )
 
 
 def test_only_checker_public_pieces_are_imported() -> None:
     source = VERIFY_PAGE_PATH.read_text()
-    assert "from framework.verify import load_input, verify_claims" in source
-    assert "page_render" in source
+    assert "from framework.verify.hardened import" in source
+    assert "check_claims" in source
+    assert "page_render_hardened" in source
     assert "extract_number_tokens" in source
     assert "collapse_text" in source and "contains_token" in source
     assert "ref_backs_token" in source
@@ -600,3 +603,126 @@ def test_bad_rows_json_gives_problems_not_an_error() -> None:
 def test_bad_checker_input_gives_fixed_message() -> None:
     out = json.loads(VERIFY_PAGE.explain_report("not json"))  # type: ignore[no-untyped-call]
     assert out["error"] == VERIFY_PAGE.JOB_ERROR  # type: ignore[attr-defined]
+
+
+def _explain_payload(payload: dict[str, object]) -> Any:
+    return _job2(json.dumps(payload))
+
+
+def test_plain_words_for_new_codes() -> None:
+    negated = _explain_payload(
+        {
+            "claims": [
+                {
+                    "id": "c1",
+                    "text": "Programming in last was not 1.75 hours",
+                    "fact_ids": [],
+                    "metric_refs": [{"metric_id": "m1", "value": 1.75}],
+                }
+            ],
+            "facts": {},
+            "metrics": {"m1": 1.75},
+            "labels": {"m1": ["programming", "last"]},
+        }
+    )
+    sentences = [finding["sentence"] for finding in negated["claims"][0]["findings"]]
+    assert any("says the opposite of the number" in sentence for sentence in sentences)
+
+    quantity = _explain_payload(
+        {
+            "claims": [
+                {
+                    "id": "c1",
+                    "text": "Programming in last was over 1.75 hours",
+                    "fact_ids": [],
+                    "metric_refs": [{"metric_id": "m1", "value": 1.75}],
+                }
+            ],
+            "facts": {},
+            "metrics": {"m1": 1.75},
+            "labels": {"m1": ["programming", "last"]},
+        }
+    )
+    sentences = [finding["sentence"] for finding in quantity["claims"][0]["findings"]]
+    assert any("quantity word instead of digits" in sentence for sentence in sentences)
+
+    unit = _explain_payload(
+        {
+            "claims": [
+                {
+                    "id": "c1",
+                    "text": "Programming in last was 1.75 minutes",
+                    "fact_ids": [],
+                    "metric_refs": [{"metric_id": "m1", "value": 1.75}],
+                }
+            ],
+            "facts": {},
+            "metrics": {"m1": 1.75},
+            "labels": {"m1": ["programming", "last"]},
+            "units": {"m1": "hours"},
+        }
+    )
+    sentences = [finding["sentence"] for finding in unit["claims"][0]["findings"]]
+    assert any("differs from the record's unit" in sentence for sentence in sentences)
+
+    period = _explain_payload(
+        {
+            "claims": [
+                {
+                    "id": "c1",
+                    "text": "Deploys reached 5",
+                    "fact_ids": [],
+                    "metric_refs": [{"metric_id": "m1", "value": 5}],
+                }
+            ],
+            "facts": {},
+            "metrics": {"m1": 5},
+            "labels": {"m1": ["deploys"]},
+            "periods": {"m1": "October"},
+        }
+    )
+    sentences = [finding["sentence"] for finding in period["claims"][0]["findings"]]
+    assert any(
+        "does not name the record's period" in sentence for sentence in sentences
+    )
+
+    value_period = _explain_payload(
+        {
+            "claims": [
+                {
+                    "id": "c1",
+                    "text": "Deploys were 9 in October and 5 in November",
+                    "fact_ids": [],
+                    "metric_refs": [
+                        {"metric_id": "oct", "value": 5},
+                        {"metric_id": "nov", "value": 9},
+                    ],
+                }
+            ],
+            "facts": {},
+            "metrics": {"oct": 5, "nov": 9},
+            "labels": {"oct": ["deploys", "october"], "nov": ["deploys", "november"]},
+            "order": [["oct", "nov"]],
+            "units": {"oct": "count", "nov": "count"},
+            "periods": {"oct": "October", "nov": "November"},
+        }
+    )
+    sentences = [
+        finding["sentence"] for finding in value_period["claims"][0]["findings"]
+    ]
+    assert any("sits beside the wrong period" in sentence for sentence in sentences)
+
+
+def test_plain_pane_lists_every_gap_on_one_line() -> None:
+    built = _job1("Deploys reached 12 in November.", [("November deploys", "7")])
+    assert isinstance(built["input"], str)
+    explained = _job2(built["input"])
+    gaps = explained["claims"][0]["gaps"]
+    assert gaps is not None
+    assert "not checked" in gaps.lower()
+    assert "a unit was not asked for" in gaps
+    assert "a period was not asked for" in gaps
+    assert "direction words were not asked for" in gaps
+    assert "beyond the record name" in gaps
+    page = (ROOT / "docs" / "verify" / "index.html").read_text()
+    assert "The plain form does not supply units or periods" in page

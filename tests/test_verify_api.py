@@ -727,6 +727,7 @@ def test_error_message_never_echoes_input() -> None:
 
 ALLOWED_IMPORT_PREFIXES = (
     "framework.verify",
+    "framework.briefing.claim_text",
     "framework.briefing.gate",
     "framework.briefing.normalize",
     "framework.briefing.numbers",

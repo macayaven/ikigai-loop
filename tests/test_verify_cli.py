@@ -14,6 +14,7 @@ import pytest
 
 from framework.verify import LIMITS_NOTE
 from framework.verify.__main__ import main
+from framework.verify.hardened import HARDENED_LIMITS_NOTE
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples" / "verify"
 
@@ -62,7 +63,8 @@ def test_false_number_input_exits_1(
     assert err == ""
     assert out.splitlines()[0] == "FAIL"
     assert "L1B_METRIC_VALUE_MISMATCH" in out
-    assert LIMITS_NOTE in out
+    assert HARDENED_LIMITS_NOTE in out
+    assert LIMITS_NOTE not in out
 
 
 def test_fixed_input_exits_0(capsys: pytest.CaptureFixture[str]) -> None:
@@ -70,7 +72,8 @@ def test_fixed_input_exits_0(capsys: pytest.CaptureFixture[str]) -> None:
     assert code == 0
     assert err == ""
     assert out.splitlines()[0] == "PASS"
-    assert LIMITS_NOTE in out
+    assert HARDENED_LIMITS_NOTE in out
+    assert LIMITS_NOTE not in out
 
 
 def test_worked_readme_pins_real_cli_output(
@@ -91,7 +94,25 @@ def test_json_shape_and_stdin(
     assert code == 0
     assert err == ""
     body = json.loads(out)
-    assert body == {"passed": True, "limits": LIMITS_NOTE, "violations": []}
+    assert body == {
+        "passed": True,
+        "limits": HARDENED_LIMITS_NOTE,
+        "violations": [],
+        "coverage": [
+            {
+                "claim_id": "c1",
+                "ran": ["metric naming", "direction", "negation", "quantity forms"],
+                "skipped": [
+                    {"check": "unit", "reason": "no unit declared for a cited metric"},
+                    {
+                        "check": "period name",
+                        "reason": "no period declared for a cited metric",
+                    },
+                ],
+            }
+        ],
+        "complete": False,
+    }
 
     _stdin_bytes(monkeypatch, json.dumps(_good_payload()).encode())
     code, out, _err = _run(["-", "--json"], capsys)
@@ -104,13 +125,33 @@ def test_json_fail_shape(capsys: pytest.CaptureFixture[str]) -> None:
     assert code == 1
     body = json.loads(out)
     assert body["passed"] is False
-    assert body["limits"] == LIMITS_NOTE
+    assert body["limits"] == HARDENED_LIMITS_NOTE
     assert body["violations"] == [
         {
             "code": "L1B_METRIC_VALUE_MISMATCH",
             "claim_id": "c1",
             "message": "metric value differs from the snapshot",
         }
+    ]
+    assert body["complete"] is True
+    assert body["coverage"] == [
+        {
+            "claim_id": "c1",
+            "ran": [
+                "metric naming",
+                "direction",
+                "negation",
+                "quantity forms",
+                "unit",
+                "period name",
+            ],
+            "skipped": [],
+        },
+        {
+            "claim_id": "c2",
+            "ran": ["negation", "quantity forms"],
+            "skipped": [],
+        },
     ]
 
 
@@ -277,7 +318,63 @@ def _hostile_rows() -> list[tuple[str, bytes]]:
             json.dumps({**good, "advice_words": ["w"] * 1001}).encode(),
         ),
         ("bad-order", json.dumps({**good, "order": [["solo"]]}).encode()),
+        (
+            "bad-unit-canary",
+            json.dumps({**good, "units": {"deploys.nov": "hourz-canary"}}).encode(),
+        ),
+        (
+            "blank-units-key",
+            json.dumps({**good, "units": {"  ": "count"}}).encode(),
+        ),
+        (
+            "blank-periods-value",
+            json.dumps({**good, "periods": {"deploys.nov": "   "}}).encode(),
+        ),
+        (
+            "long-periods-value",
+            json.dumps({**good, "periods": {"deploys.nov": "p" * 101}}).encode(),
+        ),
+        (
+            "letterless-periods-value",
+            json.dumps({**good, "periods": {"deploys.nov": "!!!"}}).encode(),
+        ),
+        (
+            "units-over-cap",
+            json.dumps(
+                {**good, "units": {f"m{i}": "count" for i in range(1001)}}
+            ).encode(),
+        ),
+        (
+            "periods-over-cap",
+            json.dumps(
+                {**good, "periods": {f"m{i}": "October" for i in range(1001)}}
+            ).encode(),
+        ),
     ]
+
+
+def test_negated_claim_exits_1_with_new_code(
+    workdir: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "claims": [
+            {
+                "id": "c1",
+                "text": "Programming in last was not 1.75 hours",
+                "fact_ids": [],
+                "metric_refs": [{"metric_id": "m1", "value": 1.75}],
+            }
+        ],
+        "facts": {},
+        "metrics": {"m1": 1.75},
+        "labels": {"m1": ["programming", "last"]},
+    }
+    argv = [_write(workdir / "in.json", json.dumps(payload).encode())]
+    code, out, _err = _run(argv, capsys)
+    assert code == 1
+    assert out.splitlines()[0] == "FAIL - checks skipped"
+    assert "L1B_NEGATED_CLAIM" in out
+    assert "state the value or direction positively" in out
 
 
 @pytest.mark.parametrize(
@@ -432,8 +529,16 @@ def test_main_with_replaced_stdout(
     monkeypatch.setattr(sys, "stdout", buffer)
     code = main([path])
     assert code == 0
-    assert buffer.getvalue().splitlines()[0] == "PASS"
-    assert LIMITS_NOTE in buffer.getvalue()
+    assert buffer.getvalue().splitlines()[0] == "PASS - checks skipped"
+    assert HARDENED_LIMITS_NOTE in buffer.getvalue()
+    assert (
+        "NOT CHECKED c1: unit - no unit declared for a cited metric"
+        in buffer.getvalue()
+    )
+    assert (
+        "NOT CHECKED c1: period name - no period declared for a cited metric"
+        in buffer.getvalue()
+    )
 
 
 def test_closed_pipe_keeps_normal_exit_code() -> None:

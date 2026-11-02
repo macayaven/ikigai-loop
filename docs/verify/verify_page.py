@@ -10,8 +10,9 @@ to the page:
 The page fetches this file by relative path during loading, writes it
 into Pyodide's filesystem next to the bundle files, and imports it.
 pytest imports it by file path. Only the standard library plus the
-checker's public pieces are used: ``load_input`` and ``verify_claims``
-from ``framework.verify``, ``page_render`` from ``framework.verify.core``,
+checker's public pieces are used: ``load_check_input`` and
+``check_claims`` from ``framework.verify.hardened``,
+``page_render_hardened`` from ``framework.verify.hardened``,
 ``extract_number_tokens`` from ``framework.briefing.numbers``, and
 ``collapse_text``, ``contains_token`` and ``ref_backs_token`` from the
 gate's public block.
@@ -28,8 +29,11 @@ from typing import Any
 
 from framework.briefing.gate import collapse_text, contains_token, ref_backs_token
 from framework.briefing.numbers import NumberToken, extract_number_tokens
-from framework.verify import load_input, verify_claims
-from framework.verify.core import page_render
+from framework.verify.hardened import (
+    check_claims,
+    load_check_input,
+    page_render_hardened,
+)
 
 JOB_ERROR = "could not put that into words"
 """Fixed short message both jobs return when anything unexpected happens."""
@@ -317,10 +321,23 @@ _MEANINGS: dict[str, str] = {
     "L1B_METRIC_LABEL_MISSING": "the wording does not name the record",
     "L1B_TOO_MANY_METRICS": "the sentence mixes records that belong apart",
     "L1B_DIRECTION_MISMATCH": "a direction word disagrees with the numbers",
+    "L1B_NEGATED_CLAIM": "the sentence says the opposite of the number",
+    "L1B_UNVERIFIABLE_QUANTITY": "the sentence uses a quantity word instead of digits",
+    "L1B_UNIT_MISMATCH": "the unit in the sentence differs from the record's unit",
+    "L1B_PERIOD_WORD_MISSING": "the sentence does not name the record's period",
+    "L1B_VALUE_PERIOD_MISMATCH": "a number sits beside the wrong period",
     "L1_PRIVATE_TERM": "private wording",
     "L1_SECRET": "secret-like value",
     "L1_PII": "contact detail",
     "L1_ADVICE": "advice-like wording",
+}
+
+_GAP_WORDS: dict[str, str] = {
+    "metric naming": "naming words beyond the record name were not asked for",
+    "direction": "direction words were not asked for",
+    "unit": "a unit was not asked for",
+    "period name": "a period was not asked for",
+    "value-period binding": "period binding was not asked for",
 }
 
 
@@ -387,6 +404,16 @@ def _finding_sentence(
         return "It mixes records that belong in separate sentences."
     if code == "L1B_DIRECTION_MISMATCH":
         return "A direction word in it disagrees with the cited numbers."
+    if code == "L1B_NEGATED_CLAIM":
+        return "The sentence says the opposite of the number."
+    if code == "L1B_UNVERIFIABLE_QUANTITY":
+        return "The sentence uses a quantity word instead of digits."
+    if code == "L1B_UNIT_MISMATCH":
+        return "The unit in the sentence differs from the record's unit."
+    if code == "L1B_PERIOD_WORD_MISSING":
+        return "The sentence does not name the record's period."
+    if code == "L1B_VALUE_PERIOD_MISMATCH":
+        return "A number sits beside the wrong period."
     if code == "L1_PRIVATE_TERM":
         return (
             "Its wording is hidden: it tripped a private-word check, "
@@ -410,30 +437,50 @@ def _finding_sentence(
     return f"The checker flagged this sentence ({code})."
 
 
+def _gaps_line(skipped: list[Any]) -> str | None:
+    """One grouped plain line naming every skipped check on a claim."""
+    parts = []
+    for skip in skipped:
+        words = _GAP_WORDS.get(str(skip.check), str(skip.check))
+        parts.append("not checked: " + words)
+    if not parts:
+        return None
+    return (
+        "Not checked: "
+        + "; ".join(part[len("not checked: ") :] for part in parts)
+        + "."
+    )
+
+
 def _explain_report(checker_input: str) -> str:
-    rendered = json.loads(page_render(checker_input))
+    rendered = json.loads(page_render_hardened(checker_input))
     if not isinstance(rendered, dict) or rendered.get("exit_code") == 2:
         return json.dumps({"error": JOB_ERROR})
     passed = rendered.get("exit_code") == 0
-    validated = load_input(checker_input)
-    report = verify_claims(validated)
+    validated = load_check_input(checker_input)
+    report = check_claims(validated)
     by_claim: dict[str, list[Any]] = {}
     for violation in report.violations:
         by_claim.setdefault(violation.claim_id, []).append(violation)
     metrics: dict[str, Any] = dict(validated.metrics)
     total = len(validated.claims)
     bad = sum(1 for claim in validated.claims if claim.id in by_claim)
+    gaps_by_claim: dict[str, str] = {}
+    for entry in report.coverage:
+        line = _gaps_line(list(entry.skipped))
+        if line is not None:
+            gaps_by_claim[entry.claim_id] = line
     if total == 1:
         if passed:
-            overall = "The checked sentence matches your records."
+            overall = "The numbers in this sentence match your records. Other words weren't checked."
         else:
-            overall = "The checked sentence doesn't match your records."
+            overall = "This sentence didn't pass. See why below."
     elif passed:
-        overall = f"All {total} checked sentences match your records."
-    elif bad == 1:
-        overall = f"1 of {total} checked sentences doesn't match your records."
+        overall = f"The numbers in all {total} checked sentences match your records. Other words weren't checked."
     else:
-        overall = f"{bad} of {total} checked sentences don't match your records."
+        overall = f"{bad} of {total} checked sentences didn't pass. See why below."
+    if passed and gaps_by_claim:
+        overall += " Some checks didn't run."
     out_claims: list[dict[str, Any]] = []
     for claim in validated.claims:
         findings = by_claim.get(claim.id, [])
@@ -475,6 +522,7 @@ def _explain_report(checker_input: str) -> str:
                 "text": None if hidden else claim.text,
                 "hidden": hidden,
                 "findings": plain,
+                "gaps": gaps_by_claim.get(claim.id),
             }
         )
     return json.dumps({"overall": overall, "passed": passed, "claims": out_claims})

@@ -29,5 +29,11 @@
   },
   "metrics": {
     "deploys.nov": 7
+  },
+  "units": {
+    "deploys.nov": "count"
+  },
+  "periods": {
+    "deploys.nov": "November"
   }
 }

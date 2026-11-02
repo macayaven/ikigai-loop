@@ -611,6 +611,28 @@ each card counts its own three periods. PREREG Deviation 19 records the change. 
 The real pack is private and never enters the repo, and no rating exists yet. After the review, a follow-up added a display-name profile fallback so a delivered corrected card saved with no `slot_cards` rows still resolves its sides (counted as `sides_profile_from_display`), with no change to how a side matches its source.
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only.
+## Ticket C1 — the gate's hardening in the public checker (2026-11-02)
+
+Built on branch `c1-checker-hardening` per [docs/plans/023-checker-hardening.md](docs/plans/023-checker-hardening.md):
+the command line and both panes of the page run a wider checker in `framework/verify/hardened.py`
+that adds negation, quantity forms, and units and periods where the caller declares them on top of
+everything the older checker reports, says per claim which checks didn't run for lack of metadata,
+and agrees with the gate on every expressible case; `framework.verify.verify_claims` keeps the
+earlier, smaller set of checks, because it sits inside the import closure the live run's gate is
+pinned to. Evidence in
+[docs/sessions/023-checker-hardening.md](docs/sessions/023-checker-hardening.md).
+
+Prompts and review by Claude Code. Plan on muse-wonder-1.0 (effort high), in two sessions: the plan
+and one amendment from Claude Code's review. Implementation and fixes on muse-spark-1.3, in four
+sessions: two at medium effort and two short ones at low; Claude Code stopped the first after its
+test run hung on the quadratic name scan its review had traced. Commit on muse-spark-1.3 (effort
+medium). All ran in Muse Code, in headless sessions Claude Code started, in Contributor mode, on
+this public repo and made-up data only. Claude Code wrote the prompts in prose, created the branch,
+and ran the escape probes, the headless page check, the speed checks and make check from outside
+this repository; it typed nothing in this repository. The page's four verdict lines were given word for word in a prompt, after an outside review asked for plainer verdicts. The bug report came from the Nov 1 night
+review, where GPT Sol 6.1, GPT Terra 6.1 and GPT Astra 6, run through Codex, and Muse Wonder Full
+each reproduced the negated and minutes escapes; the three GPT reviewers voted for this ticket,
+Wonder Full voted against, and I approved it on Nov 2.
 
 ## AI assistance outside the Muse family
 

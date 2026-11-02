@@ -24,7 +24,7 @@ From a clone, `make try` runs the same replay.
 
 If your agent says it shipped 12 deploys and your records say 7, the checker catches it.
 
-The number, source, label and direction checks in my gate also run on your agent's output, against records you supply. You need `uv` for the command below; the browser page needs nothing, and takes the sentence and your records in plain words, with no JSON. Grab the worked input and run the checker:
+The number, source, label, direction, negation, quantity-form, unit and period checks in my gate also run on your agent's output, against records you supply. You need `uv` for the command below; the browser page needs nothing, and takes the sentence and your records in plain words, with no JSON. Grab the worked input and run the checker:
 
 ```sh
 curl -sLO https://raw.githubusercontent.com/macayaven/ikigai-loop/main/examples/verify/input.json
@@ -33,10 +33,14 @@ uvx --from git+https://github.com/macayaven/ikigai-loop verify-claims input.json
 
 You should see exit 1 with `L1B_METRIC_VALUE_MISMATCH`: the sample says
 November deploys reached 12 while the records say 7. Or run it in your
-browser at [https://macayaven.github.io/ikigai-loop/verify/](https://macayaven.github.io/ikigai-loop/verify/), where the same Python runs
-on your machine and nothing is sent anywhere.
+browser at [https://carloscrespomacaya.com/ikigai-loop/verify/](https://carloscrespomacaya.com/ikigai-loop/verify/), where the same Python runs
+on your machine and nothing is sent anywhere. The Python function verify_claims keeps the earlier, smaller set of checks; the command line and this page run the wider checker described here.
 
-This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.
+This check covers parseable numbers, cited sources, labels, direction, negation, quantity forms, and units and periods where you declare them. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist. A check listed as not checked did not run.
+
+What this checker does not check: it never checks that a sentence is true; a word after a number that is not a unit, a magnitude or a percent form isn't checked; disguised spellings of your private terms aren't caught; advice and instructions in the text aren't caught unless you list advice words.
+
+Disclosed limit: a unit word that agrees with one cited metric can still fail against another, because the sentence does not say which metric the word belongs to.
 
 Start from [examples/verify/README.md](examples/verify/README.md) for the
 full worked case, and [docs/ADAPTER.md](docs/ADAPTER.md) to map your own
@@ -93,7 +97,7 @@ Built and merged:
 - Deterministic gate (`framework/briefing/gate.py`, cases in `evals/briefing_cases.py`): no model, no network; it catches all 119 mutant briefings and passes all 57 known-good ones (`tests/test_briefing_mutants.py`, passing).
 - Red team (`docs/redteam/`, runner `evals/redteam.py`): I had Muse Code sessions with no part in the gate attack it twice: 34 of 34 attacks got through the unfixed gate and 32 of 32 got through a first draft of the fixes, and the gate that ships stops 64 of the 66; the other 2 pass by my ruling, one because the sentence isn't false and one as a disclosed limit, while it blocks 0 of 11,352 code-fact templates and 0 of 182 claims from the taught prompt ([red-team record](docs/redteam/README.md)).
 - Commitments and the gate additions they need (`framework/briefing/commitments.py`, `framework/briefing/labels.py`, made-up examples in `profiles/commitments.example.json`): an action passes only if it is a commitment I wrote, in my words; a claim that cites a metric passes only if it names that metric and its period and any direction word agrees with the values; advice wording fails. 18 of those 38 mutants and 8 of those 20 known-good briefings test these additions. What the gate still misses is listed at the top of `framework/briefing/numbers.py`.
-- Public checker (`framework/verify/`, `verify-claims` CLI, page at `docs/verify/`): the gate's number, source, label and direction checks over plain JSON anyone can supply, with a parity test against the gate's own cases; the same Python runs in the visitor's browser through Pyodide with nothing sent anywhere; 187 tests in `tests/test_verify_*.py`, passing.
+- Public checker (`framework/verify/`, `verify-claims` CLI, page at `docs/verify/`): the gate's number, source, label, direction, negation, quantity forms, and units and periods where declared checks over plain JSON anyone can supply, with a parity test against the gate's own cases; the same Python runs in the visitor's browser through Pyodide with nothing sent anywhere; 400 tests in `tests/test_verify_*.py`, passing.
 - Glimmer fact layer (`framework/glimmer/`, `framework/store/fact_store.py`, `framework/cycle/`): filters events to an allowlist, computes metrics and three 24-hour periods with no model, asks Muse Glimmer in two isolated passes, and drops any fact that fails its deterministic checks; 464 tests in `tests/test_glimmer_*.py`, `tests/test_fact_store.py` and `tests/test_cycle_cli.py`, passing.
 - Glimmer code facts (`framework/glimmer/code_facts.py`): a rule reports the largest change in each of five families (screen hours, pushes, PRs, calendar tag hours, cancelled blocks), so a cycle still has facts when the local model fails, and `--no-personal-pass`/`--no-feed-pass` skip the model passes; 57 tests in `tests/test_glimmer_code_facts.py`, counted in the line above, passing. One live cycle ran on synthetic rows; it ran on my real store for the first real card, on Nov 2 at 13:30.
 - Clock fixes (Ticket 9e): fact numbers are cut at the whole hour at or before each cycle, with the open hour counted whole on the next card; busy and tag hours are unions of clipped intervals; calendar revisions reconcile per calendar and combine across calendars, and a moved block is not a cancellation; the calendar collector diffs on content or stamp with revision identities; GitHub paging follows up to three pages; each number binds to the period its statement names. 464 tests in `tests/test_glimmer_*.py`, `tests/test_fact_store.py` and `tests/test_cycle_cli.py`, passing.

@@ -74,7 +74,7 @@ RAW1 = "https://raw.githubusercontent.com/macayaven/ikigai-loop/main/examples/ve
 UVX1 = (
     "uvx --from git+https://github.com/macayaven/ikigai-loop verify-claims input.json"
 )
-LINK1 = "https://macayaven.github.io/ikigai-loop/verify/"
+LINK1 = "https://carloscrespomacaya.com/ikigai-loop/verify/"
 
 
 def _run(argv: list[str]) -> tuple[int, str, str]:

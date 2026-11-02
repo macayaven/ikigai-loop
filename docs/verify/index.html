@@ -88,6 +88,7 @@ summary { cursor: pointer; }
 <button id="try-fill" type="button">Fill in the made-up example</button>
 </div>
 <div id="try-verdict" class="verdict" aria-live="polite"></div>
+<p class="note">The plain form does not supply units or periods, so those checks show as not checked.</p>
 <details>
 <summary>Show the JSON (for scripts)</summary>
 <pre id="try-json">The exact input the checker ran lands here.</pre>
@@ -95,11 +96,12 @@ summary { cursor: pointer; }
 </details>
 <h2>What this checks</h2>
 <p>Every word of a row's name must appear in the sentence, in any letter case, so deploy doesn't match deploys and synonyms don't count.</p>
-<p>Numbers are read as written: 1,200, 3.5 and twelve work. Dates and clock times aren't read as numbers. A percent sign is ignored.</p>
+<p>Numbers are read as written: 1,200, 3.5 and twelve work. Dates and clock times aren't read as numbers. In the plain form, a percent sign is ignored.</p>
 <p>The number must equal the record. 3.5 and 3.50 are equal.</p>
 <p>A number with no record fails.</p>
 <p>A sentence that names more than one record isn't checked until it's split, one record per sentence. A sentence like "We shipped 12 deploys and closed 40 tickets" names two records, so split it into two sentences.</p>
-<p>Words like rose or fell aren't checked.</p>
+<p>In the plain form, words like rose or fell aren't checked.</p>
+<p>A sentence with a negation word fails, and a quantity word in place of digits fails: about, over, nearly, half, a couple, twice.</p>
 <p>It can't tell whether a sentence is true, only whether its numbers match what you typed.</p>
 <p>To see for yourself that nothing is sent: open your browser's network panel, then use the page. After loading, the page makes no more requests.</p>
 <details>
@@ -117,10 +119,13 @@ summary { cursor: pointer; }
 </div>
 <div id="json-verdict" class="verdict" aria-live="polite"></div>
 <p>This is what the full checker covers:</p>
-<p>This check covers parseable numbers, cited sources, labels and direction. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist.</p>
+<p>This check covers parseable numbers, cited sources, labels, direction, negation, quantity forms, and units and periods where you declare them. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist. A check listed as not checked did not run.</p>
+<p>What fails now: a claim with a negation word fails, unless it states a zero right before a word of the cited metric's labels and the cited value is 0 (for example "No deploys failed" with labels deploys and failed); quantity words in place of digits fail (about, over, nearly, half, a couple, twice); with a declared unit, a unit word that disagrees fails; with a declared period, a missing or stray period fails, and so does a value beside the wrong period.</p>
+<p>What this checker does not check: it never checks that a sentence is true; a word after a number that is not a unit, a magnitude or a percent form isn't checked; disguised spellings of your private terms aren't caught; advice and instructions in the text aren't caught unless you list advice words.</p>
+<p>Disclosed limits: the bare word one as a value, period compounds and comparisons with than are not checked; a number-like or quantity-like word inside a name that a cited fact carries is not skipped, which can only make the check stricter; a unit word that agrees with one cited metric can still fail against another, because the sentence does not say which metric the word belongs to; the Python function verify_claims keeps the earlier, smaller set of checks and verify_and_repair still wraps it.</p>
 <p><a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">Every field</a> is in the worked example, and <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/ADAPTER.md">the adapter recipe</a> maps another shape to it.</p>
 </details>
-<p class="note">The page and the checker it runs are open source in <a href="https://github.com/macayaven/ikigai-loop">macayaven/ikigai-loop</a>. Bad input shows a short message and sends nothing.</p>
+<p class="note">The page and the checker it runs are open source in <a href="https://github.com/macayaven/ikigai-loop">macayaven/ikigai-loop</a>. The page lives at https://carloscrespomacaya.com/ikigai-loop/verify/. Bad input shows a short message and sends nothing.</p>
 <script type="application/json" id="ex-pass">{
   "claims": [
     {
@@ -167,7 +172,15 @@ summary { cursor: pointer; }
       "October deploys",
       "November deploys"
     ]
-  ]
+  ],
+  "units": {
+    "October deploys": "count",
+    "November deploys": "count"
+  },
+  "periods": {
+    "October deploys": "October",
+    "November deploys": "November"
+  }
 }</script>
 <script type="application/json" id="ex-false-number">{
   "claims": [
@@ -191,6 +204,12 @@ summary { cursor: pointer; }
   },
   "metrics": {
     "November deploys": 7
+  },
+  "units": {
+    "November deploys": "count"
+  },
+  "periods": {
+    "November deploys": "November"
   }
 }</script>
 <script type="application/json" id="ex-leaked-term">{
@@ -218,6 +237,12 @@ summary { cursor: pointer; }
   },
   "metrics": {
     "November deploys": 7
+  },
+  "units": {
+    "November deploys": "count"
+  },
+  "periods": {
+    "November deploys": "November"
   }
 }</script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
@@ -331,6 +356,9 @@ function showVerdict(root, inputText, renderRaw, notesById, extraLines) {
     }
     for (const finding of claim.findings) {
       block.append(pe("p", finding.sentence));
+    }
+    if (claim.gaps) {
+      block.append(pe("p", claim.gaps));
     }
     root.append(block);
   }
@@ -482,10 +510,10 @@ async function boot() {
     }
     pyodide.FS.writeFile("/home/pyodide/verify_page.py", await pageRes.text());
     statusEl.textContent = LOADING_SENTENCE + " Starting the checker…";
-    await pyodide.runPythonAsync("from framework.verify.core import page_render");
+    await pyodide.runPythonAsync("from framework.verify.hardened import page_render_hardened");
     await pyodide.runPythonAsync("from verify_page import build_checker_input, explain_report");
     checker = {
-      render: pyodide.globals.get("page_render"),
+      render: pyodide.globals.get("page_render_hardened"),
       buildInput: pyodide.globals.get("build_checker_input"),
       explain: pyodide.globals.get("explain_report")
     };
