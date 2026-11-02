@@ -1,4 +1,4 @@
-.PHONY: check test eval demo r1b verify-page try glimmer-proof audit-control
+.PHONY: check test eval demo r1b verify-page try glimmer-proof audit-control metrics
 
 check:
 	uv run ruff check .
@@ -10,6 +10,9 @@ check:
 
 test:
 	uv run pytest
+
+metrics:
+	uv run python -m framework.metrics report $(METRICS_ARGS)
 
 EVAL_FILES = evals/hello.py evals/briefing_gate.py evals/glimmer_facts.py evals/proposal_gate.py
 

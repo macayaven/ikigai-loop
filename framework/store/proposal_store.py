@@ -198,6 +198,51 @@ class FirstDraftReport:
     noops_by_reason: tuple[tuple[str, int], ...]
 
 
+def _filtered_first_draft_sql(
+    proposal_keys: frozenset[str],
+) -> tuple[str, tuple[str, ...]]:
+    """The named R1 SQL restricted to one proposal-key set (BD3).
+
+    The same grains as ``FIRST_DRAFT_REPORT_SQL`` with the attempts and
+    the results both restricted to those keys. Filtering by slot instead
+    would put the slot path and a corrected card's re-proposals at the
+    same slot in one block.
+    """
+    ordered = tuple(sorted(proposal_keys))
+    group = ", ".join(["?"] * len(ordered))
+    keyed = f"WHERE proposal_key IN ({group})"
+    sentinel = "FROM __filtered_results__, json_each"
+    sql = FIRST_DRAFT_REPORT_SQL.replace("FROM proposal_results, json_each", sentinel)
+    sql = sql.replace(
+        "FROM proposal_attempts WHERE attempt = 1",
+        f"FROM proposal_attempts WHERE attempt = 1 AND proposal_key IN ({group})",
+    )
+    sql = sql.replace(
+        "FROM proposal_attempts WHERE attempt = 2",
+        f"FROM proposal_attempts WHERE attempt = 2 AND proposal_key IN ({group})",
+    )
+    for kind in ("proposal", "fallback", "noop"):
+        sql = sql.replace(
+            f"FROM proposal_results\n    WHERE kind = '{kind}'",
+            f"FROM proposal_results {keyed} AND kind = '{kind}'",
+        )
+    sql = sql.replace(
+        "COUNT(*) FROM proposal_results\n",
+        f"COUNT(*) FROM proposal_results {keyed}\n",
+    )
+    sql = sql.replace(
+        "JOIN proposal_results r USING (proposal_key)",
+        f"JOIN (SELECT * FROM proposal_results {keyed}) r USING (proposal_key)",
+    )
+    sql = sql.replace(sentinel, "FROM proposal_results, json_each")
+    sql = sql.replace(
+        "WHERE kind = 'noop'",
+        f"{keyed} AND kind = 'noop'",
+    )
+    repeats = sql.count("?") // len(ordered)
+    return sql, ordered * repeats
+
+
 @dataclass(frozen=True)
 class StoredResult:
     """One recorded result read back with typed payloads."""
@@ -503,9 +548,21 @@ class ProposalStore:
             )
         return tuple(results)
 
-    def first_draft_report(self) -> FirstDraftReport:
-        """The R1 first-draft failure report from named SQL."""
-        rows = self._conn.execute(FIRST_DRAFT_REPORT_SQL).fetchall()
+    def first_draft_report(
+        self, proposal_keys: frozenset[str] | None = None
+    ) -> FirstDraftReport:
+        """The R1 first-draft failure report from named SQL.
+
+        With no argument the output is exactly the unfiltered report.
+        With a key set, every grain is restricted to those proposal keys.
+        """
+        if proposal_keys is None:
+            rows = self._conn.execute(FIRST_DRAFT_REPORT_SQL).fetchall()
+        elif not proposal_keys:
+            rows = []
+        else:
+            sql, params = _filtered_first_draft_sql(proposal_keys)
+            rows = self._conn.execute(sql, params).fetchall()
         per: dict[tuple[str, str], dict[str, int]] = {}
         codes: dict[tuple[str, str, str], int] = {}
         totals = {"results": 0, "proposals": 0, "fallbacks": 0, "noops": 0}

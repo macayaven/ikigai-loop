@@ -16,11 +16,14 @@ Ikigai Loop: two goals, Builder and Disconnect, compete for Carlos's next free h
 - `make try` — replays packaged made-up data through the real code, no key or model.
 - `make glimmer-proof` — runs one synthetic label through llama-swap, prints the served weights' basename, and refuses during a real slot's Glimmer window.
 - `make audit-control` — the network-free negative control for the source audit.
+- `make metrics` — prints the whole submission report from a store copy as counts and rates with `n`.
 
 ## Layout
 
 - `framework/` — Glimmer, Wonder, Muse Code runner, adapters, deployer, models.
 - `framework/provenance/` — read-only provenance export and Glimmer proof.
+- `framework/rater/` — offline page, pack builder and scorer for the outside rater's claims.
+- `framework/metrics/` — one command regenerating the run's R1, R7 and R8 numbers from a store copy.
 - `source_audit/` — the independent source-to-card audit; stdlib only, imports nothing from `framework/`, run by hand.
 - `blocks/` — one folder per block: schema, renderer, tests.
 - `evals/` — Inspect tasks (L0–L4), scorers, jury, mutants, calibration.

@@ -1,0 +1,40 @@
+# Session evidence — 016-metrics-and-labels (2026-11-02)
+
+Ticket 16 only: the rater pack (Slice A) and the metrics report (Slice B), on branch `t16-metrics`, from [docs/plans/016-metrics-and-labels.md](016-metrics-and-labels.md). This note summarises the work; the raw session exports are kept privately, not in this repo. No real pack, key or result file was generated in these sessions or entered the repo; all stores below are made-up.
+
+Every `uv`, `pre-commit` and `git` command in these sessions ran from the repo root under `PRE_COMMIT_HOME="$PWD/.git/pre-commit-home"` `UV_CACHE_DIR="$PWD/.git/uv-cache"`.
+
+## Sessions in order
+
+1. Plan — muse-wonder-1.0 at high. Wrote the plan and nothing else.
+2. Plan amendment — muse-wonder-1.0 at high. Amended the plan and nothing else.
+3. First Slice A attempt — muse-spark-1.3 at medium. Claude Code stopped it about half a minute after it started, before it wrote anything, because it would have run through the quiet window before a live card.
+4. Slice A — muse-spark-1.3 at medium. Built the rater pack.
+5. Slice A fix — muse-spark-1.3 at medium. Fixed the rater pack after review.
+6. Slice B, first half — muse-spark-1.3 at medium. Built the first half of the metrics report.
+7. Slice B, second half — muse-spark-1.3 at medium. Built the second half of the metrics report.
+8. Slice B fix — muse-spark-1.3 at medium. Fixed the metrics report after review.
+9. This commit session — muse-spark-1.3 at medium. Corrects this note, stages, commits, rebases onto origin/main, and runs the checks.
+10. First amend — muse-spark-1.3 at low. Stopped without a change because the reviewer's instruction about blank lines in docs/PRIVACY.md was wrong.
+11. Second amend — muse-spark-1.3 at low. Turned the new heading in docs/PRIVACY.md into a bold lead-in so the file stays under the 45-line limit that tests/test_telegram_cli.py checks.
+12. Third amend session — muse-spark-1.3 at low. Added these lines.
+
+Claude Code also ran the pack and the report against a private copy of my store outside these sessions, to check them against real formats. It saw only counts and codes, and kept everything it wrote outside the repo.
+
+## Slice A — the rater pack
+
+Implemented across the Slice A sessions above by Muse Code (Muse Spark), no model calls, no network. Tests were written before the code and failed on the base tree (missing `framework.rater`, pytest exit 4); then `framework/rater/` was built in the plan's order — `split.py`, `delivery.py`, `pack.py` + `page.py`, `score.py`, `__main__.py` — until green.
+
+Acceptance results, made-up stores only: AT-A1 10 passed (split rules: decimal, two sentences, semicolon, `, so` with and without a digit, three-period series kept whole and not compound, `and` kept whole at two, one and zero numbers, evidence inheritance); AT-A2/A3/A4/A5 22 passed in `tests/test_rater_pack.py` (delivery union and all four disagreement lines, delivery-unknown exclusion, slot and voice paths delivered, outside-run slot counted and left out, cut at/before semantics with a corrected card keeping its slot, per-side regeneration, unmatched and ambiguous sides left out and counted, missing-fact and unbound-metric claims left out and counted, fallback side contributing nothing, corrected-card dedup with `delivered_cards_shown=2`, re-proposed sides recovering both cards, signed `since_last` rendering, fact-only claims, per-family plain-words rendering, private-term refusal printing counts only, unavailable-terms refusal, inside-repo output-dir refusal before any copy, `0o600`/`0o700` permissions, and one real slot through the orchestrator harness fakes then the pack from that store); AT-A6 6 passed in `tests/test_rater_page.py` (CSP meta, no network or navigation surface, no card/slot/profile/model/title strings, counter and start-count text, localStorage contract with in-memory fallback, ordinary buttons); AT-A7 9 passed in `tests/test_rater_score.py` (rates over every atomic claim with `n`, `cant_tell` and `unanswered` on their own lines, per model/effort rates, all five refusal kinds, multi-pair together and apart, `--exclude-key` second pack, hash covering evidence lines with a seed-free default pack id, `unlabelled_atomic_claims` for missed and post-cut cards). 47 tests in total across the four files. AT-A8: the PREREG diff appends the dated Deviations entries 13 to 16 only and `tests/test_literature_doc.py` still passes. AT-A9 (reviewer, real phone, real pack) is outside the repo and is not a pytest.
+
+One implementation commit for the whole ticket lands after the reviewer approves both slices; Slice A makes no commit and stages nothing.
+
+## Slice B — the metrics report
+
+Implemented across the Slice B sessions above by Muse Code (Muse Spark), no model calls, no network. Tests were written before the code and failed on the working tree (the new R7/R8/table/env tests plus the new bindings file's import, while the 15 carried Slice B-half tests stayed green); then `framework/metrics/report.py` (BD5 chains with per-class verdicts, BD6 before/during table, BD7 rebuild, scores, diff, forecast split and recovery grid) and the SD3 env gating in `framework/metrics/__main__.py` were built until green. The `report.sections_pending` seam is gone: every section is built.
+
+Acceptance results, made-up stores only: 50 tests in `tests/test_metrics_report.py` (the 15 carried R1, scope, identity, dispute and command tests untouched-green, plus 3 SD3 env refusals, 16 R7 tests over every evidence class incl. the this-repo quarantine, the branch-push unknown, the unobserved-device and system-only rules, the cancelled-only block, the label overlay, the corrected chain counted once and the commitment-unknown and hour-unknown lines, 2 before/during extent and labelling tests with whole-hour ends, 9 R8 tests over like-with-like rebuild mismatch with pending taps, skipped rulings, Brier-primary scores with the clipping note, the policy diff, the forecast split with Neither, untapped and fallback-side lines, and the recovery labels with the Bernoulli sentence, 1 Deviation 5 no-ratio test, 1 as-of/cut test, 2 git-tree JSON guard tests, and the extended counts-only command test) and 8 in `tests/test_metrics_bindings.py` (forecast-vs-PREREG drift with a mutated-copy check, untouched `recover_table` defaults, the five clock-rule citations resolved to real test names, the Deviation 4/8/9 bindings by test name, and the plain-words public-text test). 119 tests across `tests/test_rater_*.py` and `tests/test_metrics_*.py`, passing, from the run I made. `tests/test_proposal_store.py` and the seven learner suites (152 tests) untouched and green. `ruff check`, `ruff format` and `pyright` clean on every file added or changed. I also fixed the standard-mode pyright complaints in the test file with typed event-data classes and explicit empty claim lists (runtime no-ops).
+
+Assumptions I recorded: the SD3 subject and commitments-file requirement is enforced from this session (missing variable exits 2, a set-but-unreadable file exits 1), so the report tests gained an autouse env fixture with a made-up commitments file — a test-only change; a chain's slot is its standing card's slot; a real two-goal card for the forecast split is a delivered run-slot card with exactly two sides, whatever their kinds; a device's first observed hour is the clock hour of its first winning screen row; before/during periods are labelled `before_N`/`during_N` off the floored first-card anchor; the recovery grid runs at seed 16 with 200 sims; with no stored learner state the comparison default is the initial state; forecast chains with a `wrong`/`why` standing target are ignored, and Neither/untapped lines count only on delivered two-goal run cards. The plan and the code agreed everywhere else: I found no contradiction to report, so I improvised nothing.
+
+No real store, pack, key or result file was generated in this session or entered the repo; all stores above are made-up. No commit and nothing staged: the single Ticket 16 commit waits for the reviewer.
