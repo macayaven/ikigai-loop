@@ -1,4 +1,4 @@
-.PHONY: check test eval demo r1b verify-page
+.PHONY: check test eval demo r1b verify-page try
 
 check:
 	uv run ruff check .
@@ -24,6 +24,9 @@ demo:
 
 r1b:
 	uv run python -m evals.r1b --all $(R1B_ARGS)
+
+try:
+	uv run --no-default-groups try-ikigai
 
 verify-page:
 	uv run python -m framework.verify.page_bundle

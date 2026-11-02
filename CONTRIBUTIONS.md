@@ -361,6 +361,25 @@ Prompts and review by Claude Code. Plan on muse-wonder-1.0 (effort high), implem
 
 The finding that a blind send retry could deliver a card twice, and the finding that a hung model could hold a card past its slot, came from independent reviews by GPT Sol 6.1, run through Codex. The check of D11 that found the redirect path came from a finding by GPT Terra 6.1, run through Codex. The fix that reads a parent from the delivered card came from Muse Wonder Full's blind review of Ticket 11, which also raised the three other items this ticket checked. The finding that the since line could read a late-collected batch as new came from a source-to-card audit Claude Code ran.
 
+## Ticket 21 — try it (2026-11-02)
+
+Built on branch `n1-try-it` per [docs/plans/021-try-it.md](docs/plans/021-try-it.md):
+`try-ikigai` replays packaged made-up data through the real fact layer with
+both model passes off, the real proposal step and gate against hand-written
+replies in the model's shape, ticket 13's card builder and chart, and the
+real keyboards, and prints a five-section story: the card, the simulated tap,
+a planted wrong number the gate stops and corrects on the one retry, the rows
+behind one sentence, and the checker for the reader's own agent. No model,
+network, store or Telegram client runs; `pillow`, `icalendar` and
+`recurring-ical-events` moved into `[project].dependencies` with `uv.lock`
+refreshed and no version changes, and CI runs the command through `uvx` from
+the checkout. The README gained its `## Try it` section. Evidence in
+[docs/sessions/021-try-it.md](docs/sessions/021-try-it.md).
+
+Prompts and review by Claude Code; plan on muse-wonder-1.0 (effort high), implementation on muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only; the plan amendment and the commit step on muse-spark-1.3 at effort low.
+
+GPT Terra 6.1, run through Codex, ran the no-context test that got the checker in 15 seconds and never saw the loop; GPT Sol 6.1, GPT Terra 6.1, GPT Astra 6, Muse Wonder Full and Claude Code's advisor voted for this unanimously.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
