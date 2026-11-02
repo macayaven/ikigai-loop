@@ -1,5 +1,7 @@
 # Spotify one-time auth (ticket 7)
 
+The current design doesn't use this; it was built earlier in the hackathon, as the README says.
+
 The poll refreshes its access token on every run from a stored refresh
 token. This flow obtains that refresh token once. It contains no values:
 substitute your own where placeholders appear.

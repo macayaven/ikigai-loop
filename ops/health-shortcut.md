@@ -1,5 +1,7 @@
 # iOS Health Shortcut (ticket 7)
 
+The current design doesn't use this; it was built earlier in the hackathon, as the README says.
+
 Daily 08:00 automation that POSTs yesterday's Health aggregates to the
 ingest endpoint on the store host. All values below are synthetic examples.
 
