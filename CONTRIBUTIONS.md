@@ -763,3 +763,14 @@ Added [docs/glimmer-evidence.md](docs/glimmer-evidence.md): the screen captures 
 I added one paragraph to the `README.md` first screen naming the four Meta models and the plain code check, and one paragraph after it with the worked checker case from an outside engineer. Docs only: no behaviour, schema, fixture or test change, and no pinned test needed an update.
 
 Implementation: Muse Code, powered by Meta Muse Spark, headless, in one session. I never opened anything under `evals/heldout/` except `evals/heldout/README.md`, and I never read the path in `HIDDEN_CRITERIA_DIR`.
+
+## Docs 7 - study deviation note, export limit, and PRs spelled out (2026-11-03)
+
+I made three small documentation edits and recorded them here. Docs only: no behaviour, schema, fixture or test change.
+
+- `docs/prereg-game.md`: I replaced the Deviations line with the note that the study was not run before the deadline, with no answers collected and no results.
+- `docs/TRUST.md`: I added the paragraph on the provenance export limit at the end of the Mistakes in my own tools section.
+- `README.md`: I spelled out PRs as pull requests on GitHub in the Five times a day paragraph.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edits. I never opened anything under `evals/heldout/`, and I never read the path in `HIDDEN_CRITERIA_DIR`.

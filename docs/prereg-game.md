@@ -50,4 +50,4 @@ Six made-up examples are not a measure of general human or AI accuracy. The samp
 
 ## Deviations
 
-None yet.
+Not run before the submission deadline (decided Nov 3, 19:55 Madrid): six independent reviewers judged its expected value too small for the time left. The study version stays on the page, closed until a form is set. No answers were collected and no results exist.
