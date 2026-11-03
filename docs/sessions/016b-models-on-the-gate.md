@@ -221,8 +221,15 @@ running at the same time, so these are upper bounds for this run.
 Local row: started 00:29 from a frozen copy of this tree, same gate
 identity, with a stop time of 11:50 so it can't reach the real slots. A
 one-case check on the fixture first took 457 s for product and 145 s plus a
-215 s retry for plain. At the time of this note it's still running: rows
-follow as data, and cases not run get reported as not run.
+215 s retry for plain. It reached its stop time with the product arm counting 38 of the 54 cases
+and the plain arm 37: 16 cases not run on product and 17 on plain, reported
+as not run. The row ran from a frozen copy of the tree under the same gate
+identity, whose row-producing modules match the Ticket 16b commit, with the
+local rows' timestamps in UTC. First-draft gate failures per arm, product
+then plain: 3 then 32, with 1 then 10 beyond wording or form; recovered by
+one retry 3 then 12; first-attempt latency median 526,266.5 ms then 252,436
+ms, worst 776,171 ms then 706,523 ms; verdict held (product failures 3,
+plain failures 32).
 
 One command: `make r1b` with `IKIGAI_R1B_LIVE=1` and
 `MUSE_NO_AUTO_UPDATE=1` set and `META_API_KEY` and the `LOCAL_LLM_`
@@ -268,8 +275,13 @@ one author's; the gate doesn't judge truth; and the outside rater hasn't seen
 these drafts. The one command was run live only on the finished tree, where it
 made no model call, because the rows came from the single-row command; the
 all-rows path with model calls was exercised only with fake clients. The local
-row isn't finished at this commit. Ticket 10b's gate change and Ticket 11b's
-changes aren't in these numbers.
+row has since reached its stop time; its rows are in `docs/r1b.md`, with
+cases not run reported as not run. One attempt ran slow for a reason outside
+the benchmark. Case r1b-008, attempt 1, plain arm, took 252,436 ms for 2,497
+tokens, about 59 s longer than its pace, because a separate request to the
+same local model ran from 02:56 to 03:00 Madrid on Nov 2. The row is kept as
+recorded, and the latency figures include it. Ticket 10b's gate change and
+Ticket 11b's changes aren't in these numbers.
 
 Case-author provenance: the set came from two author sessions, both on
 muse-wonder-full-1.0 at high. A first session wrote a set from a script that

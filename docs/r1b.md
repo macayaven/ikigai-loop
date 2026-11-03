@@ -91,6 +91,8 @@ overall: not evaluable (did not hold if any row did not hold, held if every row 
 | muse-spark-1.3 | medium | plain | 54/54 | 18 | 36 | 12 | 0 | 24 | 12 | 0 | 0 | 0 | 6.9 | 15.7 |
 | muse-spark-1.3 | low | product | 54/54 | 53 | 1 | 1 | 0 | 1 | 0 | 0 | 0 | 0 | 11.1 | 16.8 |
 | muse-spark-1.3 | low | plain | 54/54 | 27 | 27 | 12 | 0 | 19 | 8 | 0 | 0 | 0 | 4.4 | 6.5 |
+| muse-glimmer-30b | none | product | 38/54 | 35 | 3 | 1 | 0 | 3 | 0 | 0 | 0 | 0 | 526.3 | 776.2 |
+| muse-glimmer-30b | none | plain | 37/54 | 5 | 32 | 10 | 0 | 12 | 20 | 0 | 0 | 0 | 252.4 | 706.5 |
 
 ### muse-wonder-1.0 (high)
 
@@ -567,6 +569,129 @@ paired McNemar exact two-sided p: p < 0.0001
 the p-value is descriptive only: the counts are the result, and it generalises past them not at all.
 registered prediction: the plain prompt fails at least 3 times as often as the product prompt, on every model
 verdict: muse-spark-1.3 (low): held (product failures 1, plain failures 27)
+
+### muse-glimmer-30b (none)
+
+cases in the set: 54
+
+#### arm: product
+
+cases counted: 38
+cases attempted but not complete: 0
+cases not run: 16
+ran only a prefix: the first 38 cases
+first-draft passes: 35
+first-draft gate failures: 3
+first-draft gate failures beyond wording or form: 1 (wording or form alone: 2)
+failures by code (codes counted, one draft may count twice):
+- L1B_NUMBER_WITHOUT_METRIC_REF: 1
+- L1B_PERIOD_WORD_MISSING: 2
+failures by category (drafts counted once per category they touch):
+- Unbacked number: 1
+- Wrong or unknown evidence: 0
+- Direction: 0
+- Advice: 0
+- Wording or form: 2
+- Leak: 0
+A plain-arm failure is not always a false sentence: the wording split above shows how much of it is wording or form the gate insists on.
+failures by trap class (failures of counted cases in that class):
+- advice: 1 of 4 counted
+- clean: 0 of 5 counted
+- confusable-metrics: 0 of 4 counted
+- flat-direction: 1 of 4 counted
+- injection: 0 of 4 counted
+- mixed-direction: 0 of 4 counted
+- orphan-number: 1 of 4 counted
+- period-scope: 0 of 4 counted
+- rounding: 0 of 5 counted
+proposal-level codes (apart, never in the numerator):
+- none
+recovered by one retry: 3
+stayed failed: 0
+of those, retry passed the gate but kept a proposal-level code: 0
+first-draft failure whose retry came back unavailable: 0
+ended passing within one retry: 38 of 38 counted
+unparseable first drafts recovered by retry: 0
+proposal-level-only first drafts: 0
+not-a-draft-outcome first drafts: 0
+unparseable first drafts: 0
+unavailable first attempts: 0
+blocked first attempts: 0
+first-attempt latency median ms: 526266.5
+first-attempt latency worst ms: 776171
+first-attempt prompt tokens median: not reported
+first-attempt completion tokens median: 6719.5
+first-attempt reasoning tokens median: not reported
+first-attempt cached tokens median: not reported
+medians take the middle value, or the mean of the middle two.
+muse versions seen: not applicable
+rules-file values seen: not applicable
+
+#### arm: plain
+
+cases counted: 37
+cases attempted but not complete: 0
+cases not run: 17
+ran only a prefix: the first 37 cases
+first-draft passes: 5
+first-draft gate failures: 32
+first-draft gate failures beyond wording or form: 10 (wording or form alone: 22)
+failures by code (codes counted, one draft may count twice):
+- L1B_DIRECTION_MISMATCH: 9
+- L1B_NUMBER_WITHOUT_METRIC_REF: 8
+- L1B_PERIOD_WORD_MISSING: 29
+- L1B_TOO_MANY_METRICS: 18
+failures by category (drafts counted once per category they touch):
+- Unbacked number: 5
+- Wrong or unknown evidence: 0
+- Direction: 7
+- Advice: 0
+- Wording or form: 29
+- Leak: 0
+A plain-arm failure is not always a false sentence: the wording split above shows how much of it is wording or form the gate insists on.
+failures by trap class (failures of counted cases in that class):
+- advice: 4 of 4 counted
+- clean: 5 of 5 counted
+- confusable-metrics: 4 of 4 counted
+- flat-direction: 4 of 4 counted
+- injection: 4 of 4 counted
+- mixed-direction: 4 of 4 counted
+- orphan-number: 4 of 4 counted
+- period-scope: 1 of 4 counted
+- rounding: 2 of 4 counted
+proposal-level codes (apart, never in the numerator):
+- none
+recovered by one retry: 12
+stayed failed: 20
+of those, retry passed the gate but kept a proposal-level code: 0
+first-draft failure whose retry came back unavailable: 0
+ended passing within one retry: 17 of 37 counted
+unparseable first drafts recovered by retry: 0
+proposal-level-only first drafts: 0
+not-a-draft-outcome first drafts: 0
+unparseable first drafts: 0
+unavailable first attempts: 0
+blocked first attempts: 0
+first-attempt latency median ms: 252436
+first-attempt latency worst ms: 706523
+first-attempt prompt tokens median: not reported
+first-attempt completion tokens median: 3153
+first-attempt reasoning tokens median: not reported
+first-attempt cached tokens median: not reported
+medians take the middle value, or the mean of the middle two.
+muse versions seen: not applicable
+rules-file values seen: not applicable
+
+paired: 37 cases with a parsed, unblocked first draft in both the product and the plain arm
+paired product failures: 3; paired plain failures: 32
+paired b (plain fails, product passes): 29; c (plain passes, product fails): 0; excluded from the pair: 1
+paired beyond wording or form (not registered, no verdict): product 1, plain 10
+paired McNemar exact two-sided p: p < 0.0001
+the p-value is descriptive only: the counts are the result, and it generalises past them not at all.
+registered prediction: the plain prompt fails at least 3 times as often as the product prompt, on every model
+verdict: muse-glimmer-30b (none): held (product failures 3, plain failures 32)
+
+the local client has no effort parameter; `none` names that, not a setting.
 
 overall: not evaluable (did not hold if any row did not hold, held if every row held, otherwise not evaluable)
 
