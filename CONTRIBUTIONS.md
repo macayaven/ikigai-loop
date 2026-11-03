@@ -641,6 +641,25 @@ the live poller runs `poll --voice` with no store argument, so the voice worker'
 
 Prompts and review by Claude Code. The plan ran on muse-wonder-1.0 (effort high), 4 m 48 s. Implementation ran on muse-spark-1.3 (effort medium), 17 m 42 s, after Claude Code's review amended the plan through that session's prompt. This commit step ran on muse-spark-1.3 (effort medium). All sessions headless, started by Claude Code, in Contributor mode, on this public repo and made-up data only. Claude Code's prompts held no code blocks, patches or test rows; Muse Code wrote the plan, every file and this commit; Claude Code ran the rehearsal, the gate checks and make check from its own shell.
 
+## Ticket 10d — squashed private-term matches made only of card wording (2026-11-03)
+
+Built on branch `t10d-squashed-terms` per [docs/plans/010d-squashed-private-terms.md](docs/plans/010d-squashed-private-terms.md):
+a squashed or fuzzy private-term match no longer fires when every token it
+consumes is the card's own claim vocabulary (period, direction, comparison and
+stop words, `hour` and `hours`, number tokens, and the snapshot's label
+words); an exact whole-term match still fires, vocabulary or not; with an
+empty vocabulary every arm returns its earlier verdict, pinned by a corpus
+test over the repository's private-term sentences; plus PREREG entry 20.
+Evidence in
+[docs/sessions/010d-squashed-private-terms.md](docs/sessions/010d-squashed-private-terms.md).
+
+Muse Code wrote the plan, the code, the tests, the PREREG entry and these
+docs on muse-spark-1.3 at medium effort, with the commits on muse-spark-1.3
+at low effort, in Muse Code, in headless sessions Claude Code started.
+Claude Code wrote the prompts in prose, reproduced the false stop with
+made-up terms, ran the checks, pushed the branch and opened the pull
+request. Nobody read the deny list, and nobody opened evals/heldout/.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

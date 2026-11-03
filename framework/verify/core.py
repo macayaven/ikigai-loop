@@ -624,7 +624,12 @@ def _check_claim(
                             "direction words disagree with the cited values",
                         )
     _labelled_name_check(claim, ctx, collapsed, claim_words, add)
-    for code in text_check_codes(claim.text, private_terms=deny_terms):
+    cited_label_words = [
+        word for ref in claim.metric_refs for word in label_words.get(ref.metric_id, ())
+    ]
+    for code in text_check_codes(
+        claim.text, private_terms=deny_terms, label_words=cited_label_words
+    ):
         if code == "L1_ADVICE":
             continue
         add(code, claim.id, _TEXT_MESSAGES.get(code, "text check failed"))

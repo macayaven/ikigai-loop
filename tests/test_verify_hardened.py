@@ -1198,3 +1198,39 @@ def test_speed_many_failing_claims() -> None:
     report = check_claims(payload)
     assert time.perf_counter() - start < 20.0
     assert len(report.violations) == 2000
+
+
+def test_private_term_vocab_join_exempt_with_labels() -> None:
+    """Ticket 10d: the public checker excuses a private-term match made
+    only by joining the claim's own vocabulary words."""
+    payload = {
+        "claims": [
+            {
+                "id": "c1",
+                "text": (
+                    "Code was 0.5 hours in the last and lower than "
+                    "3.25 hours in the prior period."
+                ),
+                "fact_ids": [],
+                "metric_refs": [
+                    {"metric_id": "mp", "value": 3.25},
+                    {"metric_id": "ml", "value": 0.5},
+                ],
+            }
+        ],
+        "facts": {},
+        "metrics": {"mp": 3.25, "ml": 0.5},
+        "labels": {"mp": ["code"], "ml": ["code"]},
+        "deny_terms": ["codewas", "inthelast"],
+    }
+    assert "L1_PRIVATE_TERM" not in _codes(check_claims(payload))
+
+
+def test_private_term_outside_join_still_stopped() -> None:
+    """Ticket 10d: a join touching "finch" still stops in the public
+    checker, with or without labels."""
+    for labels in (None, {"m1": ["notes"]}):
+        payload = _base(labels)
+        payload["claims"] = [_claim("The notes mention Zebra, finch today.")]
+        payload["deny_terms"] = ["Zebrafinch"]
+        assert "L1_PRIVATE_TERM" in _codes(check_claims(payload))

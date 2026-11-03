@@ -1358,7 +1358,7 @@ def test_new_text_code_reaches_report_but_advice_does_not(
     monkeypatch.setattr(
         core,
         "text_check_codes",
-        lambda text, private_terms=(): ("L1_NEW_RULE", "L1_ADVICE"),
+        lambda text, private_terms=(), label_words=(): ("L1_NEW_RULE", "L1_ADVICE"),
     )
     report = verify_claims(
         _base([_passing_claim("c1", "Steady note")], facts=_facts_only())
@@ -1474,9 +1474,13 @@ def test_deny_term_case_variants_reach_text_check_once(
     real = core.text_check_codes
     seen: list[tuple[str, ...]] = []
 
-    def _wrap(text: str, private_terms: tuple[str, ...] = ()) -> tuple[str, ...]:
+    def _wrap(
+        text: str,
+        private_terms: tuple[str, ...] = (),
+        label_words: tuple[str, ...] = (),
+    ) -> tuple[str, ...]:
         seen.append(tuple(private_terms))
-        return real(text, private_terms=private_terms)
+        return real(text, private_terms=private_terms, label_words=label_words)
 
     monkeypatch.setattr(core, "text_check_codes", _wrap)
     report = verify_claims(
