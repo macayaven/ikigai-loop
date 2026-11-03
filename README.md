@@ -2,7 +2,9 @@
 
 An AI assistant that suggests, five times a day, how to spend my next free hour, on my work goals or with my family, and that never shows me a number it can't back with my own records.
 
-It runs on me now. The first real card reached my phone on Nov 2 at 13:30, on time, and I chose with a tap. An independent recount of its pull-request figure, straight from GitHub's own records rather than from my store, matched. Anyone who wants the same check on their own agent: [Check your own agent](#check-your-own-agent).
+It checks numbers, sources and wording against my records. It doesn't check that a sentence is true. [Misses so far: see TRUST.md](docs/TRUST.md)
+
+It runs on me now. The first real card reached my phone on Nov 2 at 13:30, on time, and I chose with a tap. An independent recount of its pull-request figure, straight from GitHub's own records rather than from my store, matched. I also publish a checker that compares an agent's claims with records you supply: [Check your own agent](#check-your-own-agent).
 
 ## How it works
 
@@ -36,6 +38,8 @@ November deploys reached 12 while the records say 7. Or run it in your
 browser at [https://carloscrespomacaya.com/ikigai-loop/verify/](https://carloscrespomacaya.com/ikigai-loop/verify/), where the same Python runs
 on your machine and nothing is sent anywhere. The Python function verify_claims keeps the earlier, smaller set of checks; the command line and this page run the wider checker described here.
 
+An engineer outside the project tried it on an example from their own work. It passed the matching figure, and flagged the mismatch once they changed the record: within a second, by their account. Their one complaint was having to copy the exact JSON shape; the browser page's form takes plain words instead.
+
 This check covers parseable numbers, cited sources, labels, direction, negation, quantity forms, and units and periods where you declare them. It does not check that a sentence is true. Without labels it cannot tell which metric a number belongs to, and a cited fact is only checked to exist. A check listed as not checked did not run.
 
 What this checker does not check: it never checks that a sentence is true; a word after a number that is not a unit, a magnitude or a percent form isn't checked; disguised spellings of your private terms aren't caught; advice and instructions in the text aren't caught unless you list advice words.
@@ -50,7 +54,7 @@ agent's output shape to this input.
 
 Works: cards reach my phone five times a day on a schedule, and the first real one went out on time. Every figure on a card is checked against my records by plain code with no model before it is sent, and a recount of the first card's pull-request figure from GitHub matched. A voice note can correct a card, and that code is built. Anyone can run the checker on their own agent, on the command line or in the browser.
 
-Doesn't, yet: this is set up for one person, me, with no installer and no ready-made timer files in the repo. There are no results yet: the run I registered before the first card continues to Nov 4 and I will report its numbers then. There is no viewer for past cards, and the proof harness is not built.
+Doesn't, yet: this is set up for one person, me, with no installer and no ready-made timer files in the repo. The run I registered before the first card continues to Nov 4 and I will report its numbers then. There is no viewer for past cards.
 
 This is for me first, and the checker is for anyone whose agent cites numbers.
 
@@ -106,7 +110,7 @@ Built and merged:
 - Telegram card (`framework/telegram/`): one photo message with a chart and buttons, taps stored as `app.tap`, long polling with no public endpoint; 218 tests in `tests/test_telegram_*.py`, passing. The first real card went out through it via the orchestrator on Nov 2 at 13:30, with my tap stored.
 - The Wonder proposal step (`framework/proposal/`, `framework/store/proposal_store.py`): one guarded Muse Wonder call per goal for the next free hour through Muse Code headless on my subscription, with the Model API transport still in the code for anyone with a key; every draft is gated with one retry on the violations, and anything else becomes a labelled fallback or a noop; attempts and results persist append-only for the next run and the first-draft failure report; 334 tests in `tests/test_proposal_*.py`, passing. The orchestrator calls it at every slot.
 - Calendar labels (Ticket 9c): a local step reads a title on my machine and returns one of eight labels, off by default. R10 on 80 invented titles, one pass: `model correct: 77/80 strict: 77/80`, `keywords correct: 51/80 strict: 50/80`, `decision: eligible`. Eligible means the rule I fixed first passed; nothing turns on by itself, and no real title is ever scored. The titles and the circumstances in their notes are invented test fixtures, not my calendar; see [evals/README.md](evals/README.md). 95 tests in `tests/test_cycle_labels.py` and `tests/test_r10.py`, and 129 in `tests/test_glimmer_label*.py` counted in the fact layer line above, passing.
-- Model benchmark R1b (`evals/r1b.py`, results in `docs/r1b.md`): the same 54 synthetic cases through the same gate on five rows, each with the product prompt and a plain prompt that teaches none of the gate's rules; first-draft gate failures per row and arm are 1/44 for muse-wonder-1.0 (high), 0/43 for muse-wonder-full-1.0 (high, subscription-only, Power or Maximum), 0/36 for muse-spark-1.3 (medium) and 1/27 for muse-spark-1.3 (low), and muse-glimmer-30b ran after the others under the same gate and follows as data in `docs/r1b.md`; the set is synthetic, one pass per case, hand-written case by case by a fresh Muse Code session on muse-wonder-full-1.0 at high in Contributor mode on made-up data from a written description alone after Claude Code rejected that model's earlier script-built pooled set, that model is also one of the arms with no memory across sessions, and the private-term check is not exercised. 106 tests in `tests/test_r1b_*.py`, passing.
+- Model benchmark R1b (`evals/r1b.py`, results in `docs/r1b.md`): the same 54 synthetic cases through the same gate on five rows, each with the product prompt and a plain prompt that teaches none of the gate's rules; first-draft gate failures per row and arm are 1/44 for muse-wonder-1.0 (high), 0/43 for muse-wonder-full-1.0 (high, subscription-only, Power or Maximum), 0/36 for muse-spark-1.3 (medium) and 1/27 for muse-spark-1.3 (low), and muse-glimmer-30b ran after the others under the same gate, with its rows not in `docs/r1b.md` yet; the set is synthetic, one pass per case, hand-written case by case by a fresh Muse Code session on muse-wonder-full-1.0 at high in Contributor mode on made-up data from a written description alone after Claude Code rejected that model's earlier script-built pooled set, that model is also one of the arms with no memory across sessions, and the private-term check is not exercised. 106 tests in `tests/test_r1b_*.py`, passing.
 
 - The orchestrator (`framework/cycle/`): one command, `python -m framework.cycle run-slot`, runs one pinned Madrid slot from facts to delivered card, with an append-only slot ledger, no blind retry on a send whose delivery is unknown, Disconnect limits by code, a kill file, a card that never waits for a hung model, one more try after a Wonder timeout when a full call's time remains, a watchdog `check-slot` and a read-only `trace`; 363 tests in `tests/test_cycle_orchestrator.py`, `tests/test_cycle_orchestrator_processes.py`, `tests/test_cycle_card_build.py`, `tests/test_cycle_slot_ledger.py`, `tests/test_cycle_trace.py`, `tests/test_cycle_rehearse.py`, `tests/test_proposal_local_retry.py` and `tests/test_proposal_timeout_retry.py`, passing.
 - Public provenance (`framework/provenance/`, `docs/MODELS.md`, `docs/provenance.jsonl`): a read-only export writes one JSON line per slot with counts and codes and no card text, and `make glimmer-proof` runs one synthetic label through llama-swap, prints the served weights' basename, and refuses during a real slot's Glimmer window; 58 tests in `tests/test_provenance_export.py`, `tests/test_provenance_glimmer_proof.py` and `tests/test_provenance_docs.py`, passing.
@@ -119,7 +123,7 @@ Built and merged:
 Not built yet:
 - The replay viewer.
 
-Muse Glimmer has generated facts through this code in a seeded run on synthetic data. Muse Wonder has written proposals through this code on synthetic data, on Muse Code headless on my subscription, with the numbers in [docs/sessions/011-wonder-proposal.md](docs/sessions/011-wonder-proposal.md). A full synthetic slot ran through this code on my local model and Muse Wonder, with a scratch database and a fake Bot API, as [docs/sessions/013-orchestrator.md](docs/sessions/013-orchestrator.md) records. The first real card went out on Nov 2 at 13:30, on time, as the public line in `docs/provenance.jsonl` records. I tapped my choice. An independent recount of its pull-request figure from GitHub's own records matched at every stage, as [docs/sessions/020-source-audit.md](docs/sessions/020-source-audit.md) records under "The first real card". The registered run continues to Nov 4 and I claim no results before it ends.
+On Nov 2, Muse Glimmer ran on my own hardware for every scheduled live card: all 5 slots, two passes each, and 3 of those 5 cards cite at least one of its facts (docs/provenance.jsonl). Muse Glimmer has generated facts through this code in a seeded run on synthetic data. Muse Wonder has written proposals through this code on synthetic data, on Muse Code headless on my subscription, with the numbers in [docs/sessions/011-wonder-proposal.md](docs/sessions/011-wonder-proposal.md). A full synthetic slot ran through this code on my local model and Muse Wonder, with a scratch database and a fake Bot API, as [docs/sessions/013-orchestrator.md](docs/sessions/013-orchestrator.md) records. The first real card went out on Nov 2 at 13:30, on time, as the public line in `docs/provenance.jsonl` records. I tapped my choice. An independent recount of its pull-request figure from GitHub's own records matched at every stage, as [docs/sessions/020-source-audit.md](docs/sessions/020-source-audit.md) records under "The first real card". The registered run continues to Nov 4 and I claim no results before it ends.
 
 ## No medical advice
 
@@ -142,3 +146,7 @@ The four-circle ikigai diagram comes from Marc Winn's 2014 blog post, adapted fr
 - The two goals: [profiles/](profiles/)
 - Design record and past plans: [docs/](docs/)
 - What the literature supports and doesn't: [docs/LITERATURE.md](docs/LITERATURE.md)
+
+## License
+
+The code is under the Apache License 2.0; see [LICENSE](LICENSE).

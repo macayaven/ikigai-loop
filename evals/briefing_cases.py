@@ -13,6 +13,15 @@ needs an unknown family), and free text avoids real names, real measurements,
 and real contact details. Times are frozen on 2026-10-31 (Europe/Madrid, CET,
 UTC+1) unless a case moves them. Actions come only from
 ``profiles/commitments.example.json``, the only registry, loaded once below.
+
+Ticket 10c added M119 and Ticket 24 added the five ``T24-`` cases.
+M119 and ``T24-2030-corrected-builder-period-last-pushes`` replay real
+sentences from delivered cards with the real values they cited, both public
+GitHub counts, and the rest of each briefing is made up. The four
+screen-hour ``T24-`` cases keep a real sentence's shape (the same label,
+direction word and wording) with made-up current, parent and change values
+in the same shape, because screen-hour numbers are personal and stay out of
+this repository.
 """
 
 from __future__ import annotations
@@ -1457,6 +1466,129 @@ def _since_last_mutants() -> tuple[Case, ...]:
 
 MUTANTS: tuple[Case, ...] = (
     _build_mutants() + _redteam_mutants() + _round2_mutants() + _since_last_mutants()
+)
+
+
+# ---------------------------------------------------------------------------
+# Ticket 24: phone misses (outside MUTANTS so its counts stay 119 and 57).
+# ---------------------------------------------------------------------------
+
+
+def _phone_case(
+    profile: str,
+    name: str,
+    text: str,
+    metric_id: str,
+    ref_value: float,
+    current: float,
+    parent: float,
+) -> Case:
+    """One T24 case in M119's shape: sentence, change, current and parent.
+
+    The sentence, its change and both values are real for the two public
+    GitHub counts and made up in the same shape for the four screen hours;
+    the rest of each briefing is made up either way.
+    """
+    base = base_case_with_parent(profile)
+
+    def fn(briefing: dict[str, Any], context: GateContext) -> GateContext:
+        claim = _get_claim(_section(briefing, "since_last"), "claim-s3")
+        claim["text"] = text
+        claim["metric_refs"] = [_ref(metric_id, ref_value)]
+        values = dict(context.metrics.values)
+        values[metric_id] = current
+        ctx = context.model_copy(update={"metrics": MetricSnapshot(values=values)})
+        parent_values = dict(ctx.parent_metrics.values)  # type: ignore[union-attr]
+        parent_values[metric_id] = parent
+        return ctx.model_copy(
+            update={"parent_metrics": MetricSnapshot(values=parent_values)}
+        )
+
+    return _mutate(base, name, ("L1B_SINCE_LAST_WORDING",), fn)
+
+
+PHONE_CASES: tuple[Case, ...] = (
+    _phone_case(
+        "builder",
+        "T24-2030-corrected-builder-period-last-pushes",
+        "Pushes rose 1 in the last period.",
+        "period.last.pushes",
+        1.0,
+        1.0,
+        0.0,
+    ),
+    _phone_case(
+        "builder",
+        "T24-2230-builder-period-last-screen-hours-code",
+        "Code fell -2.00 hours in the last period.",
+        "period.last.screen_hours.code",
+        -2.0,
+        3.0,
+        5.0,
+    ),
+    _phone_case(
+        "disconnect",
+        "T24-2230-disconnect-period-last-screen-hours-ai",
+        "AI rose 2.00 hours in the last period.",
+        "period.last.screen_hours.ai",
+        2.0,
+        6.0,
+        4.0,
+    ),
+    _phone_case(
+        "builder",
+        "T24-2230-corrected-builder-period-last-screen-hours-code",
+        "Code fell 2.00 hours in the last period.",
+        "period.last.screen_hours.code",
+        -2.0,
+        3.0,
+        5.0,
+    ),
+    _phone_case(
+        "disconnect",
+        "T24-2230-corrected-disconnect-period-last-screen-hours-ai",
+        "AI rose 2.00 hours in the last period.",
+        "period.last.screen_hours.ai",
+        2.0,
+        6.0,
+        4.0,
+    ),
+)
+
+
+@dataclass(frozen=True)
+class PhoneMiss:
+    """One real miss on a delivered card: its card label and its case.
+
+    ``shown`` marks whether the trust page shows the entry in its phone
+    table (the two public GitHub counts) or covers it with the sentence
+    about the four screen-hour misses (the four made-up-value cases).
+    """
+
+    card: str
+    case: Case
+    shown: bool
+
+
+_PHONE_M119 = next(c for c in MUTANTS if c.name == "M119-since-last-period-phrase")
+
+PHONE_MISSES: tuple[PhoneMiss, ...] = (
+    PhoneMiss(card="15:30", case=_PHONE_M119, shown=True),
+    PhoneMiss(card="20:30 corrected", case=PHONE_CASES[0], shown=True),
+    PhoneMiss(card="22:30", case=PHONE_CASES[1], shown=False),
+    PhoneMiss(card="22:30", case=PHONE_CASES[2], shown=False),
+    PhoneMiss(card="22:30 corrected", case=PHONE_CASES[3], shown=False),
+    PhoneMiss(card="22:30 corrected", case=PHONE_CASES[4], shown=False),
+)
+
+#: Entries the trust page shows in its phone table.
+PHONE_TABLE_MISSES: tuple[PhoneMiss, ...] = tuple(
+    miss for miss in PHONE_MISSES if miss.shown
+)
+
+#: Entries the trust page covers with its screen-hour sentence.
+PHONE_COVERED_MISSES: tuple[PhoneMiss, ...] = tuple(
+    miss for miss in PHONE_MISSES if not miss.shown
 )
 
 
