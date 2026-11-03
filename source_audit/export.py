@@ -67,6 +67,7 @@ EXPORT_KEYS = frozenset(
         "statements",
         "delta_codes",
         "item",
+        "card",
         "actor",
         "event",
         "repo",
@@ -187,6 +188,8 @@ def _pair(key: str, value: Any) -> bool:
     """Check one export entry; False on any unknown shape."""
     if not isinstance(key, str) or key not in EXPORT_KEYS:
         return False
+    if key == "card":
+        return isinstance(value, int) and not isinstance(value, bool)
     if key in ("feed_settled", "delivery_proven"):
         return isinstance(value, bool)
     if value is None:

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import sqlite3
 import sys
@@ -310,6 +311,7 @@ def _read_all(conn: sqlite3.Connection) -> dict[str, Any]:
             "local_start_retries",
             "SELECT slot, profile FROM local_start_retries",
         )
+        voice, voice_ok = _read_voice(conn, tables)
         conn.execute("COMMIT")
     except BaseException:
         try:
@@ -330,7 +332,70 @@ def _read_all(conn: sqlite3.Connection) -> dict[str, Any]:
         "facts_ok": facts_ok,
         "retries": retries,
         "retries_missing": "local_start_retries" not in tables,
+        "voice": voice,
+        "voice_ok": voice_ok,
     }
+
+
+_VOICE_COLUMNS = ("slot", "status", "operation", "new_card_id", "total_s")
+_VOICE_CLOSED = ("done", "gave_up")
+_VOICE_OPERATIONS = ("done", "skip", "defer", "drop", "keep", "fact_correction")
+
+
+def _read_voice(
+    conn: sqlite3.Connection, tables: set[str]
+) -> tuple[list[tuple[Any, ...]], bool]:
+    """Read the five pinned voice columns, or report them missing.
+
+    Only these columns are ever selected, ordered by message; a missing
+    table or column reads as missing, never as an empty list. Anything
+    else from the table stays out of the export.
+    """
+    if "voice_notes" not in tables:
+        return [], False
+    try:
+        columns = [
+            str(row[1]) for row in conn.execute("PRAGMA table_info(voice_notes)")
+        ]
+    except sqlite3.OperationalError:
+        return [], False
+    if any(column not in columns for column in _VOICE_COLUMNS):
+        return [], False
+    try:
+        rows = [
+            tuple(row)
+            for row in conn.execute(
+                "SELECT slot, status, operation, new_card_id, total_s"
+                " FROM voice_notes ORDER BY message_id"
+            ).fetchall()
+        ]
+    except sqlite3.OperationalError:
+        return [], False
+    return rows, True
+
+
+def _voice_entry(operation: Any, new_card_id: Any, total_s: Any) -> dict[str, Any]:
+    """Build one closed voice entry: an operation word, a sent flag, a time.
+
+    The stored operation ``none`` means the bot asked which one was meant.
+    Anything missing or outside the closed words reads unknown. The time
+    is whole milliseconds, or unknown when missing, negative or not
+    finite. The new card id itself never leaves.
+    """
+    if operation == "none":
+        word = "asked"
+    elif operation in _VOICE_OPERATIONS:
+        word = str(operation)
+    else:
+        word = "unknown"
+    sent = isinstance(new_card_id, str) and new_card_id != ""
+    if isinstance(total_s, bool):
+        latency: int | str = "unknown"
+    elif isinstance(total_s, (int, float)) and math.isfinite(total_s) and total_s >= 0:
+        latency = int(total_s * 1000)
+    else:
+        latency = "unknown"
+    return {"operation": word, "new_card_sent": sent, "latency_ms": latency}
 
 
 def _attempt_entry(row: tuple[Any, ...]) -> dict[str, Any]:
@@ -566,6 +631,8 @@ def _build_line(
     fact_index: dict[tuple[str, int, str], str],
     retries: list[tuple[str, str]],
     retries_missing: bool,
+    voice_rows: list[tuple[Any, ...]],
+    voice_ok: bool,
 ) -> dict[str, Any]:
     """One closed line for one slot instant.
 
@@ -718,6 +785,17 @@ def _build_line(
         origin_all = side_origins[0]
     else:
         origin_all = "mixed"
+    voice: Any = "unknown"
+    if voice_ok:
+        entries: list[dict[str, Any]] = []
+        for stamp_raw, status, operation, new_card_id, total_s in voice_rows:
+            moment = _parse_moment(stamp_raw)
+            if moment is None or _utc_key(moment) != key:
+                continue
+            if status not in _VOICE_CLOSED:
+                continue
+            entries.append(_voice_entry(operation, new_card_id, total_s))
+        voice = entries
     return {
         "slot": slot.astimezone(MADRID).isoformat(),
         "delivery": _delivery(send_rows, latest_card is not None),
@@ -729,6 +807,7 @@ def _build_line(
         "facts_cited": card_cited,
         "not_on_card": not_on_card,
         "sides": sides,
+        "voice_notes": voice,
     }
 
 
@@ -827,6 +906,8 @@ def build_lines(db_path: Path) -> tuple[list[str], dict[str, int]]:
         "model": 0,
         "unknown": 0,
     }
+    voice_rows: list[tuple[Any, ...]] = data["voice"]
+    voice_ok = bool(data["voice_ok"])
     for stamp in sorted(by_slot):
         raw = _build_line(
             moments[stamp],
@@ -841,6 +922,8 @@ def build_lines(db_path: Path) -> tuple[list[str], dict[str, int]]:
             fact_index,
             retries,
             retries_missing,
+            voice_rows,
+            voice_ok,
         )
         try:
             line = ProvenanceLine.model_validate(raw)
