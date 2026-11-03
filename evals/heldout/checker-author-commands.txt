@@ -1,0 +1,8 @@
+The shell commands in the author's Codex run log, in order. All ran in the author's folder, whose path is left out; the paths below are relative to it. Only the commands are shown, not their output. The log records no other tool call and no web search.
+
+1. pwd -P
+2. cat INSTRUCTIONS.md
+3. rg --files contract
+4. cat contract/worked-example/README.md contract/worked-example/input.json contract/worked-example/input-fixed.json
+5. cat contract/checker-page.md contract/readme-check-your-own-agent.md
+6. cat contract/page-examples/pass.json contract/page-examples/leaked-term.json contract/page-examples/false-number.json contract/redteam-limits-and-true-rejects.md
