@@ -599,6 +599,35 @@ verdicts, and placed the data file and the three published files
 muse-spark-1.3 at low effort, wrote the README section and the freeze test
 and made this commit, in a headless session Claude Code started, in
 Contributor mode, on this public repo.
+## Held-out gate set v1 scored (2026-11-02)
+
+I scored the frozen gate set once, on the commit the live cards moved to
+on Nov 2 at 23:29, `3e31338bf1ede702d82d94aa4dd1ec0851ef557b`: 18 true pass, 19
+true stop, 1 false pass (G18), 2 false stop (G23 and G25), no verdict 0,
+so predicted/actual agreement is 37 of 40. The results are in
+`evals/heldout/gate-results-v1.md`, and the Round 3 section and the
+runner summary now sit in `docs/redteam/README.md`.
+
+Claude Code copied the frozen file to `docs/redteam/round-3.json`, ran
+the red-team runner once with `--write-frozen` on the live cards' commit,
+and checked the counts; the runner wrote `round-3.frozen.json` and
+`round-3.results.json`. Muse Code, muse-spark-1.3 at medium effort, wrote
+the Round 3 section, the results doc, the summary updates and the test,
+and made this commit, in a headless session Claude Code started, in
+Contributor mode, on this public repo. Muse Code wrote
+`docs/redteam/round-3.adjudicated.json` by the registered rule.
+
+I disclose that the registered rule said the runner runs once. After Muse Code
+added the adjudication file, the repository's staleness test required
+`round-3.results.json` to match a fresh regeneration, so Muse Code ran the runner
+a second time on `round-3.json`, without `--write-frozen`, on this branch,
+whose gate files are byte-identical to those at `3e31338`. Muse Code checked that
+its 40 rows are identical to the scored run's rows in
+`round-3.frozen.json`, and that it only added an empty review list. Muse Code left
+`round-3.frozen.json`, the scored record with its stamps, unchanged, and Claude Code
+checked the rows again. I
+confirm the second run changed no verdict.
+
 ## Ticket 16c — since-last evidence (2026-11-02)
 
 Built on branch `t16c-since-last-evidence` per [docs/plans/016c-since-last-evidence.md](docs/plans/016c-since-last-evidence.md):
