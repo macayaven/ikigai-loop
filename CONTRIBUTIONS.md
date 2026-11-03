@@ -793,3 +793,14 @@ I put the live run in numbers on its own page and moved the checker paragraph up
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code started this session from a prose prompt with the numbers produced by a read-only script, and Muse Code (muse-spark-1.3, low effort) made the edits.
+
+## Docs 9 (2026-11-04)
+
+I published the R9 audio result. Docs and data only: no behaviour, schema, fixture or test change.
+
+- `docs/r9-audio.md`: I wrote the result of the 60 spoken cases from the working report, with the per-language and paired tables, the failures table, the TTS confound and the Whisper check, the limits, and where the data is.
+- `evals/r9_audio/results.json`: I committed the evaluation output unedited.
+- `README.md`: I added one sentence at the end of the voice correction bullet with the audio score and the link to the new page.
+- `CONTRIBUTIONS.md`: this entry.
+
+A Claude Code agent ran the evaluation privately (cloned-voice TTS, Meta speech-to-text through the product's transcriber, R9's own runner) and Muse Code (muse-spark-1.3, medium effort) wrote the doc and committed the data unedited.
