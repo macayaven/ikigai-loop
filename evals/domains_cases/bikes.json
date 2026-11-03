@@ -1,0 +1,2150 @@
+{
+  "cases": [
+    {
+      "case_id": "control-2011-01-03",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-01-03",
+            "value": 1349
+          }
+        ],
+        "text": "Total rentals were 1,349 on 2011-01-03."
+      },
+      "expect": "pass",
+      "kind": "daily_total",
+      "window_start": "2011-01-03"
+    },
+    {
+      "case_id": "control-2011-01-17",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-01-18",
+            "value": 9
+          }
+        ],
+        "text": "Casual rentals were 9 on 2011-01-18."
+      },
+      "expect": "pass",
+      "kind": "daily_casual",
+      "window_start": "2011-01-17"
+    },
+    {
+      "case_id": "control-2011-01-24",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-26",
+            "value": 472
+          }
+        ],
+        "text": "Registered rentals were 472 on 2011-01-26."
+      },
+      "expect": "pass",
+      "kind": "daily_registered",
+      "window_start": "2011-01-24"
+    },
+    {
+      "case_id": "control-2011-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "week_total_rentals",
+            "value": 13045
+          }
+        ],
+        "text": "Total rentals were 13,045 in the week of 2011-03-07."
+      },
+      "expect": "pass",
+      "kind": "week_total",
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "control-2011-07-04",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "busy_days",
+            "value": 0
+          }
+        ],
+        "text": "Busy days numbered 0 in the week of 2011-07-04."
+      },
+      "expect": "pass",
+      "kind": "busy_days",
+      "window_start": "2011-07-04"
+    },
+    {
+      "case_id": "control-2011-07-25",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-07-25",
+            "value": 3840
+          },
+          {
+            "metric_id": "total_rentals.2011-07-26",
+            "value": 4590
+          }
+        ],
+        "text": "Total rentals rose from 3,840 on 2011-07-25 to 4,590 on 2011-07-26."
+      },
+      "expect": "pass",
+      "kind": "comparison",
+      "window_start": "2011-07-25"
+    },
+    {
+      "case_id": "control-2011-10-17",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-10-23",
+            "value": 4381
+          }
+        ],
+        "text": "Total rentals were 4,381 on 2011-10-23."
+      },
+      "expect": "pass",
+      "kind": "daily_total",
+      "window_start": "2011-10-17"
+    },
+    {
+      "case_id": "control-2011-11-28",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-11-28",
+            "value": 253
+          }
+        ],
+        "text": "Casual rentals were 253 on 2011-11-28."
+      },
+      "expect": "pass",
+      "kind": "daily_casual",
+      "window_start": "2011-11-28"
+    },
+    {
+      "case_id": "control-2011-12-05",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-12-06",
+            "value": 2468
+          }
+        ],
+        "text": "Registered rentals were 2,468 on 2011-12-06."
+      },
+      "expect": "pass",
+      "kind": "daily_registered",
+      "window_start": "2011-12-05"
+    },
+    {
+      "case_id": "control-2011-12-12",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "week_total_rentals",
+            "value": 23029
+          }
+        ],
+        "text": "Total rentals were 23,029 in the week of 2011-12-12."
+      },
+      "expect": "pass",
+      "kind": "week_total",
+      "window_start": "2011-12-12"
+    },
+    {
+      "case_id": "control-2012-02-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "busy_days",
+            "value": 0
+          }
+        ],
+        "text": "Busy days numbered 0 in the week of 2012-02-06."
+      },
+      "expect": "pass",
+      "kind": "busy_days",
+      "window_start": "2012-02-06"
+    },
+    {
+      "case_id": "control-2012-02-13",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-02-13",
+            "value": 3422
+          },
+          {
+            "metric_id": "total_rentals.2012-02-14",
+            "value": 3922
+          }
+        ],
+        "text": "Total rentals rose from 3,422 on 2012-02-13 to 3,922 on 2012-02-14."
+      },
+      "expect": "pass",
+      "kind": "comparison",
+      "window_start": "2012-02-13"
+    },
+    {
+      "case_id": "control-2012-03-19",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-03-24",
+            "value": 3372
+          }
+        ],
+        "text": "Total rentals were 3,372 on 2012-03-24."
+      },
+      "expect": "pass",
+      "kind": "daily_total",
+      "window_start": "2012-03-19"
+    },
+    {
+      "case_id": "control-2012-04-30",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-05-06",
+            "value": 2135
+          }
+        ],
+        "text": "Casual rentals were 2,135 on 2012-05-06."
+      },
+      "expect": "pass",
+      "kind": "daily_casual",
+      "window_start": "2012-04-30"
+    },
+    {
+      "case_id": "control-2012-06-11",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-06-11",
+            "value": 5647
+          }
+        ],
+        "text": "Registered rentals were 5,647 on 2012-06-11."
+      },
+      "expect": "pass",
+      "kind": "daily_registered",
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "control-2012-07-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "week_total_rentals",
+            "value": 48068
+          }
+        ],
+        "text": "Total rentals were 48,068 in the week of 2012-07-09."
+      },
+      "expect": "pass",
+      "kind": "week_total",
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "control-2012-07-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "busy_days",
+            "value": 1
+          }
+        ],
+        "text": "Busy days numbered 1 in the week of 2012-07-16."
+      },
+      "expect": "pass",
+      "kind": "busy_days",
+      "window_start": "2012-07-16"
+    },
+    {
+      "case_id": "control-2012-08-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-08-06",
+            "value": 7013
+          },
+          {
+            "metric_id": "total_rentals.2012-08-07",
+            "value": 7273
+          }
+        ],
+        "text": "Total rentals rose from 7,013 on 2012-08-06 to 7,273 on 2012-08-07."
+      },
+      "expect": "pass",
+      "kind": "comparison",
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "control-2012-09-10",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-09-14",
+            "value": 8009
+          }
+        ],
+        "text": "Total rentals were 8,009 on 2012-09-14."
+      },
+      "expect": "pass",
+      "kind": "daily_total",
+      "window_start": "2012-09-10"
+    },
+    {
+      "case_id": "control-2012-10-22",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-10-27",
+            "value": 2643
+          }
+        ],
+        "text": "Casual rentals were 2,643 on 2012-10-27."
+      },
+      "expect": "pass",
+      "kind": "daily_casual",
+      "window_start": "2012-10-22"
+    },
+    {
+      "case_id": "wrong_value-00-2011-10-17",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-10-19",
+            "value": 262
+          }
+        ],
+        "text": "Casual rentals were 262 on 2011-10-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-10-19",
+            "value": 254
+          }
+        ],
+        "text": "Casual rentals were 254 on 2011-10-19."
+      },
+      "window_start": "2011-10-17"
+    },
+    {
+      "case_id": "wrong_value-01-2012-09-10",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-09-11",
+            "value": 7774
+          }
+        ],
+        "text": "Total rentals were 7,774 on 2012-09-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-09-11",
+            "value": 7767
+          }
+        ],
+        "text": "Total rentals were 7,767 on 2012-09-11."
+      },
+      "window_start": "2012-09-10"
+    },
+    {
+      "case_id": "wrong_value-02-2011-01-03",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-09",
+            "value": 777
+          }
+        ],
+        "text": "Registered rentals were 777 on 2011-01-09."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-09",
+            "value": 768
+          }
+        ],
+        "text": "Registered rentals were 768 on 2011-01-09."
+      },
+      "window_start": "2011-01-03"
+    },
+    {
+      "case_id": "wrong_value-03-2012-09-10",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-09-15",
+            "value": 5556
+          }
+        ],
+        "text": "Registered rentals were 5,556 on 2012-09-15."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-09-15",
+            "value": 5554
+          }
+        ],
+        "text": "Registered rentals were 5,554 on 2012-09-15."
+      },
+      "window_start": "2012-09-10"
+    },
+    {
+      "case_id": "wrong_value-04-2012-06-11",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-06-11",
+            "value": 1025
+          }
+        ],
+        "text": "Casual rentals were 1,025 on 2012-06-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-06-11",
+            "value": 1017
+          }
+        ],
+        "text": "Casual rentals were 1,017 on 2012-06-11."
+      },
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_value-05-2011-07-25",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-07-28",
+            "value": 3784
+          }
+        ],
+        "text": "Registered rentals were 3,788 on 2011-07-28."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-07-28",
+            "value": 3784
+          }
+        ],
+        "text": "Registered rentals were 3,784 on 2011-07-28."
+      },
+      "window_start": "2011-07-25"
+    },
+    {
+      "case_id": "wrong_value-06-2011-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-03-12",
+            "value": 724
+          }
+        ],
+        "text": "Casual rentals were 729 on 2011-03-12."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-03-12",
+            "value": 724
+          }
+        ],
+        "text": "Casual rentals were 724 on 2011-03-12."
+      },
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_value-07-2011-10-17",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-10-23",
+            "value": 4381
+          }
+        ],
+        "text": "Total rentals were 4,387 on 2011-10-23."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-10-23",
+            "value": 4381
+          }
+        ],
+        "text": "Total rentals were 4,381 on 2011-10-23."
+      },
+      "window_start": "2011-10-17"
+    },
+    {
+      "case_id": "wrong_value-08-2012-08-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-08-09",
+            "value": 6090
+          }
+        ],
+        "text": "Registered rentals were 6,099 on 2012-08-09."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-08-09",
+            "value": 6090
+          }
+        ],
+        "text": "Registered rentals were 6,090 on 2012-08-09."
+      },
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_value-09-2012-07-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-07-13",
+            "value": 1511
+          }
+        ],
+        "text": "Casual rentals were 1,519 on 2012-07-13."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-07-13",
+            "value": 1511
+          }
+        ],
+        "text": "Casual rentals were 1,511 on 2012-07-13."
+      },
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "wrong_label-00-2012-02-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-02-11",
+            "value": 2169
+          }
+        ],
+        "text": "Casual rentals were 2,169 on 2012-02-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-02-11",
+            "value": 2169
+          }
+        ],
+        "text": "Total rentals were 2,169 on 2012-02-11."
+      },
+      "window_start": "2012-02-06"
+    },
+    {
+      "case_id": "wrong_label-01-2012-04-30",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-05-01",
+            "value": 5087
+          }
+        ],
+        "text": "Total rentals were 5,087 on 2012-05-01."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-05-01",
+            "value": 5087
+          }
+        ],
+        "text": "Registered rentals were 5,087 on 2012-05-01."
+      },
+      "window_start": "2012-04-30"
+    },
+    {
+      "case_id": "wrong_label-02-2011-07-04",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-07-05",
+            "value": 3634
+          }
+        ],
+        "text": "Total rentals were 3,634 on 2011-07-05."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-07-05",
+            "value": 3634
+          }
+        ],
+        "text": "Registered rentals were 3,634 on 2011-07-05."
+      },
+      "window_start": "2011-07-04"
+    },
+    {
+      "case_id": "wrong_label-03-2011-01-17",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-19",
+            "value": 1572
+          }
+        ],
+        "text": "Total rentals were 1,572 on 2011-01-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-19",
+            "value": 1572
+          }
+        ],
+        "text": "Registered rentals were 1,572 on 2011-01-19."
+      },
+      "window_start": "2011-01-17"
+    },
+    {
+      "case_id": "wrong_label-04-2012-07-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-07-09",
+            "value": 5571
+          }
+        ],
+        "text": "Total rentals were 5,571 on 2012-07-09."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-07-09",
+            "value": 5571
+          }
+        ],
+        "text": "Registered rentals were 5,571 on 2012-07-09."
+      },
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "wrong_label-05-2012-07-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-07-19",
+            "value": 888
+          }
+        ],
+        "text": "Registered rentals were 888 on 2012-07-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-07-19",
+            "value": 888
+          }
+        ],
+        "text": "Casual rentals were 888 on 2012-07-19."
+      },
+      "window_start": "2012-07-16"
+    },
+    {
+      "case_id": "wrong_label-06-2012-03-19",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-03-20",
+            "value": 1051
+          }
+        ],
+        "text": "Registered rentals were 1,051 on 2012-03-20."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-03-20",
+            "value": 1051
+          }
+        ],
+        "text": "Casual rentals were 1,051 on 2012-03-20."
+      },
+      "window_start": "2012-03-19"
+    },
+    {
+      "case_id": "wrong_label-07-2011-11-28",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-12-04",
+            "value": 2851
+          }
+        ],
+        "text": "Total rentals were 2,851 on 2011-12-04."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-12-04",
+            "value": 2851
+          }
+        ],
+        "text": "Registered rentals were 2,851 on 2011-12-04."
+      },
+      "window_start": "2011-11-28"
+    },
+    {
+      "case_id": "wrong_label-08-2012-07-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-07-20",
+            "value": 5870
+          }
+        ],
+        "text": "Casual rentals were 5,870 on 2012-07-20."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-07-20",
+            "value": 5870
+          }
+        ],
+        "text": "Total rentals were 5,870 on 2012-07-20."
+      },
+      "window_start": "2012-07-16"
+    },
+    {
+      "case_id": "wrong_label-09-2012-06-11",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-06-12",
+            "value": 4495
+          }
+        ],
+        "text": "Total rentals were 4,495 on 2012-06-12."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-06-12",
+            "value": 4495
+          }
+        ],
+        "text": "Registered rentals were 4,495 on 2012-06-12."
+      },
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_period-00-2012-08-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-08-12",
+            "value": 2182
+          }
+        ],
+        "text": "Casual rentals were 2,182 on 2012-08-06."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-08-12",
+            "value": 2182
+          }
+        ],
+        "text": "Casual rentals were 2,182 on 2012-08-12."
+      },
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_period-01-2012-04-30",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-04-30",
+            "value": 4907
+          }
+        ],
+        "text": "Registered rentals were 4,907 on 2012-05-01."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-04-30",
+            "value": 4907
+          }
+        ],
+        "text": "Registered rentals were 4,907 on 2012-04-30."
+      },
+      "window_start": "2012-04-30"
+    },
+    {
+      "case_id": "wrong_period-02-2011-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-03-07",
+            "value": 1628
+          }
+        ],
+        "text": "Registered rentals were 1,628 on 2011-03-08."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-03-07",
+            "value": 1628
+          }
+        ],
+        "text": "Registered rentals were 1,628 on 2011-03-07."
+      },
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_period-03-2012-02-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-02-07",
+            "value": 199
+          }
+        ],
+        "text": "Casual rentals were 199 on 2012-02-08."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-02-07",
+            "value": 199
+          }
+        ],
+        "text": "Casual rentals were 199 on 2012-02-07."
+      },
+      "window_start": "2012-02-06"
+    },
+    {
+      "case_id": "wrong_period-04-2012-08-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-08-12",
+            "value": 6544
+          }
+        ],
+        "text": "Total rentals were 6,544 on 2012-08-06."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-08-12",
+            "value": 6544
+          }
+        ],
+        "text": "Total rentals were 6,544 on 2012-08-12."
+      },
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_period-05-2011-12-05",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-12-07",
+            "value": 655
+          }
+        ],
+        "text": "Registered rentals were 655 on 2011-12-08."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-12-07",
+            "value": 655
+          }
+        ],
+        "text": "Registered rentals were 655 on 2011-12-07."
+      },
+      "window_start": "2011-12-05"
+    },
+    {
+      "case_id": "wrong_period-06-2011-01-24",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-01-24",
+            "value": 1416
+          }
+        ],
+        "text": "Total rentals were 1,416 on 2011-01-25."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-01-24",
+            "value": 1416
+          }
+        ],
+        "text": "Total rentals were 1,416 on 2011-01-24."
+      },
+      "window_start": "2011-01-24"
+    },
+    {
+      "case_id": "wrong_period-07-2012-02-13",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-02-18",
+            "value": 1435
+          }
+        ],
+        "text": "Casual rentals were 1,435 on 2012-02-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2012-02-18",
+            "value": 1435
+          }
+        ],
+        "text": "Casual rentals were 1,435 on 2012-02-18."
+      },
+      "window_start": "2012-02-13"
+    },
+    {
+      "case_id": "wrong_period-08-2012-04-30",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-05-06",
+            "value": 6359
+          }
+        ],
+        "text": "Total rentals were 6,359 on 2012-04-30."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-05-06",
+            "value": 6359
+          }
+        ],
+        "text": "Total rentals were 6,359 on 2012-05-06."
+      },
+      "window_start": "2012-04-30"
+    },
+    {
+      "case_id": "wrong_period-09-2012-06-11",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-06-12",
+            "value": 4972
+          }
+        ],
+        "text": "Total rentals were 4,972 on 2012-06-13."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-06-12",
+            "value": 4972
+          }
+        ],
+        "text": "Total rentals were 4,972 on 2012-06-12."
+      },
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_unit-00-2011-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-03-12",
+            "value": 724
+          }
+        ],
+        "text": "Casual rentals were 724 hours on 2011-03-12."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-03-12",
+            "value": 724
+          }
+        ],
+        "text": "Casual rentals were 724 on 2011-03-12."
+      },
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_unit-01-2011-11-28",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-12-01",
+            "value": 3545
+          }
+        ],
+        "text": "Registered rentals were 3,545 minutes on 2011-12-01."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-12-01",
+            "value": 3545
+          }
+        ],
+        "text": "Registered rentals were 3,545 on 2011-12-01."
+      },
+      "window_start": "2011-11-28"
+    },
+    {
+      "case_id": "wrong_unit-02-2011-01-24",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-28",
+            "value": 1129
+          }
+        ],
+        "text": "Registered rentals were 1,129 seconds on 2011-01-28."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-28",
+            "value": 1129
+          }
+        ],
+        "text": "Registered rentals were 1,129 on 2011-01-28."
+      },
+      "window_start": "2011-01-24"
+    },
+    {
+      "case_id": "wrong_unit-03-2012-09-10",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "busy_days",
+            "value": 7
+          }
+        ],
+        "text": "Busy days numbered 7 weeks in the week of 2012-09-10."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "busy_days",
+            "value": 7
+          }
+        ],
+        "text": "Busy days numbered 7 in the week of 2012-09-10."
+      },
+      "window_start": "2012-09-10"
+    },
+    {
+      "case_id": "wrong_unit-04-2012-07-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-07-21",
+            "value": 4459
+          }
+        ],
+        "text": "Total rentals were 4,459 percent on 2012-07-21."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-07-21",
+            "value": 4459
+          }
+        ],
+        "text": "Total rentals were 4,459 on 2012-07-21."
+      },
+      "window_start": "2012-07-16"
+    },
+    {
+      "case_id": "wrong_unit-05-2012-10-22",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-10-25",
+            "value": 6484
+          }
+        ],
+        "text": "Registered rentals were 6,484 hours on 2012-10-25."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-10-25",
+            "value": 6484
+          }
+        ],
+        "text": "Registered rentals were 6,484 on 2012-10-25."
+      },
+      "window_start": "2012-10-22"
+    },
+    {
+      "case_id": "wrong_unit-06-2011-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-03-12",
+            "value": 1408
+          }
+        ],
+        "text": "Registered rentals were 1,408 minutes on 2011-03-12."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-03-12",
+            "value": 1408
+          }
+        ],
+        "text": "Registered rentals were 1,408 on 2011-03-12."
+      },
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_unit-07-2012-08-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-08-10",
+            "value": 4721
+          }
+        ],
+        "text": "Registered rentals were 4,721 seconds on 2012-08-10."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-08-10",
+            "value": 4721
+          }
+        ],
+        "text": "Registered rentals were 4,721 on 2012-08-10."
+      },
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_unit-08-2011-12-05",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "busy_days",
+            "value": 0
+          }
+        ],
+        "text": "Busy days numbered 0 weeks in the week of 2011-12-05."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "busy_days",
+            "value": 0
+          }
+        ],
+        "text": "Busy days numbered 0 in the week of 2011-12-05."
+      },
+      "window_start": "2011-12-05"
+    },
+    {
+      "case_id": "wrong_unit-09-2011-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-03-12",
+            "value": 724
+          }
+        ],
+        "text": "Casual rentals were 724 percent on 2011-03-12."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-03-12",
+            "value": 724
+          }
+        ],
+        "text": "Casual rentals were 724 on 2011-03-12."
+      },
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_source-00-2011-10-17",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-03",
+            "value": 2170
+          }
+        ],
+        "text": "Registered rentals were 2,170 on 2011-10-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-10-19",
+            "value": 2170
+          }
+        ],
+        "text": "Registered rentals were 2,170 on 2011-10-19."
+      },
+      "window_start": "2011-10-17"
+    },
+    {
+      "case_id": "wrong_source-01-2012-10-22",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-03",
+            "value": 5209
+          }
+        ],
+        "text": "Registered rentals were 5,209 on 2012-10-27."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-10-27",
+            "value": 5209
+          }
+        ],
+        "text": "Registered rentals were 5,209 on 2012-10-27."
+      },
+      "window_start": "2012-10-22"
+    },
+    {
+      "case_id": "wrong_source-02-2011-11-28",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-01-03",
+            "value": 706
+          }
+        ],
+        "text": "Casual rentals were 706 on 2011-12-03."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "casual_rentals.2011-12-03",
+            "value": 706
+          }
+        ],
+        "text": "Casual rentals were 706 on 2011-12-03."
+      },
+      "window_start": "2011-11-28"
+    },
+    {
+      "case_id": "wrong_source-03-2012-08-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-01-03",
+            "value": 6299
+          }
+        ],
+        "text": "Total rentals were 6,299 on 2012-08-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-08-11",
+            "value": 6299
+          }
+        ],
+        "text": "Total rentals were 6,299 on 2012-08-11."
+      },
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_source-04-2012-02-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-03",
+            "value": 1977
+          }
+        ],
+        "text": "Registered rentals were 1,977 on 2012-02-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-02-11",
+            "value": 1977
+          }
+        ],
+        "text": "Registered rentals were 1,977 on 2012-02-11."
+      },
+      "window_start": "2012-02-06"
+    },
+    {
+      "case_id": "wrong_source-05-2012-06-11",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_5"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-06-15",
+            "value": 6102
+          }
+        ],
+        "text": "Registered rentals were 6,102 on 2012-06-15."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2012-06-15",
+            "value": 6102
+          }
+        ],
+        "text": "Registered rentals were 6,102 on 2012-06-15."
+      },
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_source-06-2011-01-17",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_6"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-17",
+            "value": 883
+          }
+        ],
+        "text": "Registered rentals were 883 on 2011-01-17."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "registered_rentals.2011-01-17",
+            "value": 883
+          }
+        ],
+        "text": "Registered rentals were 883 on 2011-01-17."
+      },
+      "window_start": "2011-01-17"
+    },
+    {
+      "case_id": "wrong_source-07-2011-07-25",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_7"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-07-29",
+            "value": 3846
+          }
+        ],
+        "text": "Total rentals were 3,846 on 2011-07-29."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-07-29",
+            "value": 3846
+          }
+        ],
+        "text": "Total rentals were 3,846 on 2011-07-29."
+      },
+      "window_start": "2011-07-25"
+    },
+    {
+      "case_id": "wrong_source-08-2011-12-12",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_8"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-12-15",
+            "value": 3709
+          }
+        ],
+        "text": "Total rentals were 3,709 on 2011-12-15."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-12-15",
+            "value": 3709
+          }
+        ],
+        "text": "Total rentals were 3,709 on 2011-12-15."
+      },
+      "window_start": "2011-12-12"
+    },
+    {
+      "case_id": "wrong_source-09-2011-07-25",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_9"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-07-28",
+            "value": 4390
+          }
+        ],
+        "text": "Total rentals were 4,390 on 2011-07-28."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-07-28",
+            "value": 4390
+          }
+        ],
+        "text": "Total rentals were 4,390 on 2011-07-28."
+      },
+      "window_start": "2011-07-25"
+    },
+    {
+      "case_id": "wrong_direction-00-2011-12-12",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-12-17",
+            "value": 2739
+          },
+          {
+            "metric_id": "total_rentals.2011-12-18",
+            "value": 2431
+          }
+        ],
+        "text": "Total rentals rose from 2,739 on 2011-12-17 to 2,431 on 2011-12-18."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-12-17",
+            "value": 2739
+          },
+          {
+            "metric_id": "total_rentals.2011-12-18",
+            "value": 2431
+          }
+        ],
+        "text": "Total rentals fell from 2,739 on 2011-12-17 to 2,431 on 2011-12-18."
+      },
+      "window_start": "2011-12-12"
+    },
+    {
+      "case_id": "wrong_direction-01-2011-12-12",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-12-13",
+            "value": 3523
+          },
+          {
+            "metric_id": "total_rentals.2011-12-14",
+            "value": 3740
+          }
+        ],
+        "text": "Total rentals decreased from 3,523 on 2011-12-13 to 3,740 on 2011-12-14."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-12-13",
+            "value": 3523
+          },
+          {
+            "metric_id": "total_rentals.2011-12-14",
+            "value": 3740
+          }
+        ],
+        "text": "Total rentals increased from 3,523 on 2011-12-13 to 3,740 on 2011-12-14."
+      },
+      "window_start": "2011-12-12"
+    },
+    {
+      "case_id": "wrong_direction-02-2011-01-03",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-01-04",
+            "value": 1562
+          },
+          {
+            "metric_id": "total_rentals.2011-01-05",
+            "value": 1600
+          }
+        ],
+        "text": "Total rentals went down from 1,562 on 2011-01-04 to 1,600 on 2011-01-05."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-01-04",
+            "value": 1562
+          },
+          {
+            "metric_id": "total_rentals.2011-01-05",
+            "value": 1600
+          }
+        ],
+        "text": "Total rentals went up from 1,562 on 2011-01-04 to 1,600 on 2011-01-05."
+      },
+      "window_start": "2011-01-03"
+    },
+    {
+      "case_id": "wrong_direction-03-2011-12-05",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-12-05",
+            "value": 3811
+          },
+          {
+            "metric_id": "total_rentals.2011-12-06",
+            "value": 2594
+          }
+        ],
+        "text": "Total rentals rose from 3,811 on 2011-12-05 to 2,594 on 2011-12-06."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-12-05",
+            "value": 3811
+          },
+          {
+            "metric_id": "total_rentals.2011-12-06",
+            "value": 2594
+          }
+        ],
+        "text": "Total rentals fell from 3,811 on 2011-12-05 to 2,594 on 2011-12-06."
+      },
+      "window_start": "2011-12-05"
+    },
+    {
+      "case_id": "wrong_direction-04-2011-01-17",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-01-19",
+            "value": 1650
+          },
+          {
+            "metric_id": "total_rentals.2011-01-20",
+            "value": 1927
+          }
+        ],
+        "text": "Total rentals decreased from 1,650 on 2011-01-19 to 1,927 on 2011-01-20."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-01-19",
+            "value": 1650
+          },
+          {
+            "metric_id": "total_rentals.2011-01-20",
+            "value": 1927
+          }
+        ],
+        "text": "Total rentals increased from 1,650 on 2011-01-19 to 1,927 on 2011-01-20."
+      },
+      "window_start": "2011-01-17"
+    },
+    {
+      "case_id": "wrong_direction-05-2012-08-06",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-08-09",
+            "value": 7286
+          },
+          {
+            "metric_id": "total_rentals.2012-08-10",
+            "value": 5786
+          }
+        ],
+        "text": "Total rentals went up from 7,286 on 2012-08-09 to 5,786 on 2012-08-10."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-08-09",
+            "value": 7286
+          },
+          {
+            "metric_id": "total_rentals.2012-08-10",
+            "value": 5786
+          }
+        ],
+        "text": "Total rentals went down from 7,286 on 2012-08-09 to 5,786 on 2012-08-10."
+      },
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_direction-06-2012-06-11",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-06-13",
+            "value": 7421
+          },
+          {
+            "metric_id": "total_rentals.2012-06-14",
+            "value": 7363
+          }
+        ],
+        "text": "Total rentals rose from 7,421 on 2012-06-13 to 7,363 on 2012-06-14."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-06-13",
+            "value": 7421
+          },
+          {
+            "metric_id": "total_rentals.2012-06-14",
+            "value": 7363
+          }
+        ],
+        "text": "Total rentals fell from 7,421 on 2012-06-13 to 7,363 on 2012-06-14."
+      },
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_direction-07-2012-07-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-07-10",
+            "value": 6290
+          },
+          {
+            "metric_id": "total_rentals.2012-07-11",
+            "value": 7264
+          }
+        ],
+        "text": "Total rentals decreased from 6,290 on 2012-07-10 to 7,264 on 2012-07-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-07-10",
+            "value": 6290
+          },
+          {
+            "metric_id": "total_rentals.2012-07-11",
+            "value": 7264
+          }
+        ],
+        "text": "Total rentals increased from 6,290 on 2012-07-10 to 7,264 on 2012-07-11."
+      },
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "wrong_direction-08-2011-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-03-10",
+            "value": 623
+          },
+          {
+            "metric_id": "total_rentals.2011-03-11",
+            "value": 1977
+          }
+        ],
+        "text": "Total rentals went down from 623 on 2011-03-10 to 1,977 on 2011-03-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-03-10",
+            "value": 623
+          },
+          {
+            "metric_id": "total_rentals.2011-03-11",
+            "value": 1977
+          }
+        ],
+        "text": "Total rentals went up from 623 on 2011-03-10 to 1,977 on 2011-03-11."
+      },
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_direction-09-2012-03-19",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-03-21",
+            "value": 6230
+          },
+          {
+            "metric_id": "total_rentals.2012-03-22",
+            "value": 6871
+          }
+        ],
+        "text": "Total rentals fell from 6,230 on 2012-03-21 to 6,871 on 2012-03-22."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-03-21",
+            "value": 6230
+          },
+          {
+            "metric_id": "total_rentals.2012-03-22",
+            "value": 6871
+          }
+        ],
+        "text": "Total rentals rose from 6,230 on 2012-03-21 to 6,871 on 2012-03-22."
+      },
+      "window_start": "2012-03-19"
+    }
+  ],
+  "pack_id": "bikes",
+  "seed": 20261104,
+  "windows": [
+    "2011-01-03",
+    "2011-01-17",
+    "2011-01-24",
+    "2011-03-07",
+    "2011-07-04",
+    "2011-07-25",
+    "2011-10-17",
+    "2011-11-28",
+    "2011-12-05",
+    "2011-12-12",
+    "2012-02-06",
+    "2012-02-13",
+    "2012-03-19",
+    "2012-04-30",
+    "2012-06-11",
+    "2012-07-09",
+    "2012-07-16",
+    "2012-08-06",
+    "2012-09-10",
+    "2012-10-22"
+  ]
+}

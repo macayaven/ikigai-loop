@@ -1,0 +1,83 @@
+{
+  "pack_id": "energy",
+  "title": "Home energy review",
+  "note": "Historical public data (one house, January to May 2016, energy logged every 10 minutes, via the UCI Machine Learning Repository). Not a deployment and not a user.",
+  "goal": {
+    "id": "spot-heavy-weeks",
+    "text": "Notice the weeks when the appliances run heavy, before the bill does."
+  },
+  "sources": {
+    "energy": {
+      "path": "data/energydata_extract.csv",
+      "sha256": "879d806a06bfcba3e3fa38d86112030d4033b74d3d4e487745329dbb4b9a8b40",
+      "date_column": "date"
+    }
+  },
+  "window": {
+    "days": 7,
+    "starts_on": "monday",
+    "period_phrase": "week of {start}"
+  },
+  "daily_metrics": [
+    {
+      "prefix": "high_use_intervals",
+      "source": "energy",
+      "column": "Appliances",
+      "op": "count_above",
+      "above": 100,
+      "labels": ["high", "use", "intervals"],
+      "unit": "count"
+    },
+    {
+      "prefix": "light_intervals",
+      "source": "energy",
+      "column": "lights",
+      "op": "count_above",
+      "above": 0,
+      "labels": ["light", "intervals"],
+      "unit": "count"
+    }
+  ],
+  "window_metrics": [
+    {
+      "id": "week_high_use_intervals",
+      "op": "sum",
+      "of": "high_use_intervals",
+      "labels": ["high", "use", "intervals"],
+      "unit": "count"
+    },
+    {
+      "id": "heavy_days",
+      "op": "count_above",
+      "of": "high_use_intervals",
+      "above": 36,
+      "labels": ["heavy", "days"],
+      "unit": "days"
+    }
+  ],
+  "identities": [
+    {
+      "kind": "rows_per_date",
+      "source": "energy",
+      "count": 144
+    }
+  ],
+  "commitments": [
+    {
+      "id": "inspect-appliances",
+      "text": "Look at which appliances ran long this week.",
+      "when": {"metric": "heavy_days", "op": ">=", "value": 3}
+    },
+    {
+      "id": "keep-monitoring",
+      "text": "Keep monitoring; no action this week.",
+      "when": {"metric": "heavy_days", "op": "<=", "value": 2}
+    }
+  ],
+  "facts": {
+    "heavy_rule": "Heavy days are days whose high use intervals exceed the declared limit.",
+    "high_use_rule": "High use intervals are logged intervals whose appliance energy use exceeds the declared amount.",
+    "light_rule": "Light intervals are logged intervals with the lights on.",
+    "source": "The records come from the UCI Appliances Energy Prediction dataset, under a Creative Commons Attribution license."
+  }
+}

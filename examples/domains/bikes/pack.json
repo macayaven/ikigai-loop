@@ -1,0 +1,99 @@
+{
+  "pack_id": "bikes",
+  "title": "Bike-share operations",
+  "note": "Historical public data (Capital Bikeshare, Washington D.C., 2011 and 2012, via the UCI Machine Learning Repository). Not a deployment and not a user.",
+  "goal": {
+    "id": "meet-demand",
+    "text": "Keep enough bikes on the street for the riders who show up."
+  },
+  "sources": {
+    "day": {
+      "path": "data/day.csv",
+      "sha256": "a6bcf826782d3c0fbfdcbeead17cd0884185a0dafe8ff10cd48a874ee7ba18be",
+      "date_column": "dteday"
+    },
+    "hour": {
+      "path": "data/hour.csv",
+      "sha256": "e03de4ee4ef4dc376ac6e04bf829673c6269e8eba5c60fa121640fa2f829504f",
+      "date_column": "dteday"
+    }
+  },
+  "window": {
+    "days": 7,
+    "starts_on": "monday",
+    "period_phrase": "week of {start}"
+  },
+  "daily_metrics": [
+    {
+      "prefix": "total_rentals",
+      "source": "day",
+      "column": "cnt",
+      "op": "sum",
+      "labels": ["total", "rentals"],
+      "unit": "count"
+    },
+    {
+      "prefix": "casual_rentals",
+      "source": "day",
+      "column": "casual",
+      "op": "sum",
+      "labels": ["casual", "rentals"],
+      "unit": "count"
+    },
+    {
+      "prefix": "registered_rentals",
+      "source": "day",
+      "column": "registered",
+      "op": "sum",
+      "labels": ["registered", "rentals"],
+      "unit": "count"
+    }
+  ],
+  "window_metrics": [
+    {
+      "id": "week_total_rentals",
+      "op": "sum",
+      "of": "total_rentals",
+      "labels": ["total", "rentals"],
+      "unit": "count"
+    },
+    {
+      "id": "busy_days",
+      "op": "count_above",
+      "of": "total_rentals",
+      "above": 7000,
+      "labels": ["busy", "days"],
+      "unit": "days"
+    }
+  ],
+  "identities": [
+    {
+      "kind": "columns_sum",
+      "source": "day",
+      "parts": ["casual", "registered"],
+      "total": "cnt"
+    },
+    {
+      "kind": "daily_matches",
+      "metric": "total_rentals",
+      "source": "hour",
+      "column": "cnt"
+    }
+  ],
+  "commitments": [
+    {
+      "id": "review-capacity",
+      "text": "Review bike capacity for the coming week.",
+      "when": {"metric": "busy_days", "op": ">=", "value": 1}
+    },
+    {
+      "id": "continue-monitoring",
+      "text": "Keep monitoring; no capacity change this week.",
+      "when": {"metric": "busy_days", "op": "==", "value": 0}
+    }
+  ],
+  "facts": {
+    "busy_rule": "Busy days are days whose total rentals exceed the declared threshold.",
+    "source": "The records come from the UCI Bike Sharing dataset, under a Creative Commons Attribution license."
+  }
+}
