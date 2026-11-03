@@ -774,3 +774,12 @@ I made three small documentation edits and recorded them here. Docs only: no beh
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edits. I never opened anything under `evals/heldout/`, and I never read the path in `HIDDEN_CRITERIA_DIR`.
+
+## Docs 7b (2026-11-03)
+
+I made two small documentation commits and recorded them here. Docs only: no behaviour, schema, fixture or test change.
+
+- `docs/provenance.jsonl`: the five Nov 3 lines after 11:30, written by the export command from the store and committed unedited.
+- `docs/TRUST.md`: I replaced the export limit paragraph with the live case, naming the Nov 3 22:30 line whose disconnect option shows a re-draft's stopped first attempt.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edits.
