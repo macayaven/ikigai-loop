@@ -298,6 +298,12 @@ def test_r5_summary_tables(tmp_path: Path) -> None:
                 "pack_id": "bikes",
                 "git_commit": None,
                 "case_sha256": "0" * 64,
+                "windows": [
+                    "2030-01-07",
+                    "2030-01-14",
+                    "2030-01-21",
+                    "2030-01-28",
+                ],
                 "summary": {
                     "controls_total": 2,
                     "controls_accepted": "2/2",
@@ -385,6 +391,8 @@ def test_r5_summary_tables(tmp_path: Path) -> None:
                         "final_passed": True,
                         "transport_error": None,
                         "latency_ms_total": 4000,
+                        "git_commit": None,
+                        "case_sha256": "0" * 64,
                     }
                 ),
                 json.dumps(
@@ -412,6 +420,8 @@ def test_r5_summary_tables(tmp_path: Path) -> None:
                         "final_passed": False,
                         "transport_error": None,
                         "latency_ms_total": 800,
+                        "git_commit": None,
+                        "case_sha256": "0" * 64,
                     }
                 ),
                 json.dumps(
@@ -427,6 +437,8 @@ def test_r5_summary_tables(tmp_path: Path) -> None:
                         "final_passed": False,
                         "transport_error": "MetaUnavailableError: timeout",
                         "latency_ms_total": 500,
+                        "git_commit": None,
+                        "case_sha256": "0" * 64,
                     }
                 ),
             ]
@@ -966,3 +978,352 @@ def test_f10_lint_cli_exits(capsys: Any) -> None:
         ["lint", "--pack", str(MINI / "pack.json"), "--window", "2030-01-08"]
     )
     assert code == 2
+
+
+def _one_day_pack(tmp_path: Path) -> tuple[Any, Path]:
+    from framework.domains.schema import load_pack
+
+    pack_dir = _copy_mini(tmp_path)
+    data = json.loads((pack_dir / "pack.json").read_text(encoding="utf-8"))
+    data["window"]["days"] = 1
+    (pack_dir / "pack.json").write_text(json.dumps(data), encoding="utf-8")
+    return load_pack(pack_dir / "pack.json"), pack_dir
+
+
+def test_f12_one_day_window_has_no_order_series() -> None:
+    import tempfile
+
+    from framework.domains.csv_adapter import build_reference
+    from framework.domains.runner import expected_commitment, validate_proposal
+
+    with tempfile.TemporaryDirectory() as raw:
+        tmp_path = Path(raw)
+        pack, pack_dir = _one_day_pack(tmp_path)
+        ref = build_reference(pack, pack_dir, "2030-01-07")
+        assert ref.order == []
+        value = ref.metrics["total_rentals.2030-01-07"]
+        commitment = expected_commitment(pack, ref)
+        draft = json.dumps(
+            {
+                "commitment_id": commitment,
+                "claims": [
+                    {
+                        "id": "c1",
+                        "text": f"Total rentals were {value} on 2030-01-07.",
+                        "metric_refs": [
+                            {"metric_id": "total_rentals.2030-01-07", "value": value}
+                        ],
+                        "fact_ids": [],
+                    }
+                ],
+            }
+        )
+        result = validate_proposal(pack, ref, draft)
+        assert all(code != "DOMAIN_CHECK_INPUT" for code, _ in result.codes), (
+            result.codes
+        )
+
+
+def test_f12_seven_day_packs_keep_order_series() -> None:
+    from framework.domains.csv_adapter import build_reference
+    from framework.domains.schema import load_pack
+
+    pack = load_pack(MINI / "pack.json")
+    ref = build_reference(pack, MINI, "2030-01-07")
+    assert len(ref.order) == 3
+    assert all(len(series) == 7 for series in ref.order)
+
+
+def _summary_pair(tmp_path: Path, wonder: list[dict[str, Any]]) -> tuple[Path, Path]:
+    score_path = tmp_path / "score.json"
+    score_path.write_text(
+        json.dumps(
+            {
+                "pack_id": "bikes",
+                "git_commit": "abc1234",
+                "case_sha256": "0" * 64,
+                "windows": ["2030-01-07"],
+                "summary": {
+                    "controls_total": 1,
+                    "controls_accepted": "1/1",
+                    "planted_total": 0,
+                    "planted_caught": "0/0",
+                    "per_kind_caught": {},
+                    "twins_total": 0,
+                    "twins_accepted": "0/0",
+                    "misses": [],
+                },
+                "results": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    expected_path = tmp_path / "expected.json"
+    expected_path.write_text(
+        json.dumps({"2030-01-07": {"expected_commitment": "review-capacity"}}),
+        encoding="utf-8",
+    )
+    wonder_path = tmp_path / "wonder.jsonl"
+    wonder_path.write_text(
+        "".join(json.dumps(entry) + "\n" for entry in wonder), encoding="utf-8"
+    )
+    return score_path, wonder_path
+
+
+def _summary_wonder_record(
+    window: str,
+    case_sha: str = "0" * 64,
+    codes: list[dict[str, str]] | None = None,
+) -> dict[str, Any]:
+    return {
+        "pack_id": "bikes",
+        "window_start": window,
+        "model": "fake",
+        "effort": "low",
+        "expected_commitment": "review-capacity",
+        "attempts": [
+            {
+                "number": 1,
+                "latency_ms": 1000,
+                "model_reported": "fake",
+                "prompt_sha256": "a" * 64,
+                "raw_text": "{}",
+                "passed": False,
+                "codes": codes
+                if codes is not None
+                else [{"code": "L1B_UNIT_MISMATCH", "claim_id": "c1"}],
+                "commitment_id": "review-capacity",
+                "commitment_matches_expected": True,
+                "check_complete": True,
+            }
+        ],
+        "first_pass_accepted": False,
+        "repaired": False,
+        "final_passed": False,
+        "transport_error": None,
+        "latency_ms_total": 1000,
+        "git_commit": "abc1234",
+        "case_sha256": case_sha,
+    }
+
+
+def _run_summary(
+    score_path: Path, wonder_path: Path, tmp_path: Path
+) -> tuple[int, str]:
+    import io
+    from contextlib import redirect_stdout
+
+    from evals.domains import main
+
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        code = main(
+            [
+                "summary",
+                "--score",
+                str(score_path),
+                "--wonder",
+                str(wonder_path),
+                "--expected",
+                str(tmp_path / "expected.json"),
+            ]
+        )
+    return code, buf.getvalue()
+
+
+def test_f13_summary_refuses_duplicate_window(tmp_path: Path) -> None:
+    score_path, wonder_path = _summary_pair(
+        tmp_path,
+        [_summary_wonder_record("2030-01-07"), _summary_wonder_record("2030-01-07")],
+    )
+    code, _ = _run_summary(score_path, wonder_path, tmp_path)
+    assert code == 2
+
+
+def test_f13_summary_refuses_missing_window(tmp_path: Path) -> None:
+    score_path, wonder_path = _summary_pair(
+        tmp_path, [_summary_wonder_record("2030-01-14")]
+    )
+    code, _ = _run_summary(score_path, wonder_path, tmp_path)
+    assert code == 2
+
+
+def test_f13_summary_refuses_mixed_case_hash(tmp_path: Path) -> None:
+    score_path = tmp_path / "score.json"
+    expected_path = tmp_path / "expected.json"
+    expected_path.write_text(
+        json.dumps(
+            {
+                "2030-01-07": {"expected_commitment": "review-capacity"},
+                "2030-01-14": {"expected_commitment": "review-capacity"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    score_path.write_text(
+        json.dumps(
+            {
+                "pack_id": "bikes",
+                "git_commit": "abc1234",
+                "case_sha256": "0" * 64,
+                "windows": ["2030-01-07", "2030-01-14"],
+                "summary": {
+                    "controls_total": 2,
+                    "controls_accepted": "2/2",
+                    "planted_total": 0,
+                    "planted_caught": "0/0",
+                    "per_kind_caught": {},
+                    "twins_total": 0,
+                    "twins_accepted": "0/0",
+                    "misses": [],
+                },
+                "results": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    wonder_path = tmp_path / "wonder.jsonl"
+    wonder_path.write_text(
+        "".join(
+            json.dumps(entry) + "\n"
+            for entry in [
+                _summary_wonder_record("2030-01-07"),
+                _summary_wonder_record("2030-01-14", case_sha="f" * 64),
+            ]
+        ),
+        encoding="utf-8",
+    )
+    code, _ = _run_summary(score_path, wonder_path, tmp_path)
+    assert code == 2
+
+
+def test_f13_summary_counts_one_code_once_per_attempt(tmp_path: Path) -> None:
+    score_path, wonder_path = _summary_pair(
+        tmp_path,
+        [
+            _summary_wonder_record(
+                "2030-01-07",
+                codes=[
+                    {"code": "L1B_UNIT_MISMATCH", "claim_id": "c1"},
+                    {"code": "L1B_UNIT_MISMATCH", "claim_id": "c2"},
+                ],
+            )
+        ],
+    )
+    code, text = _run_summary(score_path, wonder_path, tmp_path)
+    assert code == 0
+    assert "| code | first attempts with this code |" in text
+    assert "| L1B_UNIT_MISMATCH | 1 |" in text
+    assert "bikes" in text.splitlines()[0]
+    assert "00000000" in text.splitlines()[0]
+
+
+def test_f14_wonder_refuses_mixed_case_hash(tmp_path: Path) -> None:
+    from evals.domains import main
+
+    cases_path = _freeze_mini(tmp_path / "prep")
+    out = tmp_path / "wonder.jsonl"
+    base = [
+        "wonder",
+        "--pack",
+        str(MINI / "pack.json"),
+        "--cases",
+        str(cases_path),
+        "--out",
+        str(out),
+        "--model",
+        "fake",
+        "--effort",
+        "low",
+    ]
+    queue: list[Any] = [
+        _wonder_response(_mini_week_proposal("2030-01-07", 2, "review-capacity")),
+    ]
+    assert main([*base, "--limit", "1"], client_factory=lambda: _FakeClient(queue)) == 0
+    tampered = [
+        {**json.loads(line), "case_sha256": "f" * 64}
+        for line in out.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    out.write_text(
+        "".join(json.dumps(entry) + "\n" for entry in tampered), encoding="utf-8"
+    )
+    before = out.read_bytes()
+    later: list[Any] = [
+        _wonder_response(_mini_week_proposal("2030-01-14", 0, "continue-monitoring")),
+    ]
+    code = main([*base], client_factory=lambda: _FakeClient(later))
+    assert code == 2
+    assert out.read_bytes() == before
+    assert len(later) == 1
+
+
+def test_f14_wonder_resumes_matching_file(tmp_path: Path) -> None:
+    from evals.domains import main
+
+    cases_path = _freeze_mini(tmp_path / "prep")
+    out = tmp_path / "wonder.jsonl"
+    base = [
+        "wonder",
+        "--pack",
+        str(MINI / "pack.json"),
+        "--cases",
+        str(cases_path),
+        "--out",
+        str(out),
+        "--model",
+        "fake",
+        "--effort",
+        "low",
+    ]
+    first: list[Any] = [
+        _wonder_response(_mini_week_proposal("2030-01-07", 2, "review-capacity")),
+    ]
+    assert main([*base, "--limit", "1"], client_factory=lambda: _FakeClient(first)) == 0
+    first_line = out.read_text(encoding="utf-8")
+    second: list[Any] = [
+        _wonder_response(_mini_week_proposal("2030-01-14", 0, "continue-monitoring")),
+    ]
+    assert main([*base], client_factory=lambda: _FakeClient(second)) == 0
+    lines = out.read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) == 2
+    assert lines[0] == first_line.strip().splitlines()[0]
+    assert json.loads(lines[1])["window_start"] == "2030-01-14"
+
+
+def test_f15_git_commit_shape() -> None:
+    import re as _re
+
+    from framework.domains.runner import git_commit
+
+    commit = git_commit()
+    assert commit is None or _re.fullmatch(r"[0-9a-f]{40}", commit)
+
+
+def test_f15_git_dirty_shape() -> None:
+    from framework.domains.runner import git_dirty
+
+    dirty = git_dirty()
+    assert dirty is None or isinstance(dirty, bool)
+
+
+def test_f15_score_output_holds_git_dirty(tmp_path: Path) -> None:
+    from evals.domains import main
+
+    cases_path = _freeze_mini(tmp_path)
+    out = tmp_path / "mini_score.json"
+    assert (
+        main(
+            [
+                "score",
+                "--pack",
+                str(MINI / "pack.json"),
+                "--cases",
+                str(cases_path),
+                "--out",
+                str(out),
+            ]
+        )
+        == 0
+    )
+    assert "git_dirty" in json.loads(out.read_text(encoding="utf-8"))

@@ -219,7 +219,9 @@ def build_reference(
         units[metric.id] = metric.unit
         periods[metric.id] = pack.window.period_phrase.replace("{start}", window_start)
     order = [
-        [f"{metric.prefix}.{day}" for day in dates] for metric in pack.daily_metrics
+        [f"{metric.prefix}.{day}" for day in dates]
+        for metric in pack.daily_metrics
+        if len(dates) >= 2
     ]
     results: list[IdentityResult] = []
     for identity in pack.identities:

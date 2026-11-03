@@ -11,6 +11,7 @@ import hashlib
 import re
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, cast
 
 from framework.domains.csv_adapter import WindowReference
@@ -505,11 +506,16 @@ def run_window(
     )
 
 
+def _repo_root() -> str:
+    """The repository root holding this code, two levels above this file."""
+    return str(Path(__file__).resolve().parents[2])
+
+
 def git_commit() -> str | None:
     """The current commit hash, or None when git is missing or unusable."""
     try:
         proc = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
+            ["git", "-C", _repo_root(), "rev-parse", "HEAD"],
             capture_output=True,
             text=True,
             timeout=10,
@@ -521,3 +527,27 @@ def git_commit() -> str | None:
     if proc.returncode != 0 or re.fullmatch(r"[0-9a-f]{40}", commit) is None:
         return None
     return commit
+
+
+def git_dirty() -> bool | None:
+    """Whether tracked files changed, or None when git is missing or fails."""
+    try:
+        proc = subprocess.run(
+            [
+                "git",
+                "-C",
+                _repo_root(),
+                "status",
+                "--porcelain",
+                "--untracked-files=no",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0:
+        return None
+    return bool(proc.stdout.strip())

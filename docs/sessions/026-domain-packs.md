@@ -2,11 +2,11 @@
 
 ## What changed
 
-A new, isolated package, `framework/domains/`, runs a domain pack: one JSON file that declares a goal, commitments with a rule each, CSV signals and metrics for a domain that isn't mine. It pins the source files by sha256, checks declared identities, builds one week's metrics, asks Muse Wonder for a commitment with reasons through the existing proposal client, and checks the reasons with `check_claims` from `framework/verify/hardened.py`, with one repair through `repair_loop`. Two packs ship, bike-share operations and home energy, each with its own standard-library oracle and a frozen evaluation. No module that existed before this ticket changed: `git diff b8e75aa HEAD -- framework/` lists only files under `framework/domains/`. The plan is [docs/plans/026-domain-packs.md](../plans/026-domain-packs.md) and the results are in [docs/domains.md](../domains.md).
+A new, isolated package, `framework/domains/`, runs a domain pack: one JSON file that declares a goal, commitments with a rule each, CSV signals and metrics for a domain that isn't mine. It pins the source files by sha256, checks declared identities, builds one week's metrics, asks Muse Wonder for a commitment with reasons through the existing proposal client, and checks the reasons with `check_claims` from `framework/verify/hardened.py`, with at most one repair. The repair loop has the same shape as `repair_loop` in `framework/verify/repair.py` but is written inline in `run_window`, so a transport error on the repair keeps the first attempt's record; `repair_loop` drops finished attempts when the generator raises. Two packs ship, bike-share operations and home energy, each with its own standard-library oracle and a frozen evaluation. No module that existed before this ticket changed: `git diff b8e75aa HEAD -- framework/` lists only files under `framework/domains/`. The plan is [docs/plans/026-domain-packs.md](../plans/026-domain-packs.md) and the results are in [docs/domains.md](../domains.md).
 
 ## Sessions
 
-All Muse Code sessions ran headless in Contributor mode, on this public repo and public data only, started by Claude Code from prose prompts. `muse --version`: Muse Code 1.4.14 (1.4.14-R7309.1). Times are Madrid. Tokens are the sums the session logs report.
+All Muse Code sessions ran headless in Contributor mode, on this public repo and public data only, started by Claude Code from prose prompts. `muse --version`: Muse Code 1.4.14 (1.4.14-R7309.1). Times are Madrid. Tokens are the sums the Muse session logs report; the logs stay private.
 
 | Session | Model, effort | Wall time | Commit | What it did | Input tokens (cached) | Output | Reasoning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -27,9 +27,11 @@ Claude Code's review of `b451458` found, and Muse Code fixed in `d303c74`: findi
 
 Two real proposals on the development weeks then showed my own fact texts were traps: "A busy day is a day with more total rentals than the declared threshold." fails because "a day" reads as a quantity, and the source fact failed on "CC BY 4.0". `ffdd615` rewords both and adds `lint`. Reruns on the same two weeks passed, one on the first draft and one after its repair.
 
+After the runs, a cold read-only review by GPT Sol 6.1 through Codex reproduced every planted verdict and all 48 draft verdicts from the stored drafts, and found four tooling problems that Muse Code fixed in the last commit: a one-day window broke the checker input, `summary` counted duplicate or missing weeks instead of refusing them, `wonder` could resume onto records from another configuration, and the recorded commit didn't say whether tracked files had changed. None of them touches the four result files, which come from single uninterrupted runs of 7-day windows.
+
 ## Frozen runs
 
-Claude Code ran `evals/domains.py` from a clean tree and wrote the anchor (commit, cases sha256, prompt sha256, model, headline rule) before reading any result.
+Claude Code ran `evals/domains.py` with no change to tracked files, only the untracked result files present, after writing the anchor (commit, cases sha256, prompt sha256, model, headline rule) in its private run notes. The repository shows that both cases files were committed before the results; it can't show when those notes were written.
 
 - Bikes, commit `ffdd615`, cases `9978379d`: planted 60/60, controls 20/20, twins 60/60. Wonder: first drafts 13/20, repaired 6/20, still failing 1/20, transport errors 0/20, commitment matches the oracle 20/20, median first-attempt latency 13.2 s. Result files `bikes-planted.json` (`6e40b8c2`) and `bikes-wonder.jsonl` (`3e659ff0`).
 - Energy, commit `9685756`, cases `d3fabda4`, run cold: planted 60/60, controls 18/18, twins 60/60. Wonder: first drafts 15/18, repaired 1/18, still failing 2/18, transport errors 0/18, commitment matches the oracle 18/18, median first-attempt latency 11.8 s. Result files `energy-planted.json` (`9859b72d`) and `energy-wonder.jsonl` (`5ec48686`).

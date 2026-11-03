@@ -16,7 +16,7 @@ from framework.domains.csv_adapter import (
     build_reference,
 )
 from framework.domains.lint import lint_pack
-from framework.domains.runner import git_commit, run_window
+from framework.domains.runner import git_commit, git_dirty, run_window
 from framework.domains.schema import DomainPack, PackError, load_pack
 from framework.proposal.core import WonderClient
 from framework.proposal.defaults import DEFAULT_EFFORT, DEFAULT_MODEL
@@ -135,6 +135,7 @@ def _cmd_propose(
     if out is not None:
         payload = dict(run.to_json())
         payload["git_commit"] = git_commit()
+        payload["git_dirty"] = git_dirty()
         try:
             Path(out).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
         except OSError:

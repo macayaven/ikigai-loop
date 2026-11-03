@@ -663,7 +663,7 @@ def _cmd_score(args: Any) -> int:
         WindowError,
         build_reference,
     )
-    from framework.domains.runner import git_commit
+    from framework.domains.runner import git_commit, git_dirty
     from framework.domains.schema import PackError, load_pack
     from framework.verify.hardened import check_claims
 
@@ -772,6 +772,7 @@ def _cmd_score(args: Any) -> int:
         "pack_id": pack.pack_id,
         "windows": sorted(refs),
         "git_commit": git_commit(),
+        "git_dirty": git_dirty(),
         "case_sha256": digest,
         "summary": summary,
         "results": results,
@@ -794,7 +795,7 @@ def _cmd_wonder(args: Any, client_factory: Any | None) -> int:
         WindowError,
         build_reference,
     )
-    from framework.domains.runner import git_commit, run_window
+    from framework.domains.runner import git_commit, git_dirty, run_window
     from framework.domains.schema import PackError, load_pack
 
     try:
@@ -814,16 +815,32 @@ def _cmd_wonder(args: Any, client_factory: Any | None) -> int:
     pack_dir = str(Path(str(args.pack)).parent)
     windows = sorted({case["window_start"] for case in cases})
     out = Path(str(args.out))
+    commit = git_commit()
+    dirty = git_dirty()
+    model = str(args.model)
+    effort = str(args.effort)
     done: set[str] = set()
     if out.exists():
+        records: list[dict[str, Any]] = []
         try:
             for line in out.read_text(encoding="utf-8").splitlines():
                 if line.strip():
                     entry = json.loads(line)
-                    if isinstance(entry, dict) and entry.get("window_start"):
-                        done.add(str(entry["window_start"]))
+                    if isinstance(entry, dict):
+                        records.append(entry)
+                        if entry.get("window_start"):
+                            done.add(str(entry["window_start"]))
         except (OSError, ValueError):
             return _fail("wonder output file cannot be read")
+        for entry in records:
+            if (
+                entry.get("pack_id") != pack.pack_id
+                or entry.get("case_sha256") != digest
+                or entry.get("model") != model
+                or entry.get("effort") != effort
+                or entry.get("git_commit") != commit
+            ):
+                return _fail("wonder output file holds records from another run")
     todo = [start for start in windows if start not in done]
     if args.limit is not None:
         todo = todo[: int(args.limit)]
@@ -833,7 +850,6 @@ def _cmd_wonder(args: Any, client_factory: Any | None) -> int:
         client = MuseExecClient(private_terms=(), private_terms_available=True)
     else:
         client = client_factory()
-    commit = git_commit()
     try:
         out.parent.mkdir(parents=True, exist_ok=True)
         with open(out, "a", encoding="utf-8") as handle:
@@ -847,6 +863,7 @@ def _cmd_wonder(args: Any, client_factory: Any | None) -> int:
                 )
                 line = dict(run.to_json())
                 line["git_commit"] = commit
+                line["git_dirty"] = dirty
                 line["case_sha256"] = digest
                 handle.write(json.dumps(line, sort_keys=True) + "\n")
                 handle.flush()
@@ -878,6 +895,33 @@ def _cmd_summary(args: Any) -> int:
                 return _fail("wonder file is not valid JSON lines")
             if isinstance(entry, dict):
                 lines.append(entry)
+    windows = score.get("windows")
+    if not isinstance(windows, list):
+        return _fail("score file has no windows")
+    seen_windows: set[str] = set()
+    for entry in lines:
+        window = entry.get("window_start")
+        if window in seen_windows:
+            return _fail("wonder file lists a window twice")
+        seen_windows.add(str(window))
+    if seen_windows != {str(item) for item in windows}:
+        return _fail("wonder windows differ from the score windows")
+    for key in ("pack_id", "case_sha256", "git_commit", "model", "effort"):
+        if len({json.dumps(entry.get(key), sort_keys=True) for entry in lines}) > 1:
+            return _fail("wonder file mixes configurations")
+    if lines and lines[0].get("case_sha256") != score.get("case_sha256"):
+        return _fail("wonder case sha256 differs from the score file")
+
+    def _short(commit: Any) -> str:
+        return str(commit)[:7] if isinstance(commit, str) else "none"
+
+    first = lines[0] if lines else {}
+    print(
+        f"pack {score.get('pack_id')} cases {str(score.get('case_sha256'))[:8]} "
+        f"score {_short(score.get('git_commit'))} "
+        f"wonder {_short(first.get('git_commit'))} "
+        f"model {first.get('model')} effort {first.get('effort')}"
+    )
     total = len(lines)
 
     def _wonder_attempts(entry: dict[str, Any]) -> list[Any]:
@@ -918,13 +962,15 @@ def _cmd_summary(args: Any) -> int:
     for entry in lines:
         attempts = _wonder_attempts(entry)
         if attempts:
-            first = attempts[0] if isinstance(attempts[0], dict) else {}
-            codes = first.get("codes", [])
+            attempt = attempts[0] if isinstance(attempts[0], dict) else {}
+            codes = attempt.get("codes", [])
+            seen: set[str] = set()
             if isinstance(codes, list):
                 for item in codes:
                     if isinstance(item, dict) and isinstance(item.get("code"), str):
-                        code = str(item["code"])
-                        code_counts[code] = code_counts.get(code, 0) + 1
+                        seen.add(str(item["code"]))
+            for code in seen:
+                code_counts[code] = code_counts.get(code, 0) + 1
 
     def _seconds(value: float) -> str:
         return f"{value / 1000:.1f}s"
@@ -960,7 +1006,7 @@ def _cmd_summary(args: Any) -> int:
     print(f"| median total latency | {_seconds(median_ms)} |")
     print(f"| maximum total latency | {_seconds(max_ms)} |")
     print()
-    print("| code | first attempts |")
+    print("| code | first attempts with this code |")
     print("| --- | --- |")
     if code_counts:
         for code in sorted(code_counts):

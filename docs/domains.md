@@ -147,6 +147,10 @@ Found in the runs:
 - No draft cited a wrong value: all 61 numbers in the 48 drafts equal a value in that week's records. The 10 failed first drafts failed on citing and form: 5 wrote numbers without citing the metric, 3 only restated the commitment, 1 gave every claim the same id, 1 put two metrics in one claim, and 1 was the true value the unit check misread (one draft did two of these). My prompt already says every number must be a cited metric's value; it says nothing about restating the commitment or about ids.
 - A number written right before the period phrase, as in "is 6 week of 2016-02-08", reads as "6 weeks" to the unit check.
 
+Found in review:
+
+- After the runs, a cold read-only review by GPT Sol 6.1 through Codex found that a one-day window broke the checker input, that `summary` counted duplicate or missing weeks instead of refusing them, that `wonder` could resume onto records from another configuration, and that the recorded commit didn't say whether tracked files had changed. I fixed all four after the runs. None of them applies to the result files here, which come from single uninterrupted runs of 7-day windows. The review also noted that my run loop is written inline rather than calling `repair_loop`, so that a transport error on the repair keeps the first attempt.
+
 ## Reproduce
 
 ```sh
