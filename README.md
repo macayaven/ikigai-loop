@@ -139,6 +139,8 @@ On Nov 2, Muse Glimmer ran on my own hardware for every scheduled live card: all
 
 Evidence that Muse Glimmer runs on my own hardware, with screen captures and a run log: [docs/glimmer-evidence.md](docs/glimmer-evidence.md).
 
+Two domain packs run Muse Wonder and my public checker on records from domains that aren't mine, bike-share operations and home energy use, each declared in one JSON file: [docs/domains.md](docs/domains.md) has the frozen results and every failure.
+
 ## No medical advice
 
 It gives no medical advice by design: it only schedules commitments I wrote, and Apple Health is out of the design. The gate enforces this with two rules: `L1_ACTION_NOT_COMMITTED` rejects any action that isn't one of those commitments, and `L1_ADVICE` rejects advice wording in claims and actions. `L1_ADVICE` is a fixed word list, so it catches wording, not meaning.

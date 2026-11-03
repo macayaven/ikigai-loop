@@ -35,6 +35,6 @@ Change: I kept its first three columns with
 `879d806a06bfcba3e3fa38d86112030d4033b74d3d4e487745329dbb4b9a8b40`;
 anyone can rerun that line on the original file and compare.
 
-Add: this pack counts intervals and never states Wh, because my checker's
+This pack counts intervals and never states Wh, because my checker's
 units do not include Wh; it is historical public data used to test my
 checker, not a deployment and not a user.

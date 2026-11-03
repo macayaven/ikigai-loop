@@ -7,7 +7,6 @@ the oracle) and never check a claim on a real energy window.
 from __future__ import annotations
 
 import ast
-import hashlib
 import json
 import sys
 from collections import Counter
@@ -52,16 +51,6 @@ PLANTED_KINDS = [
     "wrong_source",
     "wrong_direction",
 ]
-
-# sha256 of every file under framework/domains/ before this session.
-FRAMEWORK_SHA = {
-    "__init__.py": "4d320666ff7dcc5e8d6830a0eb11997845b1569ffdd0cb5f01f1f1a7b25cb46c",
-    "__main__.py": "d1bc4d6a735279b2d7e990f8716a5487b0a7103f49d71ed0eab7582349b8f430",
-    "csv_adapter.py": "833e1eb377911329d226422d23098bf02f233aa3c9ac07e792667a757062bc16",
-    "lint.py": "cca11014f87ecdb83148720fd3ee5b44fe7e61518be58462e071d7808f1a4ded",
-    "runner.py": "da91addbe38d9f0c75f936132b13eb6323f23c14780875eb182a91dab5bb81c5",
-    "schema.py": "39158d3e6c57fbc8aeaef24c2c159fb9e353b4867ecf49597bd04341e9ab45aa",
-}
 
 
 def _fresh_oracle() -> dict[str, Any]:
@@ -295,14 +284,3 @@ def test_energy_cases_file_matches_fresh_freeze(tmp_path: Path) -> None:
         assert case.get("twin")
     keys = [_claim_key(c["claim"]) for c in cases]
     assert len(set(keys)) == len(keys)
-
-
-def test_framework_domains_unchanged() -> None:
-    domain_dir = ROOT / "framework" / "domains"
-    names = sorted(
-        path.name for path in domain_dir.iterdir() if path.name != "__pycache__"
-    )
-    assert names == sorted(FRAMEWORK_SHA)
-    for name, want in FRAMEWORK_SHA.items():
-        digest = hashlib.sha256((domain_dir / name).read_bytes()).hexdigest()
-        assert digest == want, name

@@ -1,0 +1,1334 @@
+{
+  "case_sha256": "9978379dfe80ee87b46d9967e7cb20e40f418fc2afd4cc3d637f8458c1a4aad8",
+  "git_commit": "ffdd615c5458404cff4e7bebdf03f10f42e9cbd6",
+  "pack_id": "bikes",
+  "results": [
+    {
+      "case_id": "control-2011-01-03",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_total",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-01-03"
+    },
+    {
+      "case_id": "control-2011-01-17",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_casual",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-01-17"
+    },
+    {
+      "case_id": "control-2011-01-24",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_registered",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-01-24"
+    },
+    {
+      "case_id": "control-2011-03-07",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "week_total",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "control-2011-07-04",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "busy_days",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-07-04"
+    },
+    {
+      "case_id": "control-2011-07-25",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "comparison",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-07-25"
+    },
+    {
+      "case_id": "control-2011-10-17",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_total",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-10-17"
+    },
+    {
+      "case_id": "control-2011-11-28",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_casual",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-11-28"
+    },
+    {
+      "case_id": "control-2011-12-05",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_registered",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-12-05"
+    },
+    {
+      "case_id": "control-2011-12-12",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "week_total",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2011-12-12"
+    },
+    {
+      "case_id": "control-2012-02-06",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "busy_days",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-02-06"
+    },
+    {
+      "case_id": "control-2012-02-13",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "comparison",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-02-13"
+    },
+    {
+      "case_id": "control-2012-03-19",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_total",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-03-19"
+    },
+    {
+      "case_id": "control-2012-04-30",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_casual",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-04-30"
+    },
+    {
+      "case_id": "control-2012-06-11",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_registered",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "control-2012-07-09",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "week_total",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "control-2012-07-16",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "busy_days",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-07-16"
+    },
+    {
+      "case_id": "control-2012-08-06",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "comparison",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "control-2012-09-10",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_total",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-09-10"
+    },
+    {
+      "case_id": "control-2012-10-22",
+      "codes": [],
+      "complete": true,
+      "expect": "pass",
+      "kind": "daily_casual",
+      "passed": true,
+      "twin_codes": [],
+      "twin_complete": null,
+      "twin_passed": null,
+      "window_start": "2012-10-22"
+    },
+    {
+      "case_id": "wrong_value-00-2011-10-17",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_VALUE_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-10-17"
+    },
+    {
+      "case_id": "wrong_value-01-2012-09-10",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_VALUE_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-09-10"
+    },
+    {
+      "case_id": "wrong_value-02-2011-01-03",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_VALUE_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-01-03"
+    },
+    {
+      "case_id": "wrong_value-03-2012-09-10",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_VALUE_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-09-10"
+    },
+    {
+      "case_id": "wrong_value-04-2012-06-11",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_VALUE_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_value-05-2011-07-25",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_NUMBER_WITHOUT_METRIC_REF"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-07-25"
+    },
+    {
+      "case_id": "wrong_value-06-2011-03-07",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_NUMBER_WITHOUT_METRIC_REF"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_value-07-2011-10-17",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_NUMBER_WITHOUT_METRIC_REF"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-10-17"
+    },
+    {
+      "case_id": "wrong_value-08-2012-08-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_NUMBER_WITHOUT_METRIC_REF"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_value-09-2012-07-09",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_NUMBER_WITHOUT_METRIC_REF"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_value",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "wrong_label-00-2012-02-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-02-06"
+    },
+    {
+      "case_id": "wrong_label-01-2012-04-30",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-04-30"
+    },
+    {
+      "case_id": "wrong_label-02-2011-07-04",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-07-04"
+    },
+    {
+      "case_id": "wrong_label-03-2011-01-17",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-01-17"
+    },
+    {
+      "case_id": "wrong_label-04-2012-07-09",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "wrong_label-05-2012-07-16",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-07-16"
+    },
+    {
+      "case_id": "wrong_label-06-2012-03-19",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-03-19"
+    },
+    {
+      "case_id": "wrong_label-07-2011-11-28",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-11-28"
+    },
+    {
+      "case_id": "wrong_label-08-2012-07-16",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-07-16"
+    },
+    {
+      "case_id": "wrong_label-09-2012-06-11",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_METRIC_LABEL_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_label",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_period-00-2012-08-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_period-01-2012-04-30",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-04-30"
+    },
+    {
+      "case_id": "wrong_period-02-2011-03-07",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_period-03-2012-02-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-02-06"
+    },
+    {
+      "case_id": "wrong_period-04-2012-08-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_period-05-2011-12-05",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-12-05"
+    },
+    {
+      "case_id": "wrong_period-06-2011-01-24",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-01-24"
+    },
+    {
+      "case_id": "wrong_period-07-2012-02-13",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-02-13"
+    },
+    {
+      "case_id": "wrong_period-08-2012-04-30",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-04-30"
+    },
+    {
+      "case_id": "wrong_period-09-2012-06-11",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_PERIOD_WORD_MISSING"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_period",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_unit-00-2011-03-07",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_unit-01-2011-11-28",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-11-28"
+    },
+    {
+      "case_id": "wrong_unit-02-2011-01-24",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-01-24"
+    },
+    {
+      "case_id": "wrong_unit-03-2012-09-10",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-09-10"
+    },
+    {
+      "case_id": "wrong_unit-04-2012-07-16",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-07-16"
+    },
+    {
+      "case_id": "wrong_unit-05-2012-10-22",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-10-22"
+    },
+    {
+      "case_id": "wrong_unit-06-2011-03-07",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_unit-07-2012-08-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_unit-08-2011-12-05",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-12-05"
+    },
+    {
+      "case_id": "wrong_unit-09-2011-03-07",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNIT_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_source-00-2011-10-17",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_METRIC"
+        }
+      ],
+      "complete": false,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-10-17"
+    },
+    {
+      "case_id": "wrong_source-01-2012-10-22",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_METRIC"
+        }
+      ],
+      "complete": false,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-10-22"
+    },
+    {
+      "case_id": "wrong_source-02-2011-11-28",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_METRIC"
+        }
+      ],
+      "complete": false,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-11-28"
+    },
+    {
+      "case_id": "wrong_source-03-2012-08-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_METRIC"
+        }
+      ],
+      "complete": false,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_source-04-2012-02-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_METRIC"
+        }
+      ],
+      "complete": false,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-02-06"
+    },
+    {
+      "case_id": "wrong_source-05-2012-06-11",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_FACT"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_source-06-2011-01-17",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_FACT"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-01-17"
+    },
+    {
+      "case_id": "wrong_source-07-2011-07-25",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_FACT"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-07-25"
+    },
+    {
+      "case_id": "wrong_source-08-2011-12-12",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_FACT"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-12-12"
+    },
+    {
+      "case_id": "wrong_source-09-2011-07-25",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_UNKNOWN_FACT"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_source",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-07-25"
+    },
+    {
+      "case_id": "wrong_direction-00-2011-12-12",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-12-12"
+    },
+    {
+      "case_id": "wrong_direction-01-2011-12-12",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-12-12"
+    },
+    {
+      "case_id": "wrong_direction-02-2011-01-03",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-01-03"
+    },
+    {
+      "case_id": "wrong_direction-03-2011-12-05",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-12-05"
+    },
+    {
+      "case_id": "wrong_direction-04-2011-01-17",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-01-17"
+    },
+    {
+      "case_id": "wrong_direction-05-2012-08-06",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_direction-06-2012-06-11",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_direction-07-2012-07-09",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "wrong_direction-08-2011-03-07",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_direction-09-2012-03-19",
+      "codes": [
+        {
+          "claim_id": "c1",
+          "code": "L1B_DIRECTION_MISMATCH"
+        }
+      ],
+      "complete": true,
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "passed": false,
+      "twin_codes": [],
+      "twin_complete": true,
+      "twin_passed": true,
+      "window_start": "2012-03-19"
+    }
+  ],
+  "summary": {
+    "codes_by_kind": {
+      "busy_days": {},
+      "comparison": {},
+      "daily_casual": {},
+      "daily_registered": {},
+      "daily_total": {},
+      "week_total": {},
+      "wrong_direction": {
+        "L1B_DIRECTION_MISMATCH": 10
+      },
+      "wrong_label": {
+        "L1B_METRIC_LABEL_MISSING": 10
+      },
+      "wrong_period": {
+        "L1B_PERIOD_WORD_MISSING": 10
+      },
+      "wrong_source": {
+        "L1B_UNKNOWN_FACT": 5,
+        "L1B_UNKNOWN_METRIC": 5
+      },
+      "wrong_unit": {
+        "L1B_UNIT_MISMATCH": 10
+      },
+      "wrong_value": {
+        "L1B_METRIC_VALUE_MISMATCH": 5,
+        "L1B_NUMBER_WITHOUT_METRIC_REF": 5
+      }
+    },
+    "controls_accepted": "20/20",
+    "controls_total": 20,
+    "misses": [],
+    "per_kind_caught": {
+      "wrong_direction": "10/10",
+      "wrong_label": "10/10",
+      "wrong_period": "10/10",
+      "wrong_source": "10/10",
+      "wrong_unit": "10/10",
+      "wrong_value": "10/10"
+    },
+    "planted_caught": "60/60",
+    "planted_total": 60,
+    "twins_accepted": "60/60",
+    "twins_total": 60
+  },
+  "windows": [
+    "2011-01-03",
+    "2011-01-17",
+    "2011-01-24",
+    "2011-03-07",
+    "2011-07-04",
+    "2011-07-25",
+    "2011-10-17",
+    "2011-11-28",
+    "2011-12-05",
+    "2011-12-12",
+    "2012-02-06",
+    "2012-02-13",
+    "2012-03-19",
+    "2012-04-30",
+    "2012-06-11",
+    "2012-07-09",
+    "2012-07-16",
+    "2012-08-06",
+    "2012-09-10",
+    "2012-10-22"
+  ]
+}
