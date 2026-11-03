@@ -4,6 +4,8 @@ I made myself two promises: do my work, and spend time with my family away from 
 
 Four Meta models do the work: Muse Wonder writes the two options, Muse Glimmer (open weights, on my own GB10) turns my records into facts, Muse Spark turns a voice note into one edit to my list, and Muse Code wrote the code. Plain code checks every number.
 
+That check works on your own numbers too, on [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/): give it a card and a sentence, and it flags a sentence that says 12 deploys when the card says 7. An engineer outside the project tried it on an example from their own work: it passed the matching figure and flagged the mismatch once they changed the record.
+
 Five times a day it reads my calendar and offers my next free hour to those two promises, one option for each, and I choose with a tap. Each card shows what changed since the last one, the free hour and both options; one tap on Why? shows the numbers behind each option, like "Prs rose by 11 since the last card" (PRs are pull requests on GitHub).
 
 Before a card reaches my phone, it checks every number on it against my records. Afterwards, it checks the option I pick against the traces it should have left, such as pushes to GitHub for work. Where nothing can be measured, it rests on my word: I'm doing this to fix something for myself, so I have no reason to cheat.
@@ -12,11 +14,9 @@ Code checks the numbers I can measure, such as my pull requests on GitHub. It ca
 
 Why check numbers separately: the assistant writes friendly sentences, and a friendly sentence can sound sure while quoting the wrong number. Numbers can be counted and checked, sentences can't, so plain code checks the numbers. On Nov 2 mine passed "Prs rose by 3 in the last period": the right number, from the wrong window. A test that fails on that sentence came first, then the rule, and the Nov 3 11:30 card said "Prs rose by 11 since the last card".
 
-I've used it myself for the past few days. The first real card reached my phone on Nov 2 at 13:30, on time, and I chose with a tap. An independent recount of its pull-request figure, straight from GitHub's own records rather than from my store, matched.
+I've used it myself for the past few days. The first real card reached my phone on Nov 2 at 13:30, on time, and I chose with a tap. An independent recount of its pull-request figure, straight from GitHub's own records rather than from my store, matched. The whole live run in numbers, misses included: [docs/live-run.md](docs/live-run.md).
 
 You can try the same check with nothing to install: [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/) opens on a game, Catch the AI. Muse Wonder wrote six sentences and set traps in some. Can you beat the checker? It runs in your browser.
-
-The same checker works on your own numbers: give it a card and a sentence, and it flags a sentence that says 12 deploys when the card says 7. An engineer outside the project tried it on an example from their own work: it passed the matching figure and flagged the mismatch once they changed the record.
 
 ## How it works
 

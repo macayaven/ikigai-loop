@@ -783,3 +783,13 @@ I made two small documentation commits and recorded them here. Docs only: no beh
 - `docs/TRUST.md`: I replaced the export limit paragraph with the live case, naming the Nov 3 22:30 line whose disconnect option shows a re-draft's stopped first attempt.
 
 Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edits.
+
+## Docs 8a (2026-11-03)
+
+I put the live run in numbers on its own page and moved the checker paragraph up the README. Docs only: no behaviour, schema, fixture or test change.
+
+- `docs/live-run.md`: I created the page with the numbers as of Nov 3 23:45 Madrid and how I counted them.
+- `README.md`: I moved the checker paragraph to sit directly after the four models paragraph, and I added the live run link at the end of the first real card paragraph.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code started this session from a prose prompt with the numbers produced by a read-only script, and Muse Code (muse-spark-1.3, low effort) made the edits.
