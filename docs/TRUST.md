@@ -37,7 +37,7 @@ The source audit marked the 20:30 card FAIL with correct numbers, reading one ca
 
 Taps on voice-corrected cards never reached the learner, because those rows weren't saved: fixed in PR #53, on the live cards since Nov 3 at 01:27; at 01:28 the backfill wrote the 4 missing rows for the two voice-corrected cards, and a second run wrote 0; so their taps count from the 11:30 slot on.
 
-Not fixed: the public provenance export (`framework/provenance/export.py`) keeps only the latest draft result per option of a slot, so after a voice correction a line can pair the scheduled option with the re-draft's attempts. Every draft so far passed first time, so no published count changes.
+Not fixed: the provenance export (`framework/provenance/export.py`) keeps only each option's latest draft result, so after a voice correction a line can pair the scheduled option with the re-draft's attempts. The Nov 3 22:30 line does: its disconnect option shows a re-draft's stopped first attempt; the scheduled draft passed.
 
 ## What it still doesn't check
 
