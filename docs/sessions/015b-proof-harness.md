@@ -8,9 +8,9 @@ stopped before any commit. Nothing in this session makes a model call.
 
 Sessions, all headless, started by Claude Code. Plan on muse-wonder-full-1.0
 (effort high), in two sessions. Implementation and fixes on muse-spark-1.3
-(effort medium), except six short mechanical sessions on muse-spark-1.3
-at low effort: one test fix, the commit, the PREREG line, and three docs
-fixes. Prompts and review by Claude Code. Sessions ran in Contributor
+(effort medium), except eight short mechanical sessions on muse-spark-1.3
+at low effort: one test fix, the commit, the PREREG line, three docs
+fixes, one labelling fix and one wording fix. Prompts and review by Claude Code. Sessions ran in Contributor
 mode on made-up data. The benchmark's own model calls ran from Claude Code's own
 shell through MuseExecClient in Standard mode.
 
@@ -228,3 +228,35 @@ Before any re-run, I declare: after rebasing onto the main that includes Tickets
 Edited 2026-11-02 18:44:12 +0100 (CET), before any re-run: the gate identity that named the first run covers R1b's eight gate files only. Over the full import closure of the gate and the prompt, the first run's closure is 69d89df4cec5, and so are the live clone's first two commits, f40096f and b955508. The live clone at 1ea3b86, live since 12:12 on 2026-11-02, is a041eb51b004, which differs from the first run's only in Ticket 14's two schema files, framework/schemas/events.py and framework/schemas/__init__.py. So "the gate the live cards ran on" holds under the 8-file identity only.
 
 Edited 2026-11-02 19:01:24 +0100 (CET), before any re-run: Ticket 10c, which changes both the gate and the Wonder prompt, now merges before the re-run, because the live 15:30 card on 2026-11-02 showed a since_last wording hole that the gate let through. The headline run is on the gate and prompt at HEAD after Ticket 10c.
+
+## Re-run on gate 2f443fbbc8dd
+
+After the live rehearsal, the live cards moved to 3e31338 at 23:29 on 2026-11-02. I ran both receipts on a branch at exactly that commit. Before the first call, evals/gate_identity.py gave gate commit 41b686d, gate hash 2f443fbbc8dd, prompt b42e301f613a, and closure 907b228d92cd over 47 files. Muse Code was 1.4.14 (1.4.14-R7309.1).
+
+R3 used `IKIGAI_R3_LIVE=1 python -m evals.r3 --model muse-wonder-1.0 --effort high --repeats 3`, in batches of 24 at concurrency 4 with a stop time of 10:40 the next morning. It ran 23:30:24 to 23:38:59 CET and covered 120 slots with 121 calls: 1 gate retry, on L1B_DIRECTION_MISMATCH. There were 0 unavailable calls and 0 timeouts. The Muse usage window went from 10% to 16% and the weekly from 15% to 17%, with other sessions also running.
+
+R4 used `IKIGAI_R4_LIVE=1 python -m evals.r4 --model muse-wonder-1.0 --effort high`. It ran 23:39:34 to 23:41:11 CET: 20 arms, 20 calls, 0 unavailable, 0 timeouts. Window 16% to 17%, weekly 17% to 18%.
+
+The rows record tree commit 3e31338. That commit is on main and already carries this note's declaration, which merged as #45 before the run. tree_dirty is true on rows written after the first batch only because the run's own new results file was untracked. No closure file was dirty, and the runner refuses otherwise.
+
+The results, copied from the regenerated docs. R3's Result:
+
+> registered prediction: "at least 70% of informative directional pairs and at least 8 of 10 invariance"
+>
+> directional: held; invariance: held; combined: held
+>
+> - directional: 4/5 passes over informative pairs (Wilson 95% 0.38 to 0.96; this interval describes these fixed pairs only and generalizes nowhere); informative 5/10 of 10 directional pairs
+> - uninformative: D10 (base-never-picks-avoid), D4 (base-picks-expect-3-of-3), D5 (base-never-picks-avoid), D6 (base-picks-expect-3-of-3), D7 (base-picks-expect-3-of-3)
+> - invariance: 10/10 passes (Wilson 95% 0.72 to 1.00); pairs failing on an arm with no picks: 0
+
+R4's Result:
+
+> registered prediction: "cited changes more often than control"
+>
+> - pick: 5/10 cited vs 1/10 control -- held
+> - whole signature: 10/10 cited vs 10/10 control -- not held -- no differential sensitivity detected
+> - reason signature: 10/10 cited vs 6/10 control -- held
+
+R4's pooled noise floor: pick 29/870, whole 719/870, reason 379/870 over 870 pairs.
+
+As declared, the README's headline comes from this run. The first run stays in docs/r3.md and docs/r4.md under its own heading. The receipts tests assumed one stored run per directory, and now read every stored run.

@@ -548,9 +548,9 @@ cited-vs-control sensitivity check from R3's stored base draws; a pure scorer an
 [docs/sessions/015b-proof-harness.md](docs/sessions/015b-proof-harness.md).
 
 Prompts and review by Claude Code. The plan ran on muse-wonder-full-1.0 at high effort, in two sessions.
-Implementation and fixes ran on muse-spark-1.3 at medium effort, except six short mechanical sessions that ran on muse-spark-1.3 at low effort: one test fix, the commit, the PREREG line, and three docs fixes. All ran in Muse Code, in headless sessions
+Implementation and fixes ran on muse-spark-1.3 at medium effort, except eight short mechanical sessions that ran on muse-spark-1.3 at low effort: one test fix, the commit, the PREREG line, three docs fixes, one labelling fix and one wording fix. All ran in Muse Code, in headless sessions
 Claude Code started, in Contributor mode, on this public repo and made-up data. Claude Code ran the live R3
-and R4 receipts from its own shell through MuseExecClient in Standard mode.
+and R4 receipts from its own shell through MuseExecClient in Standard mode. Claude Code ran the declared re-run of R3 and R4 on Nov 2 on the gate and prompt after Tickets 10b and 10c, gate 2f443fbbc8dd; two muse-spark-1.3 sessions at medium effort wrote it up and fixed the receipts tests for more than one stored run.
 
 Claude Code's review changed code eleven times: the unavailable stop that never fired above concurrency 1;
 exit 0 with work left; two processes drawing a slot twice, now refused by a lock; uninformative pairs printed
