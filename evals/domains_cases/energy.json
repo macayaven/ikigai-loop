@@ -1,0 +1,2114 @@
+{
+  "cases": [
+    {
+      "case_id": "control-2016-01-18",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-01-18",
+            "value": 19
+          }
+        ],
+        "text": "High use intervals were 19 on 2016-01-18."
+      },
+      "expect": "pass",
+      "kind": "daily_high_use_intervals",
+      "window_start": "2016-01-18"
+    },
+    {
+      "case_id": "control-2016-01-25",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-26",
+            "value": 26
+          }
+        ],
+        "text": "Light intervals were 26 on 2016-01-26."
+      },
+      "expect": "pass",
+      "kind": "daily_light_intervals",
+      "window_start": "2016-01-25"
+    },
+    {
+      "case_id": "control-2016-02-01",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "week_high_use_intervals",
+            "value": 210
+          }
+        ],
+        "text": "High use intervals were 210 in the week of 2016-02-01."
+      },
+      "expect": "pass",
+      "kind": "week_high_use_intervals",
+      "window_start": "2016-02-01"
+    },
+    {
+      "case_id": "control-2016-02-08",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "heavy_days",
+            "value": 6
+          }
+        ],
+        "text": "Heavy days numbered 6 in the week of 2016-02-08."
+      },
+      "expect": "pass",
+      "kind": "heavy_days",
+      "window_start": "2016-02-08"
+    },
+    {
+      "case_id": "control-2016-02-15",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-15",
+            "value": 38
+          },
+          {
+            "metric_id": "high_use_intervals.2016-02-16",
+            "value": 30
+          }
+        ],
+        "text": "High use intervals fell from 38 on 2016-02-15 to 30 on 2016-02-16."
+      },
+      "expect": "pass",
+      "kind": "comparison",
+      "window_start": "2016-02-15"
+    },
+    {
+      "case_id": "control-2016-02-22",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-27",
+            "value": 22
+          }
+        ],
+        "text": "High use intervals were 22 on 2016-02-27."
+      },
+      "expect": "pass",
+      "kind": "daily_high_use_intervals",
+      "window_start": "2016-02-22"
+    },
+    {
+      "case_id": "control-2016-02-29",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-06",
+            "value": 35
+          }
+        ],
+        "text": "Light intervals were 35 on 2016-03-06."
+      },
+      "expect": "pass",
+      "kind": "daily_light_intervals",
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "control-2016-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "week_high_use_intervals",
+            "value": 211
+          }
+        ],
+        "text": "High use intervals were 211 in the week of 2016-03-07."
+      },
+      "expect": "pass",
+      "kind": "week_high_use_intervals",
+      "window_start": "2016-03-07"
+    },
+    {
+      "case_id": "control-2016-03-14",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "heavy_days",
+            "value": 4
+          }
+        ],
+        "text": "Heavy days numbered 4 in the week of 2016-03-14."
+      },
+      "expect": "pass",
+      "kind": "heavy_days",
+      "window_start": "2016-03-14"
+    },
+    {
+      "case_id": "control-2016-03-21",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-22",
+            "value": 21
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-23",
+            "value": 29
+          }
+        ],
+        "text": "High use intervals rose from 21 on 2016-03-22 to 29 on 2016-03-23."
+      },
+      "expect": "pass",
+      "kind": "comparison",
+      "window_start": "2016-03-21"
+    },
+    {
+      "case_id": "control-2016-03-28",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-31",
+            "value": 23
+          }
+        ],
+        "text": "High use intervals were 23 on 2016-03-31."
+      },
+      "expect": "pass",
+      "kind": "daily_high_use_intervals",
+      "window_start": "2016-03-28"
+    },
+    {
+      "case_id": "control-2016-04-04",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-04-08",
+            "value": 20
+          }
+        ],
+        "text": "Light intervals were 20 on 2016-04-08."
+      },
+      "expect": "pass",
+      "kind": "daily_light_intervals",
+      "window_start": "2016-04-04"
+    },
+    {
+      "case_id": "control-2016-04-11",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "week_high_use_intervals",
+            "value": 219
+          }
+        ],
+        "text": "High use intervals were 219 in the week of 2016-04-11."
+      },
+      "expect": "pass",
+      "kind": "week_high_use_intervals",
+      "window_start": "2016-04-11"
+    },
+    {
+      "case_id": "control-2016-04-18",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "heavy_days",
+            "value": 2
+          }
+        ],
+        "text": "Heavy days numbered 2 in the week of 2016-04-18."
+      },
+      "expect": "pass",
+      "kind": "heavy_days",
+      "window_start": "2016-04-18"
+    },
+    {
+      "case_id": "control-2016-04-25",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-25",
+            "value": 16
+          },
+          {
+            "metric_id": "high_use_intervals.2016-04-26",
+            "value": 14
+          }
+        ],
+        "text": "High use intervals fell from 16 on 2016-04-25 to 14 on 2016-04-26."
+      },
+      "expect": "pass",
+      "kind": "comparison",
+      "window_start": "2016-04-25"
+    },
+    {
+      "case_id": "control-2016-05-02",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-03",
+            "value": 22
+          }
+        ],
+        "text": "High use intervals were 22 on 2016-05-03."
+      },
+      "expect": "pass",
+      "kind": "daily_high_use_intervals",
+      "window_start": "2016-05-02"
+    },
+    {
+      "case_id": "control-2016-05-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-11",
+            "value": 3
+          }
+        ],
+        "text": "Light intervals were 3 on 2016-05-11."
+      },
+      "expect": "pass",
+      "kind": "daily_light_intervals",
+      "window_start": "2016-05-09"
+    },
+    {
+      "case_id": "control-2016-05-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "week_high_use_intervals",
+            "value": 203
+          }
+        ],
+        "text": "High use intervals were 203 in the week of 2016-05-16."
+      },
+      "expect": "pass",
+      "kind": "week_high_use_intervals",
+      "window_start": "2016-05-16"
+    },
+    {
+      "case_id": "wrong_value-00-2016-02-29",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-02",
+            "value": 41
+          }
+        ],
+        "text": "Light intervals were 41 on 2016-03-02."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-02",
+            "value": 33
+          }
+        ],
+        "text": "Light intervals were 33 on 2016-03-02."
+      },
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "wrong_value-01-2016-01-18",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-01-21",
+            "value": 22
+          }
+        ],
+        "text": "High use intervals were 22 on 2016-01-21."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-01-21",
+            "value": 21
+          }
+        ],
+        "text": "High use intervals were 21 on 2016-01-21."
+      },
+      "window_start": "2016-01-18"
+    },
+    {
+      "case_id": "wrong_value-02-2016-05-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-19",
+            "value": 18
+          }
+        ],
+        "text": "High use intervals were 18 on 2016-05-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-19",
+            "value": 11
+          }
+        ],
+        "text": "High use intervals were 11 on 2016-05-19."
+      },
+      "window_start": "2016-05-16"
+    },
+    {
+      "case_id": "wrong_value-03-2016-01-18",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-24",
+            "value": 74
+          }
+        ],
+        "text": "Light intervals were 74 on 2016-01-24."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-24",
+            "value": 71
+          }
+        ],
+        "text": "Light intervals were 71 on 2016-01-24."
+      },
+      "window_start": "2016-01-18"
+    },
+    {
+      "case_id": "wrong_value-04-2016-05-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-21",
+            "value": 25
+          }
+        ],
+        "text": "Light intervals were 25 on 2016-05-21."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-21",
+            "value": 21
+          }
+        ],
+        "text": "Light intervals were 21 on 2016-05-21."
+      },
+      "window_start": "2016-05-16"
+    },
+    {
+      "case_id": "wrong_value-05-2016-02-08",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-13",
+            "value": 33
+          }
+        ],
+        "text": "Light intervals were 38 on 2016-02-13."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-13",
+            "value": 33
+          }
+        ],
+        "text": "Light intervals were 33 on 2016-02-13."
+      },
+      "window_start": "2016-02-08"
+    },
+    {
+      "case_id": "wrong_value-06-2016-02-29",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-06",
+            "value": 20
+          }
+        ],
+        "text": "High use intervals were 26 on 2016-03-06."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-06",
+            "value": 20
+          }
+        ],
+        "text": "High use intervals were 20 on 2016-03-06."
+      },
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "wrong_value-07-2016-05-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-22",
+            "value": 4
+          }
+        ],
+        "text": "Light intervals were 13 on 2016-05-22."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-22",
+            "value": 4
+          }
+        ],
+        "text": "Light intervals were 4 on 2016-05-22."
+      },
+      "window_start": "2016-05-16"
+    },
+    {
+      "case_id": "wrong_value-08-2016-05-02",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-06",
+            "value": 11
+          }
+        ],
+        "text": "Light intervals were 19 on 2016-05-06."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-06",
+            "value": 11
+          }
+        ],
+        "text": "Light intervals were 11 on 2016-05-06."
+      },
+      "window_start": "2016-05-02"
+    },
+    {
+      "case_id": "wrong_value-09-2016-03-28",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-02",
+            "value": 0
+          }
+        ],
+        "text": "High use intervals were 7 on 2016-04-02."
+      },
+      "expect": "fail",
+      "kind": "wrong_value",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-02",
+            "value": 0
+          }
+        ],
+        "text": "High use intervals were 0 on 2016-04-02."
+      },
+      "window_start": "2016-03-28"
+    },
+    {
+      "case_id": "wrong_label-00-2016-02-29",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-04",
+            "value": 33
+          }
+        ],
+        "text": "Light intervals were 33 on 2016-03-04."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-04",
+            "value": 33
+          }
+        ],
+        "text": "High use intervals were 33 on 2016-03-04."
+      },
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "wrong_label-01-2016-01-25",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-30",
+            "value": 29
+          }
+        ],
+        "text": "High use intervals were 29 on 2016-01-30."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-30",
+            "value": 29
+          }
+        ],
+        "text": "Light intervals were 29 on 2016-01-30."
+      },
+      "window_start": "2016-01-25"
+    },
+    {
+      "case_id": "wrong_label-02-2016-05-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-15",
+            "value": 40
+          }
+        ],
+        "text": "Light intervals were 40 on 2016-05-15."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-15",
+            "value": 40
+          }
+        ],
+        "text": "High use intervals were 40 on 2016-05-15."
+      },
+      "window_start": "2016-05-09"
+    },
+    {
+      "case_id": "wrong_label-03-2016-05-02",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-05",
+            "value": 11
+          }
+        ],
+        "text": "High use intervals were 11 on 2016-05-05."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-05",
+            "value": 11
+          }
+        ],
+        "text": "Light intervals were 11 on 2016-05-05."
+      },
+      "window_start": "2016-05-02"
+    },
+    {
+      "case_id": "wrong_label-04-2016-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-11",
+            "value": 14
+          }
+        ],
+        "text": "Light intervals were 14 on 2016-03-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-11",
+            "value": 14
+          }
+        ],
+        "text": "High use intervals were 14 on 2016-03-11."
+      },
+      "window_start": "2016-03-07"
+    },
+    {
+      "case_id": "wrong_label-05-2016-05-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-20",
+            "value": 6
+          }
+        ],
+        "text": "Light intervals were 6 on 2016-05-20."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-20",
+            "value": 6
+          }
+        ],
+        "text": "High use intervals were 6 on 2016-05-20."
+      },
+      "window_start": "2016-05-16"
+    },
+    {
+      "case_id": "wrong_label-06-2016-04-18",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-18",
+            "value": 21
+          }
+        ],
+        "text": "Light intervals were 21 on 2016-04-18."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-18",
+            "value": 21
+          }
+        ],
+        "text": "High use intervals were 21 on 2016-04-18."
+      },
+      "window_start": "2016-04-18"
+    },
+    {
+      "case_id": "wrong_label-07-2016-03-28",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-29",
+            "value": 37
+          }
+        ],
+        "text": "High use intervals were 37 on 2016-03-29."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-29",
+            "value": 37
+          }
+        ],
+        "text": "Light intervals were 37 on 2016-03-29."
+      },
+      "window_start": "2016-03-28"
+    },
+    {
+      "case_id": "wrong_label-08-2016-03-14",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-14",
+            "value": 36
+          }
+        ],
+        "text": "High use intervals were 36 on 2016-03-14."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-14",
+            "value": 36
+          }
+        ],
+        "text": "Light intervals were 36 on 2016-03-14."
+      },
+      "window_start": "2016-03-14"
+    },
+    {
+      "case_id": "wrong_label-09-2016-02-01",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-03",
+            "value": 63
+          }
+        ],
+        "text": "High use intervals were 63 on 2016-02-03."
+      },
+      "expect": "fail",
+      "kind": "wrong_label",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-03",
+            "value": 63
+          }
+        ],
+        "text": "Light intervals were 63 on 2016-02-03."
+      },
+      "window_start": "2016-02-01"
+    },
+    {
+      "case_id": "wrong_period-00-2016-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-08",
+            "value": 41
+          }
+        ],
+        "text": "Light intervals were 41 on 2016-03-09."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-08",
+            "value": 41
+          }
+        ],
+        "text": "Light intervals were 41 on 2016-03-08."
+      },
+      "window_start": "2016-03-07"
+    },
+    {
+      "case_id": "wrong_period-01-2016-02-22",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-24",
+            "value": 24
+          }
+        ],
+        "text": "High use intervals were 24 on 2016-02-25."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-24",
+            "value": 24
+          }
+        ],
+        "text": "High use intervals were 24 on 2016-02-24."
+      },
+      "window_start": "2016-02-22"
+    },
+    {
+      "case_id": "wrong_period-02-2016-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-07",
+            "value": 32
+          }
+        ],
+        "text": "Light intervals were 32 on 2016-03-08."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-07",
+            "value": 32
+          }
+        ],
+        "text": "Light intervals were 32 on 2016-03-07."
+      },
+      "window_start": "2016-03-07"
+    },
+    {
+      "case_id": "wrong_period-03-2016-05-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-14",
+            "value": 40
+          }
+        ],
+        "text": "High use intervals were 40 on 2016-05-15."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-14",
+            "value": 40
+          }
+        ],
+        "text": "High use intervals were 40 on 2016-05-14."
+      },
+      "window_start": "2016-05-09"
+    },
+    {
+      "case_id": "wrong_period-04-2016-05-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-22",
+            "value": 4
+          }
+        ],
+        "text": "Light intervals were 4 on 2016-05-16."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-05-22",
+            "value": 4
+          }
+        ],
+        "text": "Light intervals were 4 on 2016-05-22."
+      },
+      "window_start": "2016-05-16"
+    },
+    {
+      "case_id": "wrong_period-05-2016-02-08",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-14",
+            "value": 87
+          }
+        ],
+        "text": "Light intervals were 87 on 2016-02-08."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-14",
+            "value": 87
+          }
+        ],
+        "text": "Light intervals were 87 on 2016-02-14."
+      },
+      "window_start": "2016-02-08"
+    },
+    {
+      "case_id": "wrong_period-06-2016-02-08",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-13",
+            "value": 33
+          }
+        ],
+        "text": "Light intervals were 33 on 2016-02-14."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-13",
+            "value": 33
+          }
+        ],
+        "text": "Light intervals were 33 on 2016-02-13."
+      },
+      "window_start": "2016-02-08"
+    },
+    {
+      "case_id": "wrong_period-07-2016-02-29",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-04",
+            "value": 24
+          }
+        ],
+        "text": "Light intervals were 24 on 2016-03-05."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-04",
+            "value": 24
+          }
+        ],
+        "text": "Light intervals were 24 on 2016-03-04."
+      },
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "wrong_period-08-2016-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-12",
+            "value": 39
+          }
+        ],
+        "text": "Light intervals were 39 on 2016-03-13."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-12",
+            "value": 39
+          }
+        ],
+        "text": "Light intervals were 39 on 2016-03-12."
+      },
+      "window_start": "2016-03-07"
+    },
+    {
+      "case_id": "wrong_period-09-2016-05-16",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-21",
+            "value": 63
+          }
+        ],
+        "text": "High use intervals were 63 on 2016-05-22."
+      },
+      "expect": "fail",
+      "kind": "wrong_period",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-21",
+            "value": 63
+          }
+        ],
+        "text": "High use intervals were 63 on 2016-05-21."
+      },
+      "window_start": "2016-05-16"
+    },
+    {
+      "case_id": "wrong_unit-00-2016-03-28",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-04-01",
+            "value": 1
+          }
+        ],
+        "text": "Light intervals were 1 hours on 2016-04-01."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-04-01",
+            "value": 1
+          }
+        ],
+        "text": "Light intervals were 1 on 2016-04-01."
+      },
+      "window_start": "2016-03-28"
+    },
+    {
+      "case_id": "wrong_unit-01-2016-05-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-14",
+            "value": 40
+          }
+        ],
+        "text": "High use intervals were 40 minutes on 2016-05-14."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-14",
+            "value": 40
+          }
+        ],
+        "text": "High use intervals were 40 on 2016-05-14."
+      },
+      "window_start": "2016-05-09"
+    },
+    {
+      "case_id": "wrong_unit-02-2016-02-01",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-01",
+            "value": 57
+          }
+        ],
+        "text": "High use intervals were 57 seconds on 2016-02-01."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-01",
+            "value": 57
+          }
+        ],
+        "text": "High use intervals were 57 on 2016-02-01."
+      },
+      "window_start": "2016-02-01"
+    },
+    {
+      "case_id": "wrong_unit-03-2016-03-21",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "heavy_days",
+            "value": 2
+          }
+        ],
+        "text": "Heavy days numbered 2 weeks in the week of 2016-03-21."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "heavy_days",
+            "value": 2
+          }
+        ],
+        "text": "Heavy days numbered 2 in the week of 2016-03-21."
+      },
+      "window_start": "2016-03-21"
+    },
+    {
+      "case_id": "wrong_unit-04-2016-01-18",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-19",
+            "value": 31
+          }
+        ],
+        "text": "Light intervals were 31 percent on 2016-01-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-19",
+            "value": 31
+          }
+        ],
+        "text": "Light intervals were 31 on 2016-01-19."
+      },
+      "window_start": "2016-01-18"
+    },
+    {
+      "case_id": "wrong_unit-05-2016-02-08",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-10",
+            "value": 42
+          }
+        ],
+        "text": "Light intervals were 42 hours on 2016-02-10."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-10",
+            "value": 42
+          }
+        ],
+        "text": "Light intervals were 42 on 2016-02-10."
+      },
+      "window_start": "2016-02-08"
+    },
+    {
+      "case_id": "wrong_unit-06-2016-03-21",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-21",
+            "value": 21
+          }
+        ],
+        "text": "High use intervals were 21 minutes on 2016-03-21."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-21",
+            "value": 21
+          }
+        ],
+        "text": "High use intervals were 21 on 2016-03-21."
+      },
+      "window_start": "2016-03-21"
+    },
+    {
+      "case_id": "wrong_unit-07-2016-02-15",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-15",
+            "value": 99
+          }
+        ],
+        "text": "Light intervals were 99 seconds on 2016-02-15."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-15",
+            "value": 99
+          }
+        ],
+        "text": "Light intervals were 99 on 2016-02-15."
+      },
+      "window_start": "2016-02-15"
+    },
+    {
+      "case_id": "wrong_unit-08-2016-01-25",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "heavy_days",
+            "value": 2
+          }
+        ],
+        "text": "Heavy days numbered 2 weeks in the week of 2016-01-25."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "heavy_days",
+            "value": 2
+          }
+        ],
+        "text": "Heavy days numbered 2 in the week of 2016-01-25."
+      },
+      "window_start": "2016-01-25"
+    },
+    {
+      "case_id": "wrong_unit-09-2016-03-14",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-17",
+            "value": 57
+          }
+        ],
+        "text": "Light intervals were 57 percent on 2016-03-17."
+      },
+      "expect": "fail",
+      "kind": "wrong_unit",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-17",
+            "value": 57
+          }
+        ],
+        "text": "Light intervals were 57 on 2016-03-17."
+      },
+      "window_start": "2016-03-14"
+    },
+    {
+      "case_id": "wrong_source-00-2016-03-14",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-18",
+            "value": 54
+          }
+        ],
+        "text": "Light intervals were 54 on 2016-03-15."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-15",
+            "value": 54
+          }
+        ],
+        "text": "Light intervals were 54 on 2016-03-15."
+      },
+      "window_start": "2016-03-14"
+    },
+    {
+      "case_id": "wrong_source-01-2016-02-08",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-18",
+            "value": 52
+          }
+        ],
+        "text": "Light intervals were 52 on 2016-02-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-02-11",
+            "value": 52
+          }
+        ],
+        "text": "Light intervals were 52 on 2016-02-11."
+      },
+      "window_start": "2016-02-08"
+    },
+    {
+      "case_id": "wrong_source-02-2016-03-14",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-01-18",
+            "value": 53
+          }
+        ],
+        "text": "High use intervals were 53 on 2016-03-20."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-20",
+            "value": 53
+          }
+        ],
+        "text": "High use intervals were 53 on 2016-03-20."
+      },
+      "window_start": "2016-03-14"
+    },
+    {
+      "case_id": "wrong_source-03-2016-03-21",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-18",
+            "value": 40
+          }
+        ],
+        "text": "Light intervals were 40 on 2016-03-21."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-21",
+            "value": 40
+          }
+        ],
+        "text": "Light intervals were 40 on 2016-03-21."
+      },
+      "window_start": "2016-03-21"
+    },
+    {
+      "case_id": "wrong_source-04-2016-01-18",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-25",
+            "value": 31
+          }
+        ],
+        "text": "Light intervals were 31 on 2016-01-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-19",
+            "value": 31
+          }
+        ],
+        "text": "Light intervals were 31 on 2016-01-19."
+      },
+      "window_start": "2016-01-18"
+    },
+    {
+      "case_id": "wrong_source-05-2016-04-04",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_5"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-10",
+            "value": 21
+          }
+        ],
+        "text": "High use intervals were 21 on 2016-04-10."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-10",
+            "value": 21
+          }
+        ],
+        "text": "High use intervals were 21 on 2016-04-10."
+      },
+      "window_start": "2016-04-04"
+    },
+    {
+      "case_id": "wrong_source-06-2016-03-14",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_6"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-16",
+            "value": 60
+          }
+        ],
+        "text": "Light intervals were 60 on 2016-03-16."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-03-16",
+            "value": 60
+          }
+        ],
+        "text": "Light intervals were 60 on 2016-03-16."
+      },
+      "window_start": "2016-03-14"
+    },
+    {
+      "case_id": "wrong_source-07-2016-02-29",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_7"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-29",
+            "value": 58
+          }
+        ],
+        "text": "High use intervals were 58 on 2016-02-29."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-29",
+            "value": 58
+          }
+        ],
+        "text": "High use intervals were 58 on 2016-02-29."
+      },
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "wrong_source-08-2016-01-18",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_8"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-20",
+            "value": 51
+          }
+        ],
+        "text": "Light intervals were 51 on 2016-01-20."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "light_intervals.2016-01-20",
+            "value": 51
+          }
+        ],
+        "text": "Light intervals were 51 on 2016-01-20."
+      },
+      "window_start": "2016-01-18"
+    },
+    {
+      "case_id": "wrong_source-09-2016-03-28",
+      "claim": {
+        "fact_ids": [
+          "unknown_fact_9"
+        ],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-29",
+            "value": 39
+          }
+        ],
+        "text": "High use intervals were 39 on 2016-03-29."
+      },
+      "expect": "fail",
+      "kind": "wrong_source",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-29",
+            "value": 39
+          }
+        ],
+        "text": "High use intervals were 39 on 2016-03-29."
+      },
+      "window_start": "2016-03-28"
+    },
+    {
+      "case_id": "wrong_direction-00-2016-02-29",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-29",
+            "value": 58
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-01",
+            "value": 15
+          }
+        ],
+        "text": "High use intervals rose from 58 on 2016-02-29 to 15 on 2016-03-01."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-29",
+            "value": 58
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-01",
+            "value": 15
+          }
+        ],
+        "text": "High use intervals fell from 58 on 2016-02-29 to 15 on 2016-03-01."
+      },
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "wrong_direction-01-2016-02-29",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-02",
+            "value": 36
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-03",
+            "value": 21
+          }
+        ],
+        "text": "High use intervals increased from 36 on 2016-03-02 to 21 on 2016-03-03."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-02",
+            "value": 36
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-03",
+            "value": 21
+          }
+        ],
+        "text": "High use intervals decreased from 36 on 2016-03-02 to 21 on 2016-03-03."
+      },
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "wrong_direction-02-2016-03-14",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-17",
+            "value": 27
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-18",
+            "value": 14
+          }
+        ],
+        "text": "High use intervals went up from 27 on 2016-03-17 to 14 on 2016-03-18."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-17",
+            "value": 27
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-18",
+            "value": 14
+          }
+        ],
+        "text": "High use intervals went down from 27 on 2016-03-17 to 14 on 2016-03-18."
+      },
+      "window_start": "2016-03-14"
+    },
+    {
+      "case_id": "wrong_direction-03-2016-02-15",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-19",
+            "value": 41
+          },
+          {
+            "metric_id": "high_use_intervals.2016-02-20",
+            "value": 30
+          }
+        ],
+        "text": "High use intervals rose from 41 on 2016-02-19 to 30 on 2016-02-20."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-19",
+            "value": 41
+          },
+          {
+            "metric_id": "high_use_intervals.2016-02-20",
+            "value": 30
+          }
+        ],
+        "text": "High use intervals fell from 41 on 2016-02-19 to 30 on 2016-02-20."
+      },
+      "window_start": "2016-02-15"
+    },
+    {
+      "case_id": "wrong_direction-04-2016-02-29",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-29",
+            "value": 58
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-01",
+            "value": 15
+          }
+        ],
+        "text": "High use intervals increased from 58 on 2016-02-29 to 15 on 2016-03-01."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-02-29",
+            "value": 58
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-01",
+            "value": 15
+          }
+        ],
+        "text": "High use intervals decreased from 58 on 2016-02-29 to 15 on 2016-03-01."
+      },
+      "window_start": "2016-02-29"
+    },
+    {
+      "case_id": "wrong_direction-05-2016-05-02",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-04",
+            "value": 22
+          },
+          {
+            "metric_id": "high_use_intervals.2016-05-05",
+            "value": 20
+          }
+        ],
+        "text": "High use intervals went up from 22 on 2016-05-04 to 20 on 2016-05-05."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-04",
+            "value": 22
+          },
+          {
+            "metric_id": "high_use_intervals.2016-05-05",
+            "value": 20
+          }
+        ],
+        "text": "High use intervals went down from 22 on 2016-05-04 to 20 on 2016-05-05."
+      },
+      "window_start": "2016-05-02"
+    },
+    {
+      "case_id": "wrong_direction-06-2016-04-04",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-07",
+            "value": 19
+          },
+          {
+            "metric_id": "high_use_intervals.2016-04-08",
+            "value": 58
+          }
+        ],
+        "text": "High use intervals fell from 19 on 2016-04-07 to 58 on 2016-04-08."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-07",
+            "value": 19
+          },
+          {
+            "metric_id": "high_use_intervals.2016-04-08",
+            "value": 58
+          }
+        ],
+        "text": "High use intervals rose from 19 on 2016-04-07 to 58 on 2016-04-08."
+      },
+      "window_start": "2016-04-04"
+    },
+    {
+      "case_id": "wrong_direction-07-2016-04-18",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-18",
+            "value": 21
+          },
+          {
+            "metric_id": "high_use_intervals.2016-04-19",
+            "value": 19
+          }
+        ],
+        "text": "High use intervals increased from 21 on 2016-04-18 to 19 on 2016-04-19."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-04-18",
+            "value": 21
+          },
+          {
+            "metric_id": "high_use_intervals.2016-04-19",
+            "value": 19
+          }
+        ],
+        "text": "High use intervals decreased from 21 on 2016-04-18 to 19 on 2016-04-19."
+      },
+      "window_start": "2016-04-18"
+    },
+    {
+      "case_id": "wrong_direction-08-2016-05-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-11",
+            "value": 7
+          },
+          {
+            "metric_id": "high_use_intervals.2016-05-12",
+            "value": 20
+          }
+        ],
+        "text": "High use intervals went down from 7 on 2016-05-11 to 20 on 2016-05-12."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-05-11",
+            "value": 7
+          },
+          {
+            "metric_id": "high_use_intervals.2016-05-12",
+            "value": 20
+          }
+        ],
+        "text": "High use intervals went up from 7 on 2016-05-11 to 20 on 2016-05-12."
+      },
+      "window_start": "2016-05-09"
+    },
+    {
+      "case_id": "wrong_direction-09-2016-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-10",
+            "value": 31
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-11",
+            "value": 14
+          }
+        ],
+        "text": "High use intervals rose from 31 on 2016-03-10 to 14 on 2016-03-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "high_use_intervals.2016-03-10",
+            "value": 31
+          },
+          {
+            "metric_id": "high_use_intervals.2016-03-11",
+            "value": 14
+          }
+        ],
+        "text": "High use intervals fell from 31 on 2016-03-10 to 14 on 2016-03-11."
+      },
+      "window_start": "2016-03-07"
+    }
+  ],
+  "pack_id": "energy",
+  "seed": 20261104,
+  "windows": [
+    "2016-01-18",
+    "2016-01-25",
+    "2016-02-01",
+    "2016-02-08",
+    "2016-02-15",
+    "2016-02-22",
+    "2016-02-29",
+    "2016-03-07",
+    "2016-03-14",
+    "2016-03-21",
+    "2016-03-28",
+    "2016-04-04",
+    "2016-04-11",
+    "2016-04-18",
+    "2016-04-25",
+    "2016-05-02",
+    "2016-05-09",
+    "2016-05-16"
+  ]
+}

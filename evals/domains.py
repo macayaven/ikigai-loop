@@ -288,6 +288,267 @@ def _planted_case(
     raise ValueError(f"unknown planted kind: {kind}")
 
 
+def _display_name(labels: list[str]) -> str:
+    name = " ".join(labels)
+    return name[:1].upper() + name[1:] if name else name
+
+
+def _generic_control_kinds(pack: dict[str, Any]) -> list[tuple[str, str]]:
+    """One control kind per metric in pack order, then the comparison."""
+    kinds = [("daily", str(item["prefix"])) for item in pack["daily_metrics"]]
+    kinds += [("window", str(item["id"])) for item in pack["window_metrics"]]
+    kinds.append(("comparison", "comparison"))
+    return kinds
+
+
+def _generic_pairs(
+    entry: dict[str, Any], prefix: str
+) -> list[tuple[str, str, int, int]]:
+    """Every consecutive date pair whose first-series values differ."""
+    dates = entry["dates"]
+    pairs: list[tuple[str, str, int, int]] = []
+    for left, right in itertools.pairwise(dates):
+        first = entry["days"][left][prefix]
+        second = entry["days"][right][prefix]
+        if first != second:
+            pairs.append((left, right, first, second))
+    if not pairs:
+        raise ValueError("no differing consecutive dates for a comparison")
+    return pairs
+
+
+def _generic_daily_labels(pack: dict[str, Any]) -> dict[str, list[str]]:
+    return {str(item["prefix"]): list(item["labels"]) for item in pack["daily_metrics"]}
+
+
+def _generic_window_specs(pack: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {str(item["id"]): item for item in pack["window_metrics"]}
+
+
+def _generic_control_claim(
+    slot: tuple[str, str],
+    start: str,
+    entry: dict[str, Any],
+    index: int,
+    phrase: str,
+    pack: dict[str, Any],
+) -> tuple[str, dict[str, Any]]:
+    kind, name = slot
+    if kind == "comparison":
+        first_metric = pack["daily_metrics"][0]
+        prefix = str(first_metric["prefix"])
+        display = _display_name(list(first_metric["labels"]))
+        left, right, first, second = _generic_pairs(entry, prefix)[0]
+        word = _true_word(first, second, DIRECTION_PAIRS[0])
+        return "comparison", _claim(
+            f"{display} {word} from {first:,} on {left} to {second:,} on {right}.",
+            [(f"{prefix}.{left}", first), (f"{prefix}.{right}", second)],
+        )
+    if kind == "daily":
+        display = _display_name(_generic_daily_labels(pack)[name])
+        day = entry["dates"][index % len(entry["dates"])]
+        value = entry["days"][day][name]
+        return f"daily_{name}", _claim(
+            f"{display} were {value:,} on {day}.", [(f"{name}.{day}", value)]
+        )
+    specs = _generic_window_specs(pack)
+    display = _display_name(list(specs[name]["labels"]))
+    value = entry[name]
+    if str(specs[name]["op"]) == "sum":
+        text = f"{display} were {value:,} in the {phrase}."
+    else:
+        text = f"{display} numbered {value:,} in the {phrase}."
+    return name, _claim(text, [(name, value)])
+
+
+def _generic_daily_base(
+    rng: random.Random, pack: dict[str, Any], entry: dict[str, Any]
+) -> tuple[str, str, int, str]:
+    item = rng.choice(list(pack["daily_metrics"]))
+    prefix = str(item["prefix"])
+    day = rng.choice(entry["dates"])
+    return prefix, _display_name(list(item["labels"])), entry["days"][day][prefix], day
+
+
+def _generic_planted_case(
+    kind: str,
+    number: int,
+    per_kind: int,
+    start: str,
+    entry: dict[str, Any],
+    windows: list[str],
+    pack: dict[str, Any],
+    rng: random.Random,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    if kind == "wrong_value":
+        prefix, display, value, day = _generic_daily_base(rng, pack, entry)
+        delta = rng.randint(1, 9)
+        wrong = value + delta
+        twin = _claim(
+            f"{display} were {value:,} on {day}.", [(f"{prefix}.{day}", value)]
+        )
+        if number * 2 < per_kind:
+            claim = _claim(
+                f"{display} were {wrong:,} on {day}.",
+                [(f"{prefix}.{day}", wrong)],
+            )
+        else:
+            claim = _claim(
+                f"{display} were {wrong:,} on {day}.",
+                [(f"{prefix}.{day}", value)],
+            )
+        return claim, twin
+    if kind == "wrong_label":
+        prefix, display, value, day = _generic_daily_base(rng, pack, entry)
+        twin = _claim(
+            f"{display} were {value:,} on {day}.", [(f"{prefix}.{day}", value)]
+        )
+        others = [
+            str(item["prefix"])
+            for item in pack["daily_metrics"]
+            if str(item["prefix"]) != prefix
+        ]
+        other = rng.choice(others)
+        swapped = _display_name(_generic_daily_labels(pack)[other])
+        claim = _claim(
+            f"{swapped} were {value:,} on {day}.", [(f"{prefix}.{day}", value)]
+        )
+        return claim, twin
+    if kind == "wrong_period":
+        prefix, display, value, day = _generic_daily_base(rng, pack, entry)
+        twin = _claim(
+            f"{display} were {value:,} on {day}.", [(f"{prefix}.{day}", value)]
+        )
+        dates = entry["dates"]
+        other = dates[(dates.index(day) + 1) % len(dates)]
+        claim = _claim(
+            f"{display} were {value:,} on {other}.", [(f"{prefix}.{day}", value)]
+        )
+        return claim, twin
+    if kind == "wrong_unit":
+        word = UNIT_CYCLE[number % len(UNIT_CYCLE)]
+        if word == "days":
+            targets = [
+                str(item["id"])
+                for item in pack["window_metrics"]
+                if str(item["unit"]) == "days"
+            ]
+            if targets:
+                metric_id = targets[0]
+                display = _display_name(
+                    list(_generic_window_specs(pack)[metric_id]["labels"])
+                )
+                value = entry[metric_id]
+                phrase = "week of " + start
+                twin = _claim(
+                    f"{display} numbered {value:,} in the {phrase}.",
+                    [(metric_id, value)],
+                )
+                claim = _claim(
+                    f"{display} numbered {value:,} weeks in the {phrase}.",
+                    [(metric_id, value)],
+                )
+                return claim, twin
+        prefix, display, value, day = _generic_daily_base(rng, pack, entry)
+        twin = _claim(
+            f"{display} were {value:,} on {day}.", [(f"{prefix}.{day}", value)]
+        )
+        claim = _claim(
+            f"{display} were {value:,} {word} on {day}.",
+            [(f"{prefix}.{day}", value)],
+        )
+        return claim, twin
+    if kind == "wrong_source":
+        prefix, display, value, day = _generic_daily_base(rng, pack, entry)
+        twin = _claim(
+            f"{display} were {value:,} on {day}.", [(f"{prefix}.{day}", value)]
+        )
+        if number * 2 < per_kind:
+            outside = next(candidate for candidate in windows if candidate != start)
+            claim = _claim(
+                f"{display} were {value:,} on {day}.",
+                [(f"{prefix}.{outside}", value)],
+            )
+            return claim, twin
+        claim = _claim(
+            f"{display} were {value:,} on {day}.",
+            [(f"{prefix}.{day}", value)],
+            [f"unknown_fact_{number}"],
+        )
+        return claim, twin
+    if kind == "wrong_direction":
+        pair = DIRECTION_PAIRS[number % len(DIRECTION_PAIRS)]
+        prefix = str(pack["daily_metrics"][0]["prefix"])
+        display = _display_name(list(pack["daily_metrics"][0]["labels"]))
+        left, right, first, second = rng.choice(_generic_pairs(entry, prefix))
+        twin = _claim(
+            f"{display} {_true_word(first, second, pair)} from {first:,} on {left} "
+            f"to {second:,} on {right}.",
+            [(f"{prefix}.{left}", first), (f"{prefix}.{right}", second)],
+        )
+        flipped = pair[1] if _true_word(first, second, pair) == pair[0] else pair[0]
+        claim = _claim(
+            f"{display} {flipped} from {first:,} on {left} to {second:,} on {right}.",
+            [(f"{prefix}.{left}", first), (f"{prefix}.{right}", second)],
+        )
+        return claim, twin
+    raise ValueError(f"unknown planted kind: {kind}")
+
+
+def _freeze_cases_generic(
+    pack: dict[str, Any],
+    expected: dict[str, Any],
+    windows: list[str],
+    per_kind: int,
+    seed: int,
+) -> list[dict[str, Any]]:
+    kinds = _generic_control_kinds(pack)
+    cases: list[dict[str, Any]] = []
+    for index, start in enumerate(windows):
+        entry = expected[start]
+        period = str(pack["window"]["period_phrase"]).replace("{start}", start)
+        kind, claim = _generic_control_claim(
+            kinds[index % len(kinds)], start, entry, index, period, pack
+        )
+        cases.append(
+            {
+                "case_id": f"control-{start}",
+                "window_start": start,
+                "kind": kind,
+                "expect": "pass",
+                "claim": claim,
+            }
+        )
+    seen = {_claim_key(case["claim"]) for case in cases}
+    rng = random.Random(seed)
+    for kind in PLANTED_KINDS:
+        for number in range(per_kind):
+            for _ in range(100):
+                start = rng.choice(windows)
+                entry = expected[start]
+                claim, twin = _generic_planted_case(
+                    kind, number, per_kind, start, entry, windows, pack, rng
+                )
+                if _claim_key(claim) not in seen:
+                    break
+            else:
+                raise ValueError(
+                    f"freeze cannot place a distinct {kind} claim after 100 draws"
+                )
+            seen.add(_claim_key(claim))
+            cases.append(
+                {
+                    "case_id": f"{kind}-{number:02d}-{start}",
+                    "window_start": start,
+                    "kind": kind,
+                    "expect": "fail",
+                    "claim": claim,
+                    "twin": twin,
+                }
+            )
+    return cases
+
+
 def _freeze_cases(
     pack: dict[str, Any],
     expected: dict[str, Any],
@@ -295,6 +556,8 @@ def _freeze_cases(
     per_kind: int,
     seed: int,
 ) -> list[dict[str, Any]]:
+    if pack.get("pack_id") != "bikes":
+        return _freeze_cases_generic(pack, expected, windows, per_kind, seed)
     cases: list[dict[str, Any]] = []
     for index, start in enumerate(windows):
         kind = CONTROL_KINDS[index % len(CONTROL_KINDS)]

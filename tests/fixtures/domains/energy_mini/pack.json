@@ -1,0 +1,105 @@
+{
+  "commitments": [
+    {
+      "id": "inspect-appliances",
+      "text": "Look at which appliances ran long this week.",
+      "when": {
+        "metric": "heavy_days",
+        "op": ">=",
+        "value": 3
+      }
+    },
+    {
+      "id": "keep-monitoring",
+      "text": "Keep monitoring; no action this week.",
+      "when": {
+        "metric": "heavy_days",
+        "op": "<=",
+        "value": 2
+      }
+    }
+  ],
+  "daily_metrics": [
+    {
+      "above": 100,
+      "column": "Appliances",
+      "labels": [
+        "high",
+        "use",
+        "intervals"
+      ],
+      "op": "count_above",
+      "prefix": "high_use_intervals",
+      "source": "energy",
+      "unit": "count"
+    },
+    {
+      "above": 0,
+      "column": "lights",
+      "labels": [
+        "light",
+        "intervals"
+      ],
+      "op": "count_above",
+      "prefix": "light_intervals",
+      "source": "energy",
+      "unit": "count"
+    }
+  ],
+  "facts": {
+    "heavy_rule": "Heavy days are days whose high use intervals exceed the declared limit.",
+    "high_use_rule": "High use intervals are logged intervals whose appliance energy use exceeds the declared amount.",
+    "light_rule": "Light intervals are logged intervals with the lights on.",
+    "source": "The records come from the UCI Appliances Energy Prediction dataset, under a Creative Commons Attribution license."
+  },
+  "goal": {
+    "id": "spot-heavy-weeks",
+    "text": "Notice the weeks when the appliances run heavy, before the bill does."
+  },
+  "identities": [
+    {
+      "count": 144,
+      "kind": "rows_per_date",
+      "source": "energy"
+    }
+  ],
+  "note": "Made-up fixture for tests; not real data and not a user.",
+  "pack_id": "energy",
+  "sources": {
+    "energy": {
+      "date_column": "date",
+      "path": "energy.csv",
+      "sha256": "f19edd965638dfb2b8b349c38fdfc2991bd20afeab1084b28dd1c6e0455fe401"
+    }
+  },
+  "title": "Home energy review",
+  "window": {
+    "days": 7,
+    "period_phrase": "week of {start}",
+    "starts_on": "monday"
+  },
+  "window_metrics": [
+    {
+      "id": "week_high_use_intervals",
+      "labels": [
+        "high",
+        "use",
+        "intervals"
+      ],
+      "of": "high_use_intervals",
+      "op": "sum",
+      "unit": "count"
+    },
+    {
+      "above": 36,
+      "id": "heavy_days",
+      "labels": [
+        "heavy",
+        "days"
+      ],
+      "of": "high_use_intervals",
+      "op": "count_above",
+      "unit": "days"
+    }
+  ]
+}

@@ -1,0 +1,920 @@
+{
+  "2016-01-18": {
+    "dates": [
+      "2016-01-18",
+      "2016-01-19",
+      "2016-01-20",
+      "2016-01-21",
+      "2016-01-22",
+      "2016-01-23",
+      "2016-01-24"
+    ],
+    "days": {
+      "2016-01-18": {
+        "high_use_intervals": 19,
+        "light_intervals": 39,
+        "rows": 144
+      },
+      "2016-01-19": {
+        "high_use_intervals": 25,
+        "light_intervals": 31,
+        "rows": 144
+      },
+      "2016-01-20": {
+        "high_use_intervals": 31,
+        "light_intervals": 51,
+        "rows": 144
+      },
+      "2016-01-21": {
+        "high_use_intervals": 21,
+        "light_intervals": 41,
+        "rows": 144
+      },
+      "2016-01-22": {
+        "high_use_intervals": 3,
+        "light_intervals": 9,
+        "rows": 144
+      },
+      "2016-01-23": {
+        "high_use_intervals": 53,
+        "light_intervals": 62,
+        "rows": 144
+      },
+      "2016-01-24": {
+        "high_use_intervals": 46,
+        "light_intervals": 71,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 198
+  },
+  "2016-01-25": {
+    "dates": [
+      "2016-01-25",
+      "2016-01-26",
+      "2016-01-27",
+      "2016-01-28",
+      "2016-01-29",
+      "2016-01-30",
+      "2016-01-31"
+    ],
+    "days": {
+      "2016-01-25": {
+        "high_use_intervals": 9,
+        "light_intervals": 22,
+        "rows": 144
+      },
+      "2016-01-26": {
+        "high_use_intervals": 12,
+        "light_intervals": 26,
+        "rows": 144
+      },
+      "2016-01-27": {
+        "high_use_intervals": 4,
+        "light_intervals": 7,
+        "rows": 144
+      },
+      "2016-01-28": {
+        "high_use_intervals": 0,
+        "light_intervals": 0,
+        "rows": 144
+      },
+      "2016-01-29": {
+        "high_use_intervals": 2,
+        "light_intervals": 10,
+        "rows": 144
+      },
+      "2016-01-30": {
+        "high_use_intervals": 41,
+        "light_intervals": 29,
+        "rows": 144
+      },
+      "2016-01-31": {
+        "high_use_intervals": 61,
+        "light_intervals": 87,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 129
+  },
+  "2016-02-01": {
+    "dates": [
+      "2016-02-01",
+      "2016-02-02",
+      "2016-02-03",
+      "2016-02-04",
+      "2016-02-05",
+      "2016-02-06",
+      "2016-02-07"
+    ],
+    "days": {
+      "2016-02-01": {
+        "high_use_intervals": 57,
+        "light_intervals": 144,
+        "rows": 144
+      },
+      "2016-02-02": {
+        "high_use_intervals": 17,
+        "light_intervals": 89,
+        "rows": 144
+      },
+      "2016-02-03": {
+        "high_use_intervals": 60,
+        "light_intervals": 63,
+        "rows": 144
+      },
+      "2016-02-04": {
+        "high_use_intervals": 32,
+        "light_intervals": 71,
+        "rows": 144
+      },
+      "2016-02-05": {
+        "high_use_intervals": 9,
+        "light_intervals": 26,
+        "rows": 144
+      },
+      "2016-02-06": {
+        "high_use_intervals": 16,
+        "light_intervals": 23,
+        "rows": 144
+      },
+      "2016-02-07": {
+        "high_use_intervals": 19,
+        "light_intervals": 48,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 210
+  },
+  "2016-02-08": {
+    "dates": [
+      "2016-02-08",
+      "2016-02-09",
+      "2016-02-10",
+      "2016-02-11",
+      "2016-02-12",
+      "2016-02-13",
+      "2016-02-14"
+    ],
+    "days": {
+      "2016-02-08": {
+        "high_use_intervals": 48,
+        "light_intervals": 69,
+        "rows": 144
+      },
+      "2016-02-09": {
+        "high_use_intervals": 74,
+        "light_intervals": 32,
+        "rows": 144
+      },
+      "2016-02-10": {
+        "high_use_intervals": 38,
+        "light_intervals": 42,
+        "rows": 144
+      },
+      "2016-02-11": {
+        "high_use_intervals": 52,
+        "light_intervals": 52,
+        "rows": 144
+      },
+      "2016-02-12": {
+        "high_use_intervals": 41,
+        "light_intervals": 31,
+        "rows": 144
+      },
+      "2016-02-13": {
+        "high_use_intervals": 22,
+        "light_intervals": 33,
+        "rows": 144
+      },
+      "2016-02-14": {
+        "high_use_intervals": 48,
+        "light_intervals": 87,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "inspect-appliances",
+    "heavy_days": 6,
+    "week_high_use_intervals": 323
+  },
+  "2016-02-15": {
+    "dates": [
+      "2016-02-15",
+      "2016-02-16",
+      "2016-02-17",
+      "2016-02-18",
+      "2016-02-19",
+      "2016-02-20",
+      "2016-02-21"
+    ],
+    "days": {
+      "2016-02-15": {
+        "high_use_intervals": 38,
+        "light_intervals": 99,
+        "rows": 144
+      },
+      "2016-02-16": {
+        "high_use_intervals": 30,
+        "light_intervals": 53,
+        "rows": 144
+      },
+      "2016-02-17": {
+        "high_use_intervals": 3,
+        "light_intervals": 18,
+        "rows": 144
+      },
+      "2016-02-18": {
+        "high_use_intervals": 18,
+        "light_intervals": 45,
+        "rows": 144
+      },
+      "2016-02-19": {
+        "high_use_intervals": 41,
+        "light_intervals": 16,
+        "rows": 144
+      },
+      "2016-02-20": {
+        "high_use_intervals": 30,
+        "light_intervals": 30,
+        "rows": 144
+      },
+      "2016-02-21": {
+        "high_use_intervals": 29,
+        "light_intervals": 81,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 189
+  },
+  "2016-02-22": {
+    "dates": [
+      "2016-02-22",
+      "2016-02-23",
+      "2016-02-24",
+      "2016-02-25",
+      "2016-02-26",
+      "2016-02-27",
+      "2016-02-28"
+    ],
+    "days": {
+      "2016-02-22": {
+        "high_use_intervals": 37,
+        "light_intervals": 56,
+        "rows": 144
+      },
+      "2016-02-23": {
+        "high_use_intervals": 26,
+        "light_intervals": 55,
+        "rows": 144
+      },
+      "2016-02-24": {
+        "high_use_intervals": 24,
+        "light_intervals": 38,
+        "rows": 144
+      },
+      "2016-02-25": {
+        "high_use_intervals": 42,
+        "light_intervals": 79,
+        "rows": 144
+      },
+      "2016-02-26": {
+        "high_use_intervals": 25,
+        "light_intervals": 19,
+        "rows": 144
+      },
+      "2016-02-27": {
+        "high_use_intervals": 22,
+        "light_intervals": 25,
+        "rows": 144
+      },
+      "2016-02-28": {
+        "high_use_intervals": 5,
+        "light_intervals": 10,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 181
+  },
+  "2016-02-29": {
+    "dates": [
+      "2016-02-29",
+      "2016-03-01",
+      "2016-03-02",
+      "2016-03-03",
+      "2016-03-04",
+      "2016-03-05",
+      "2016-03-06"
+    ],
+    "days": {
+      "2016-02-29": {
+        "high_use_intervals": 58,
+        "light_intervals": 39,
+        "rows": 144
+      },
+      "2016-03-01": {
+        "high_use_intervals": 15,
+        "light_intervals": 42,
+        "rows": 144
+      },
+      "2016-03-02": {
+        "high_use_intervals": 36,
+        "light_intervals": 33,
+        "rows": 144
+      },
+      "2016-03-03": {
+        "high_use_intervals": 21,
+        "light_intervals": 48,
+        "rows": 144
+      },
+      "2016-03-04": {
+        "high_use_intervals": 33,
+        "light_intervals": 24,
+        "rows": 144
+      },
+      "2016-03-05": {
+        "high_use_intervals": 19,
+        "light_intervals": 37,
+        "rows": 144
+      },
+      "2016-03-06": {
+        "high_use_intervals": 20,
+        "light_intervals": 35,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 1,
+    "week_high_use_intervals": 202
+  },
+  "2016-03-07": {
+    "dates": [
+      "2016-03-07",
+      "2016-03-08",
+      "2016-03-09",
+      "2016-03-10",
+      "2016-03-11",
+      "2016-03-12",
+      "2016-03-13"
+    ],
+    "days": {
+      "2016-03-07": {
+        "high_use_intervals": 53,
+        "light_intervals": 32,
+        "rows": 144
+      },
+      "2016-03-08": {
+        "high_use_intervals": 18,
+        "light_intervals": 41,
+        "rows": 144
+      },
+      "2016-03-09": {
+        "high_use_intervals": 39,
+        "light_intervals": 50,
+        "rows": 144
+      },
+      "2016-03-10": {
+        "high_use_intervals": 31,
+        "light_intervals": 46,
+        "rows": 144
+      },
+      "2016-03-11": {
+        "high_use_intervals": 14,
+        "light_intervals": 44,
+        "rows": 144
+      },
+      "2016-03-12": {
+        "high_use_intervals": 38,
+        "light_intervals": 39,
+        "rows": 144
+      },
+      "2016-03-13": {
+        "high_use_intervals": 18,
+        "light_intervals": 18,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "inspect-appliances",
+    "heavy_days": 3,
+    "week_high_use_intervals": 211
+  },
+  "2016-03-14": {
+    "dates": [
+      "2016-03-14",
+      "2016-03-15",
+      "2016-03-16",
+      "2016-03-17",
+      "2016-03-18",
+      "2016-03-19",
+      "2016-03-20"
+    ],
+    "days": {
+      "2016-03-14": {
+        "high_use_intervals": 62,
+        "light_intervals": 36,
+        "rows": 144
+      },
+      "2016-03-15": {
+        "high_use_intervals": 35,
+        "light_intervals": 54,
+        "rows": 144
+      },
+      "2016-03-16": {
+        "high_use_intervals": 58,
+        "light_intervals": 60,
+        "rows": 144
+      },
+      "2016-03-17": {
+        "high_use_intervals": 27,
+        "light_intervals": 57,
+        "rows": 144
+      },
+      "2016-03-18": {
+        "high_use_intervals": 14,
+        "light_intervals": 9,
+        "rows": 144
+      },
+      "2016-03-19": {
+        "high_use_intervals": 44,
+        "light_intervals": 12,
+        "rows": 144
+      },
+      "2016-03-20": {
+        "high_use_intervals": 53,
+        "light_intervals": 13,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "inspect-appliances",
+    "heavy_days": 4,
+    "week_high_use_intervals": 293
+  },
+  "2016-03-21": {
+    "dates": [
+      "2016-03-21",
+      "2016-03-22",
+      "2016-03-23",
+      "2016-03-24",
+      "2016-03-25",
+      "2016-03-26",
+      "2016-03-27"
+    ],
+    "days": {
+      "2016-03-21": {
+        "high_use_intervals": 21,
+        "light_intervals": 40,
+        "rows": 144
+      },
+      "2016-03-22": {
+        "high_use_intervals": 21,
+        "light_intervals": 20,
+        "rows": 144
+      },
+      "2016-03-23": {
+        "high_use_intervals": 29,
+        "light_intervals": 50,
+        "rows": 144
+      },
+      "2016-03-24": {
+        "high_use_intervals": 13,
+        "light_intervals": 27,
+        "rows": 144
+      },
+      "2016-03-25": {
+        "high_use_intervals": 69,
+        "light_intervals": 22,
+        "rows": 144
+      },
+      "2016-03-26": {
+        "high_use_intervals": 47,
+        "light_intervals": 26,
+        "rows": 144
+      },
+      "2016-03-27": {
+        "high_use_intervals": 12,
+        "light_intervals": 7,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 212
+  },
+  "2016-03-28": {
+    "dates": [
+      "2016-03-28",
+      "2016-03-29",
+      "2016-03-30",
+      "2016-03-31",
+      "2016-04-01",
+      "2016-04-02",
+      "2016-04-03"
+    ],
+    "days": {
+      "2016-03-28": {
+        "high_use_intervals": 46,
+        "light_intervals": 17,
+        "rows": 144
+      },
+      "2016-03-29": {
+        "high_use_intervals": 39,
+        "light_intervals": 37,
+        "rows": 144
+      },
+      "2016-03-30": {
+        "high_use_intervals": 23,
+        "light_intervals": 35,
+        "rows": 144
+      },
+      "2016-03-31": {
+        "high_use_intervals": 23,
+        "light_intervals": 17,
+        "rows": 144
+      },
+      "2016-04-01": {
+        "high_use_intervals": 7,
+        "light_intervals": 1,
+        "rows": 144
+      },
+      "2016-04-02": {
+        "high_use_intervals": 0,
+        "light_intervals": 0,
+        "rows": 144
+      },
+      "2016-04-03": {
+        "high_use_intervals": 16,
+        "light_intervals": 7,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 154
+  },
+  "2016-04-04": {
+    "dates": [
+      "2016-04-04",
+      "2016-04-05",
+      "2016-04-06",
+      "2016-04-07",
+      "2016-04-08",
+      "2016-04-09",
+      "2016-04-10"
+    ],
+    "days": {
+      "2016-04-04": {
+        "high_use_intervals": 65,
+        "light_intervals": 42,
+        "rows": 144
+      },
+      "2016-04-05": {
+        "high_use_intervals": 55,
+        "light_intervals": 43,
+        "rows": 144
+      },
+      "2016-04-06": {
+        "high_use_intervals": 34,
+        "light_intervals": 44,
+        "rows": 144
+      },
+      "2016-04-07": {
+        "high_use_intervals": 19,
+        "light_intervals": 7,
+        "rows": 144
+      },
+      "2016-04-08": {
+        "high_use_intervals": 58,
+        "light_intervals": 20,
+        "rows": 144
+      },
+      "2016-04-09": {
+        "high_use_intervals": 39,
+        "light_intervals": 20,
+        "rows": 144
+      },
+      "2016-04-10": {
+        "high_use_intervals": 21,
+        "light_intervals": 11,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "inspect-appliances",
+    "heavy_days": 4,
+    "week_high_use_intervals": 291
+  },
+  "2016-04-11": {
+    "dates": [
+      "2016-04-11",
+      "2016-04-12",
+      "2016-04-13",
+      "2016-04-14",
+      "2016-04-15",
+      "2016-04-16",
+      "2016-04-17"
+    ],
+    "days": {
+      "2016-04-11": {
+        "high_use_intervals": 17,
+        "light_intervals": 26,
+        "rows": 144
+      },
+      "2016-04-12": {
+        "high_use_intervals": 26,
+        "light_intervals": 23,
+        "rows": 144
+      },
+      "2016-04-13": {
+        "high_use_intervals": 27,
+        "light_intervals": 34,
+        "rows": 144
+      },
+      "2016-04-14": {
+        "high_use_intervals": 16,
+        "light_intervals": 45,
+        "rows": 144
+      },
+      "2016-04-15": {
+        "high_use_intervals": 42,
+        "light_intervals": 31,
+        "rows": 144
+      },
+      "2016-04-16": {
+        "high_use_intervals": 55,
+        "light_intervals": 5,
+        "rows": 144
+      },
+      "2016-04-17": {
+        "high_use_intervals": 36,
+        "light_intervals": 47,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 219
+  },
+  "2016-04-18": {
+    "dates": [
+      "2016-04-18",
+      "2016-04-19",
+      "2016-04-20",
+      "2016-04-21",
+      "2016-04-22",
+      "2016-04-23",
+      "2016-04-24"
+    ],
+    "days": {
+      "2016-04-18": {
+        "high_use_intervals": 21,
+        "light_intervals": 43,
+        "rows": 144
+      },
+      "2016-04-19": {
+        "high_use_intervals": 19,
+        "light_intervals": 25,
+        "rows": 144
+      },
+      "2016-04-20": {
+        "high_use_intervals": 23,
+        "light_intervals": 29,
+        "rows": 144
+      },
+      "2016-04-21": {
+        "high_use_intervals": 23,
+        "light_intervals": 9,
+        "rows": 144
+      },
+      "2016-04-22": {
+        "high_use_intervals": 63,
+        "light_intervals": 24,
+        "rows": 144
+      },
+      "2016-04-23": {
+        "high_use_intervals": 46,
+        "light_intervals": 9,
+        "rows": 144
+      },
+      "2016-04-24": {
+        "high_use_intervals": 23,
+        "light_intervals": 15,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 218
+  },
+  "2016-04-25": {
+    "dates": [
+      "2016-04-25",
+      "2016-04-26",
+      "2016-04-27",
+      "2016-04-28",
+      "2016-04-29",
+      "2016-04-30",
+      "2016-05-01"
+    ],
+    "days": {
+      "2016-04-25": {
+        "high_use_intervals": 16,
+        "light_intervals": 77,
+        "rows": 144
+      },
+      "2016-04-26": {
+        "high_use_intervals": 14,
+        "light_intervals": 7,
+        "rows": 144
+      },
+      "2016-04-27": {
+        "high_use_intervals": 15,
+        "light_intervals": 46,
+        "rows": 144
+      },
+      "2016-04-28": {
+        "high_use_intervals": 28,
+        "light_intervals": 22,
+        "rows": 144
+      },
+      "2016-04-29": {
+        "high_use_intervals": 38,
+        "light_intervals": 7,
+        "rows": 144
+      },
+      "2016-04-30": {
+        "high_use_intervals": 40,
+        "light_intervals": 10,
+        "rows": 144
+      },
+      "2016-05-01": {
+        "high_use_intervals": 35,
+        "light_intervals": 3,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 186
+  },
+  "2016-05-02": {
+    "dates": [
+      "2016-05-02",
+      "2016-05-03",
+      "2016-05-04",
+      "2016-05-05",
+      "2016-05-06",
+      "2016-05-07",
+      "2016-05-08"
+    ],
+    "days": {
+      "2016-05-02": {
+        "high_use_intervals": 25,
+        "light_intervals": 22,
+        "rows": 144
+      },
+      "2016-05-03": {
+        "high_use_intervals": 22,
+        "light_intervals": 8,
+        "rows": 144
+      },
+      "2016-05-04": {
+        "high_use_intervals": 22,
+        "light_intervals": 16,
+        "rows": 144
+      },
+      "2016-05-05": {
+        "high_use_intervals": 20,
+        "light_intervals": 11,
+        "rows": 144
+      },
+      "2016-05-06": {
+        "high_use_intervals": 35,
+        "light_intervals": 11,
+        "rows": 144
+      },
+      "2016-05-07": {
+        "high_use_intervals": 29,
+        "light_intervals": 6,
+        "rows": 144
+      },
+      "2016-05-08": {
+        "high_use_intervals": 7,
+        "light_intervals": 3,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 0,
+    "week_high_use_intervals": 160
+  },
+  "2016-05-09": {
+    "dates": [
+      "2016-05-09",
+      "2016-05-10",
+      "2016-05-11",
+      "2016-05-12",
+      "2016-05-13",
+      "2016-05-14",
+      "2016-05-15"
+    ],
+    "days": {
+      "2016-05-09": {
+        "high_use_intervals": 23,
+        "light_intervals": 50,
+        "rows": 144
+      },
+      "2016-05-10": {
+        "high_use_intervals": 5,
+        "light_intervals": 5,
+        "rows": 144
+      },
+      "2016-05-11": {
+        "high_use_intervals": 7,
+        "light_intervals": 3,
+        "rows": 144
+      },
+      "2016-05-12": {
+        "high_use_intervals": 20,
+        "light_intervals": 8,
+        "rows": 144
+      },
+      "2016-05-13": {
+        "high_use_intervals": 69,
+        "light_intervals": 24,
+        "rows": 144
+      },
+      "2016-05-14": {
+        "high_use_intervals": 40,
+        "light_intervals": 7,
+        "rows": 144
+      },
+      "2016-05-15": {
+        "high_use_intervals": 40,
+        "light_intervals": 30,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "inspect-appliances",
+    "heavy_days": 3,
+    "week_high_use_intervals": 204
+  },
+  "2016-05-16": {
+    "dates": [
+      "2016-05-16",
+      "2016-05-17",
+      "2016-05-18",
+      "2016-05-19",
+      "2016-05-20",
+      "2016-05-21",
+      "2016-05-22"
+    ],
+    "days": {
+      "2016-05-16": {
+        "high_use_intervals": 35,
+        "light_intervals": 21,
+        "rows": 144
+      },
+      "2016-05-17": {
+        "high_use_intervals": 16,
+        "light_intervals": 5,
+        "rows": 144
+      },
+      "2016-05-18": {
+        "high_use_intervals": 24,
+        "light_intervals": 18,
+        "rows": 144
+      },
+      "2016-05-19": {
+        "high_use_intervals": 11,
+        "light_intervals": 3,
+        "rows": 144
+      },
+      "2016-05-20": {
+        "high_use_intervals": 6,
+        "light_intervals": 39,
+        "rows": 144
+      },
+      "2016-05-21": {
+        "high_use_intervals": 63,
+        "light_intervals": 21,
+        "rows": 144
+      },
+      "2016-05-22": {
+        "high_use_intervals": 48,
+        "light_intervals": 4,
+        "rows": 144
+      }
+    },
+    "expected_commitment": "keep-monitoring",
+    "heavy_days": 2,
+    "week_high_use_intervals": 203
+  }
+}
