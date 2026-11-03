@@ -302,3 +302,11 @@ Why: "fib" is a word many readers outside the UK and US do not know; "trap" fits
 Pins updated in `tests/test_verify_page.py` (subhead, tagline, privacy line, "Make your own round" sub) and `tests/test_verify_game.py` (tagline, credit line, subhead assertion, game reveal, score line); no check was weakened in any other way.
 
 Implementation: Muse Code, powered by Meta Muse Spark, headless, in one session. I never opened anything under `evals/heldout/`, and I never read the path in `HIDDEN_CRITERIA_DIR`.
+
+## The study version (2026-11-03)
+
+I added a consented study version of the game behind `?src=prolific`, leaving the ordinary game flow untouched: same reveals, live score, sounds and layout, and the old answers hook still empty and dormant. Only the surrounding copy changed, per the first-person fixes below. With the study query present, the page hides the game and the make-your-own form, then walks through consent (unchecked box, Start disabled until checked), the instructions with the played-before question, a one-question instruction check, the six cards in one random cyclic rotation with no reveal, stamp, right-or-wrong sound or live score between cards (only the neutral tap), a submit screen that opens a pre-filled Google Form in a new tab, and finally the debrief with the full reveal. The payload carries no raw Prolific ID, only the first 12 hex characters of its salted SHA-256.
+
+I made the two first-person copy fixes the ticket asked for: the byline now reads "and I asked it to set traps in some", the rounds file disclosure reads "I asked it to slip mistakes into some", and How this works records that disclosure-line change and notes the paid study version. I registered the plan in `docs/prereg-game.md` and the notice in `docs/study-privacy.md` before any answer exists, and I extended `tests/test_verify_game.py` to pin the new strings, the payload shape, the rotation, the no-send rule and the unchanged ordinary game.
+
+Implementation: Muse Code, powered by Meta Muse Spark, headless, in one session. I never opened anything under `evals/heldout/`, and I never read the path in `HIDDEN_CRITERIA_DIR`.

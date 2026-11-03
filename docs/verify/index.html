@@ -179,7 +179,7 @@ summary { cursor: pointer; }
 <h1>Catch the AI</h1>
 <p class="game-sub">"Strawberry" has three r's. AI once said two.</p>
 <p class="intro">Six sentences an AI wrote. Some hide a trap. Can you beat the checker?</p>
-<p class="note">Muse Wonder, Meta's AI, wrote these sentences, and we asked it to set traps in some. <a href="#game-how" id="game-how-link">How this works</a><br>It runs in your browser; nothing you type leaves your device.</p>
+<p class="note">Muse Wonder, Meta's AI, wrote these sentences, and I asked it to set traps in some. <a href="#game-how" id="game-how-link">How this works</a><br>It runs in your browser; nothing you type leaves your device.</p>
 <section aria-label="Catch the AI game" id="game">
 <div class="game-head">
 <p class="note game-skip"><a id="game-skip-form" href="#try-your-own">Skip to make your own round</a></p>
@@ -212,6 +212,7 @@ summary { cursor: pointer; }
 </div>
 <div id="game-final" hidden></div>
 </section>
+<div id="study" hidden></div>
 <div id="try-wrap" hidden>
 <h2 id="try-your-own">Make your own round</h2>
 <p class="intro">Give a card a few numbers, then write a sentence about them, or paste one an AI told you. The checker tells you if the sentence gets your numbers wrong.</p>
@@ -248,11 +249,12 @@ summary { cursor: pointer; }
 <details id="game-how">
 <summary>How this works</summary>
 <p>Muse Wonder wrote the cards and sentences. Your browser checks their numbers.</p>
-<p>The rounds are exactly what Muse Wonder wrote, unedited: <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/verify/game/rounds.json">rounds.json</a>. The brief it got is saved <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/sessions/025-checker-page-for-everyone.md#the-brief-muse-wonder-got-for-the-rounds">here</a>.</p>
-<p>Muse Wonder, a Meta model, wrote these sentences from each card. We asked it to slip mistakes into some. Six fixed, made-up examples, not an accuracy test.</p>
+<p>The cards and sentences are exactly what Muse Wonder wrote: <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/verify/game/rounds.json">rounds.json</a>. The brief it got is saved <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/sessions/025-checker-page-for-everyone.md#the-brief-muse-wonder-got-for-the-rounds">here</a>. Only its disclosure line changed, on Nov 3, from "We asked" to "I asked": this is a solo project, and that line was set word for word in the brief.</p>
+<p>Muse Wonder, a Meta model, wrote these sentences from each card. I asked it to slip mistakes into some. Six fixed, made-up examples, not an accuracy test.</p>
 <p>The checker reads names and numbers. It doesn't read seasons, units or words like rose and fell.</p>
 <p>A pass does not make a sentence true. The checker compares numbers with the card, and some checks do not run on this page.</p>
 <p>The code is at <a href="https://github.com/macayaven/ikigai-loop">github.com/macayaven/ikigai-loop</a>.</p>
+<p>A paid study uses a separate version of this page, with consent; ordinary players send nothing.</p>
 </details>
 <section class="why-card" aria-label="Why this page exists">
 <h2>Why I built this</h2>
@@ -429,6 +431,8 @@ function plainCardText(text) {
   return String(text).split("your records").join("the card").split("your record").join("the card").split("Your records").join("The card").split("Your record").join("The card");
 }
 const ANSWERS_FORM_URL = "";
+const RESULTS_FORM_VIEW = "";
+const RESULTS_FORM_FIELD = "";
 let checker = null;
 function pe(tag, text) {
   const node = document.createElement(tag);
@@ -1427,6 +1431,259 @@ document.getElementById("game-skip-form").addEventListener("click", () => {
 document.getElementById("limits-link").addEventListener("click", () => {
   document.getElementById("limits").setAttribute("open", "");
 });
+/* study-version-start */
+const studyQuery = new URLSearchParams(window.location.search);
+const studyIsProlific = studyQuery.get("src") === "prolific";
+function studyClean(value) {
+  return String(value === null || value === undefined ? "" : value).replace(/[^A-Za-z0-9]/g, "").slice(0, 64);
+}
+const studyPid = studyClean(studyQuery.get("PROLIFIC_PID"));
+const studyCode = studyClean(studyQuery.get("STUDY_ID"));
+const studyRot = Math.floor(Math.random() * 6);
+let studyPrior = "";
+let studyCheck = "";
+let studyOrder = [];
+let studyAnswerById = {};
+let studyMsById = {};
+let studyCardAt = 0;
+let studyPidHash = "";
+function studyHex(bytes) {
+  return Array.prototype.map.call(new Uint8Array(bytes), function (b) {
+    return ("0" + b.toString(16)).slice(-2);
+  }).join("");
+}
+async function studyHashPid(pid) {
+  const input = new TextEncoder().encode("catch-the-ai-v1:" + pid);
+  const sum = await window.crypto.subtle.digest("SHA-256", input);
+  return studyHex(sum).slice(0, 12);
+}
+function studyWidth() {
+  const w = window.innerWidth || 1024;
+  if (w < 600) {
+    return "s";
+  }
+  if (w < 1024) {
+    return "m";
+  }
+  return "l";
+}
+function studyPayload() {
+  const ids = ["r1", "r2", "r3", "r4", "r5", "r6"];
+  const g = ids.map(function (id) {
+    return studyAnswerById[id] === "right" ? "m" : "d";
+  }).join("");
+  const t = ids.map(function (id) {
+    return String(Math.round(studyMsById[id] / 100) * 100);
+  }).join(",");
+  return "v2;src=prolific;pidh=" + studyPidHash + ";study=" + studyCode + ";consent=c1;prior=" + studyPrior + ";check=" + studyCheck + ";rot=" + studyRot + ";seq=" + studyOrder.join(",") + ";g=" + g + ";ms=" + t + ";w=" + studyWidth();
+}
+function studyClear(root) {
+  while (root.firstChild) {
+    root.removeChild(root.firstChild);
+  }
+}
+function studyHead(root, text) {
+  const head = document.createElement("h2");
+  head.textContent = text;
+  root.append(head);
+}
+function studyPara(root, text) {
+  root.append(pe("p", text));
+}
+function studyButtons(root, labels, onPick) {
+  const box = document.createElement("div");
+  box.setAttribute("class", "game-choices");
+  for (let i = 0; i < labels.length; i++) {
+    const btn = document.createElement("button");
+    btn.setAttribute("type", "button");
+    btn.setAttribute("class", "primary");
+    btn.textContent = labels[i];
+    btn.addEventListener("click", (function (label) {
+      return function () {
+        gameEnsureAudio();
+        gameClick();
+        onPick(label);
+      };
+    })(labels[i]));
+    box.append(btn);
+  }
+  root.append(box);
+}
+function studyNotOpen(root) {
+  studyClear(root);
+  studyHead(root, "This study isn't open yet");
+  studyPara(root, "Please return the study on Prolific.");
+}
+function studyConsent(root) {
+  studyClear(root);
+  studyHead(root, "Before you start");
+  studyPara(root, "Carlos Crespo Macaya is studying how people compare sentences with cards. This takes about four minutes and pays £0.60 regardless of accuracy. With your consent, I collect your choices, response times, screen-size category and a scrambled form of your Prolific ID. Results will appear in aggregate in a public hackathon write-up. Participation is voluntary. You may stop or request deletion through Prolific without losing earned payment. Raw study records will be deleted by December 4, 2026.");
+  const link = document.createElement("a");
+  link.setAttribute("href", "https://github.com/macayaven/ikigai-loop/blob/main/docs/study-privacy.md");
+  link.textContent = "Privacy notice";
+  root.append(link);
+  const label = document.createElement("label");
+  const box = document.createElement("input");
+  box.setAttribute("type", "checkbox");
+  label.append(box);
+  label.append(document.createTextNode("I agree to participate."));
+  root.append(label);
+  const start = document.createElement("button");
+  start.setAttribute("type", "button");
+  start.setAttribute("class", "primary");
+  start.textContent = "Start";
+  start.disabled = true;
+  box.addEventListener("change", function () {
+    start.disabled = !box.checked;
+  });
+  start.addEventListener("click", function () {
+    gameEnsureAudio();
+    gameClick();
+    studyInstructions(root);
+  });
+  root.append(start);
+}
+function studyInstructions(root) {
+  studyClear(root);
+  studyPara(root, "Read six cards and decide whether each sentence is supported by its card. Work alone, without AI or other tools. Payment does not depend on accuracy.");
+  studyPara(root, "Have you played Catch the AI before?");
+  studyButtons(root, ["Yes", "No"], function (label) {
+    studyPrior = label === "Yes" ? "y" : "n";
+    studyCheckAsk(root);
+  });
+}
+function studyCheckAsk(root) {
+  studyClear(root);
+  studyPara(root, "For this instruction check, select Ready.");
+  studyButtons(root, ["Ready", "Skip"], function (label) {
+    studyCheck = label === "Ready" ? "r" : "s";
+    studyCards(root, 0);
+  });
+}
+function studyCards(root, pos) {
+  if (!gameRounds || gameRounds.length !== 6) {
+    studyClear(root);
+    studyPara(root, "Loading the six cards.");
+    setTimeout(function () {
+      studyCards(root, pos);
+    }, 200);
+    return;
+  }
+  if (pos === 0) {
+    studyOrder = [];
+    for (let i = 0; i < 6; i++) {
+      studyOrder.push(gameRounds[(i + studyRot) % 6].id);
+    }
+  }
+  const round = gameRounds[(pos + studyRot) % 6];
+  studyClear(root);
+  studyPara(root, "Round " + (pos + 1) + " of 6");
+  const title = document.createElement("p");
+  title.textContent = round.title;
+  root.append(title);
+  const table = document.createElement("table");
+  table.setAttribute("class", "game-table");
+  for (let i = 0; i < round.rows.length; i++) {
+    const tr = document.createElement("tr");
+    const name = document.createElement("td");
+    name.textContent = round.rows[i].name;
+    const value = document.createElement("td");
+    value.textContent = String(round.rows[i].value);
+    tr.append(name);
+    tr.append(value);
+    table.append(tr);
+  }
+  root.append(table);
+  studyPara(root, round.sentence);
+  studyCardAt = Date.now();
+  studyButtons(root, ["It matches", "It doesn't"], function (label) {
+    studyAnswerById[round.id] = label === "It matches" ? "right" : "wrong";
+    studyMsById[round.id] = Date.now() - studyCardAt;
+    if (pos + 1 >= 6) {
+      studySubmitAsk(root);
+    } else {
+      studyCards(root, pos + 1);
+    }
+  });
+}
+function studySubmitAsk(root) {
+  studyClear(root);
+  studyHead(root, "Last step: submit your answers");
+  studyPara(root, "Tap the button to open a short Google Form with your answers filled in, then press Submit there. Its confirmation page has your Prolific completion link.");
+  const send = document.createElement("button");
+  send.setAttribute("type", "button");
+  send.setAttribute("class", "primary");
+  send.textContent = "Submit your answers";
+  send.addEventListener("click", function () {
+    gameEnsureAudio();
+    gameClick();
+    const payload = studyPayload();
+    const url = RESULTS_FORM_VIEW + "?usp=pp_url&" + RESULTS_FORM_FIELD + "=" + encodeURIComponent(payload);
+    window.open(url, "_blank", "noopener");
+    studyDebrief(root);
+  });
+  root.append(send);
+}
+function studyReveal(root, round) {
+  const guess = studyAnswerById[round.id];
+  const title = document.createElement("p");
+  title.textContent = round.title;
+  root.append(title);
+  studyPara(root, round.sentence);
+  studyPara(root, "You said: " + (guess === "right" ? "It matches" : "It doesn't"));
+  studyPara(root, (round.answer === "right" ? "It matches the card." : "It's a trap.") + " " + round.why);
+  if (!round.checker_sees_it) {
+    studyPara(root, "The number matches. The season doesn't.");
+  }
+  let line = "The checker failed; nothing was sent.";
+  if (checker) {
+    try {
+      line = "The checker says: " + gameCheckerVerdict(round).line;
+    } catch (err) {
+      line = "The checker failed; nothing was sent.";
+    }
+  }
+  studyPara(root, line);
+}
+function studyDebrief(root) {
+  studyClear(root);
+  studyPara(root, "Thank you. These were six made-up examples. I asked an AI to plant mistakes in some of them. The checker misses time-window mismatches, like this season against last season. These scores do not establish general human or AI accuracy.");
+  let n = 0;
+  for (let i = 0; i < gameRounds.length; i++) {
+    if (studyAnswerById[gameRounds[i].id] === gameRounds[i].answer) {
+      n += 1;
+    }
+    studyReveal(root, gameRounds[i]);
+  }
+  studyPara(root, "You: " + n + "/6 · Checker: 5/6");
+}
+function studyBoot() {
+  if (!studyIsProlific) {
+    return;
+  }
+  const game = document.getElementById("game");
+  if (game) {
+    game.setAttribute("hidden", "");
+  }
+  const wrap = document.getElementById("try-wrap");
+  if (wrap) {
+    wrap.setAttribute("hidden", "");
+  }
+  const root = document.getElementById("study");
+  root.removeAttribute("hidden");
+  if (!RESULTS_FORM_VIEW || !RESULTS_FORM_FIELD) {
+    studyNotOpen(root);
+    return;
+  }
+  if (window.crypto && window.crypto.subtle) {
+    studyHashPid(studyPid).then(function (h) {
+      studyPidHash = h;
+    });
+  }
+  studyConsent(root);
+}
+/* study-version-end */
+studyBoot();
 boot();
 loadGame();
 </script>
