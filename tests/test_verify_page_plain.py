@@ -62,10 +62,140 @@ def test_made_up_example_fails_only_on_value() -> None:
     assert explained["passed"] is False
     findings = explained["claims"][0]["findings"]
     assert len(findings) == 1
-    sentence = findings[0]["sentence"]
-    assert "12" in sentence
-    assert "7" in sentence
-    assert "November deploys" in sentence
+    assert findings[0]["code"] == "L1B_METRIC_VALUE_MISMATCH"
+    assert findings[0]["sentence"] == "The sentence says 12; your record says 7."
+
+
+def test_plain_examples_give_pinned_code_lists() -> None:
+    wrong = _job1("Deploys reached 12 in November.", [("November deploys", "7")])
+    assert wrong["problems"] == []
+    assert isinstance(wrong["input"], str)
+    assert [v.code for v in check_claims(wrong["input"]).violations] == [
+        "L1B_METRIC_VALUE_MISMATCH"
+    ]
+
+    matching = _job1("Deploys reached 7 in November.", [("November deploys", "7")])
+    assert matching["problems"] == []
+    assert isinstance(matching["input"], str)
+    assert check_claims(matching["input"]).passed is True
+    assert list(check_claims(matching["input"]).violations) == []
+
+    sneaky = _job1("Deploys did not reach 7 in November.", [("November deploys", "7")])
+    assert sneaky["problems"] == []
+    assert isinstance(sneaky["input"], str)
+    assert [v.code for v in check_claims(sneaky["input"]).violations] == [
+        "L1B_NEGATED_CLAIM"
+    ]
+
+
+def test_worked_example_mismatch_wording_is_pinned() -> None:
+    built = _job1("Deploys reached 12 in November.", [("November deploys", "7")])
+    assert isinstance(built["input"], str)
+    explained = _job2(built["input"])
+    findings = explained["claims"][0]["findings"]
+    assert len(findings) == 1
+    assert findings[0]["code"] == "L1B_METRIC_VALUE_MISMATCH"
+    assert findings[0]["sentence"] == "The sentence says 12; your record says 7."
+
+
+def test_pass_wording_for_one_and_several_sentences() -> None:
+    one = _job2(
+        json.dumps(
+            {
+                "claims": [
+                    {
+                        "id": "c1",
+                        "text": "Deploys reached 7 in November",
+                        "metric_refs": [{"metric_id": "November deploys", "value": 7}],
+                    }
+                ],
+                "facts": {},
+                "metrics": {"November deploys": 7},
+            }
+        )
+    )
+    assert one["passed"] is True
+    assert one["overall"] == (
+        "This number matches your record. That does not make the sentence true: "
+        "it checks numbers, sources and wording, nothing else. Some checks didn't run."
+    )
+    assert "PASS" not in one["overall"]
+    assert "FAIL" not in one["overall"]
+    two = _job2(
+        json.dumps(
+            {
+                "claims": [
+                    {
+                        "id": "c1",
+                        "text": "Deploys reached 7 in November",
+                        "metric_refs": [{"metric_id": "November deploys", "value": 7}],
+                    },
+                    {
+                        "id": "c2",
+                        "text": "October deploys were 5",
+                        "metric_refs": [{"metric_id": "October deploys", "value": 5}],
+                    },
+                ],
+                "facts": {},
+                "metrics": {"November deploys": 7, "October deploys": 5},
+            }
+        )
+    )
+    assert two["passed"] is True
+    assert two["overall"] == (
+        "These numbers match your records. That does not make the sentence true: "
+        "it checks numbers, sources and wording, nothing else. Some checks didn't run."
+    )
+
+
+def test_catch_verdict_headlines_for_one_and_several() -> None:
+    one = _job2(
+        json.dumps(
+            {
+                "claims": [
+                    {
+                        "id": "c1",
+                        "text": "Deploys reached 9 in November",
+                        "metric_refs": [{"metric_id": "November deploys", "value": 9}],
+                    }
+                ],
+                "facts": {},
+                "metrics": {"November deploys": 7},
+            }
+        )
+    )
+    assert one["passed"] is False
+    assert one["overall"] == "Caught it."
+    two = _job2(
+        json.dumps(
+            {
+                "claims": [
+                    {
+                        "id": "c1",
+                        "text": "Deploys reached 9 in November",
+                        "metric_refs": [{"metric_id": "November deploys", "value": 9}],
+                    },
+                    {
+                        "id": "c2",
+                        "text": "October deploys were 5",
+                        "metric_refs": [{"metric_id": "October deploys", "value": 5}],
+                    },
+                ],
+                "facts": {},
+                "metrics": {"November deploys": 7, "October deploys": 5},
+            }
+        )
+    )
+    assert two["passed"] is False
+    assert two["overall"] == "Caught it. 1 of 2 checked sentences did not pass."
+
+
+def test_fallback_sentence_has_no_code_in_it() -> None:
+    sentence = VERIFY_PAGE._finding_sentence(  # type: ignore[no-untyped-call]
+        "L1B_SOMETHING_NEW", "", "Deploys reached 7 in November.", [], [], {}
+    )
+    assert sentence == "The checker flagged this sentence."
+    assert "L1B_SOMETHING_NEW" not in sentence
 
 
 def test_records_matching_sentence_passes() -> None:
@@ -483,11 +613,11 @@ def test_overall_says_does_not_match() -> None:
             }
         )
     )
-    assert "didn't pass" in failing["overall"]
+    assert "didn't pass" not in failing["overall"]
     assert "differs from your records" not in failing["overall"]
     assert "PASS" not in failing["overall"]
     assert "FAIL" not in failing["overall"]
-    assert failing["overall"] == "This sentence didn't pass. See why below."
+    assert failing["overall"] == "Caught it."
     passing = _job2(
         json.dumps(
             {
@@ -505,9 +635,9 @@ def test_overall_says_does_not_match() -> None:
     )
     assert "PASS" not in passing["overall"]
     assert "FAIL" not in passing["overall"]
-    assert (
-        passing["overall"]
-        == "The numbers in this sentence match your records. Other words weren't checked. Some checks didn't run."
+    assert passing["overall"] == (
+        "This number matches your record. That does not make the sentence true: "
+        "it checks numbers, sources and wording, nothing else. Some checks didn't run."
     )
 
 
@@ -538,7 +668,8 @@ def test_overall_grammar_for_one_and_several() -> None:
                 },
             ]
         )
-        == "The numbers in all 2 checked sentences match your records. Other words weren't checked. Some checks didn't run."
+        == "These numbers match your records. That does not make the sentence true: "
+        "it checks numbers, sources and wording, nothing else. Some checks didn't run."
     )
     assert (
         _overall_for(
@@ -555,7 +686,7 @@ def test_overall_grammar_for_one_and_several() -> None:
                 },
             ]
         )
-        == "1 of 2 checked sentences didn't pass. See why below."
+        == "Caught it. 1 of 2 checked sentences did not pass."
     )
     assert (
         _overall_for(
@@ -572,7 +703,7 @@ def test_overall_grammar_for_one_and_several() -> None:
                 },
             ]
         )
-        == "2 of 2 checked sentences didn't pass. See why below."
+        == "Caught it. 2 of 2 checked sentences did not pass."
     )
 
 
@@ -725,4 +856,8 @@ def test_plain_pane_lists_every_gap_on_one_line() -> None:
     assert "direction words were not asked for" in gaps
     assert "beyond the record name" in gaps
     page = (ROOT / "docs" / "verify" / "index.html").read_text()
-    assert "The plain form does not supply units or periods" in page
+    assert "The plain form does not supply units or periods" not in page
+    assert (
+        "It checked the number against the card. "
+        "It didn't check units, time windows or words like rose and fell."
+    ) in page
