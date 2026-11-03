@@ -366,8 +366,8 @@ def _finding_sentence(
     """Plain words for one finding; values come from the input, never messages."""
     if code == "L1B_METRIC_VALUE_MISMATCH":
         parts = [
-            f"It gives {ref['value']} for {ref['metric_id']}; "
-            f"your records say {metrics[ref['metric_id']]}."
+            f"The sentence says {ref['value']}; "
+            f"your record says {metrics[ref['metric_id']]}."
             for ref in refs
             if ref["metric_id"] in metrics
             and _differs(ref["value"], metrics[ref["metric_id"]])
@@ -434,7 +434,7 @@ def _finding_sentence(
             "Its wording is hidden: it reads like advice, "
             "so the page shows nothing from it."
         )
-    return f"The checker flagged this sentence ({code})."
+    return "The checker flagged this sentence."
 
 
 def _gaps_line(skipped: list[Any]) -> str | None:
@@ -472,13 +472,19 @@ def _explain_report(checker_input: str) -> str:
             gaps_by_claim[entry.claim_id] = line
     if total == 1:
         if passed:
-            overall = "The numbers in this sentence match your records. Other words weren't checked."
+            overall = (
+                "This number matches your record. That does not make the sentence true: "
+                "it checks numbers, sources and wording, nothing else."
+            )
         else:
-            overall = "This sentence didn't pass. See why below."
+            overall = "Caught it."
     elif passed:
-        overall = f"The numbers in all {total} checked sentences match your records. Other words weren't checked."
+        overall = (
+            "These numbers match your records. That does not make the sentence true: "
+            "it checks numbers, sources and wording, nothing else."
+        )
     else:
-        overall = f"{bad} of {total} checked sentences didn't pass. See why below."
+        overall = f"Caught it. {bad} of {total} checked sentences did not pass."
     if passed and gaps_by_claim:
         overall += " Some checks didn't run."
     out_claims: list[dict[str, Any]] = []

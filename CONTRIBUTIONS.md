@@ -708,6 +708,19 @@ Built on branch `trust-page` per [docs/plans/024-trust-page.md](docs/plans/024-t
 
 Muse Code wrote the plan (muse-wonder-1.0 at high, three sessions) and the code, tests and docs (muse-spark-1.3 at medium, six sessions, including the move onto the current main), and this commit (muse-spark-1.3 at medium), in headless sessions Claude Code started; the outside-try paragraph's wording in the README was suggested by Claude Code from the engineer's report. Claude Code wrote the prompts in prose, including the scope sentence, the six card sentences and the other quoted sentences word for word, checked the facts on a copy of my store, ran the mutation pass and make check, and typed nothing in this repository. GPT Astra 6 (OpenAI), through Codex at maximum effort, read-only, reviewed the page for overclaiming in two passes; Muse Code applied the fixes. I opened the README's Glimmer paragraph with the Nov 2 live facts, bound by a test to docs/provenance.jsonl.
 
+## Ticket 25 — a checker page anyone can use, with no setup (2026-11-03)
+
+Built on branch `t25-checker-page` per [docs/plans/025-checker-page-for-everyone.md](docs/plans/025-checker-page-for-everyone.md):
+the page at `docs/verify/index.html` runs the worked example by itself on load, speaks in plain sentences instead of codes ("The sentence says 12; your record says 7."), puts the plain-words form first with one-tap examples (a wrong number, a matching sentence, a sneaky "not"), and moves the JSON box into one collapsed section at the bottom. The checker's verdict logic did not change: nothing under `framework/` moved, the bundle and the file examples are byte-identical, and every code list is pinned through the plain pipeline. The page's copy was pinned in the plan, and the four rulings and the "Why I built this" wording came from Claude Code's review of the plan, written as Carlos. Evidence in
+[docs/sessions/025-checker-page-for-everyone.md](docs/sessions/025-checker-page-for-everyone.md).
+
+Muse Code wrote the plan update, the code, the tests and these docs, powered by Meta Muse Spark, in one headless session Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code reviewed the plan (its four rulings are recorded in the plan and the session note) and runs the gate checks and `make check` afterwards. I never opened the held-out sets or the hidden-criteria path.
+
+A follow-up in the same branch puts the Catch the AI game at the top of the page, built around six rounds Muse Wonder wrote in its own sessions from Claude Code's prose prompts: the mistakes in some sentences were asked for, and a design review by three outside models shaped the everyday-clutter theme. This session built the game around those rounds without touching them. Evidence in
+[docs/sessions/025-checker-page-for-everyone.md](docs/sessions/025-checker-page-for-everyone.md).
+
+Muse Code built the game, powered by Meta Muse Spark, in one headless session Claude Code started, in Contributor mode, on this public repo and made-up data only. I never opened the held-out sets or the hidden-criteria path.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
