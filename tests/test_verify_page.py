@@ -17,8 +17,10 @@ BUNDLE = ROOT / "docs" / "verify" / "bundle.json"
 EXAMPLES = ROOT / "docs" / "verify" / "examples"
 
 PINNED_HEADLINE = "Catch the AI"
-PINNED_SUBHEAD = "Does your AI get your numbers right?"
-PINNED_TAGLINE = "Six sentences an AI wrote. Some hide a fib. Can you beat the checker?"
+PINNED_SUBHEAD = '"Strawberry" has three r\'s. AI once said two.'
+PINNED_TAGLINE = (
+    "Six sentences an AI wrote. Some hide a trap. Can you beat the checker?"
+)
 PINNED_PLAIN_SCOPE = (
     "It checked the number against the card. "
     "It didn't check units, time windows or words like rose and fell."
@@ -205,11 +207,11 @@ def test_adapter_prompt_byte_identical() -> None:
     assert prompt in doc
 
 
-PINNED_PRIVACY = "It runs on your device; nothing you type leaves it."
+PINNED_PRIVACY = "It runs in your browser; nothing you type leaves your device."
 PINNED_MAKE_HEADING = "Make your own round"
 PINNED_MAKE_SUB = (
     "Give a card a few numbers, then write a sentence about them, "
-    "or paste one an AI told you. The checker tells you if it's a fib."
+    "or paste one an AI told you. The checker tells you if the sentence gets your numbers wrong."
 )
 
 

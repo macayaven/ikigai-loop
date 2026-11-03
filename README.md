@@ -12,7 +12,7 @@ Why check numbers separately: the assistant writes friendly sentences, and a fri
 
 I've used it myself for the past few days. The first real card reached my phone on Nov 2 at 13:30, on time, and I chose with a tap. An independent recount of its pull-request figure, straight from GitHub's own records rather than from my store, matched.
 
-You can try the same check with nothing to install: [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/) opens on a game, Catch the AI. Muse Wonder wrote six sentences and hid a fib in some. Can you beat the checker? It runs in your browser.
+You can try the same check with nothing to install: [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/) opens on a game, Catch the AI. Muse Wonder wrote six sentences and set traps in some. Can you beat the checker? It runs in your browser.
 
 ## How it works
 

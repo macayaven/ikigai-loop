@@ -279,3 +279,26 @@ Short and plain: say that a design review on Nov 3 asked for funnier, more relat
 Then, with this prefix on every uv and git command, from the repository root: PRE_COMMIT_HOME="$PWD/.git/pre-commit-home" UV_CACHE_DIR="$PWD/.git/uv-cache", stage only those two files and make one commit with the message "Ticket 25: the game's rounds, rewritten by Muse Wonder on an everyday-clutter theme", with no trailers of any kind. Don't push, fetch, rebase, merge or reset. Do not open anything under evals/heldout/ except evals/heldout/README.md, and never read the directory HIDDEN_CRITERIA_DIR points to.
 
 Reply with: the six rounds as written (title, rows, sentence, answer); each round's checker result and codes; the commit hash; and every assumption you made.
+
+## Plain-words pass (2026-11-03, after the owner's playtest)
+
+After the owner played "Catch the AI" on his phone, he asked for plainer words. Copy only: eight strings in `docs/verify/index.html` and one sentence in `README.md`, plus the test pins that hold them. The verdict logic, `docs/verify/bundle.json`, `docs/verify/examples/`, `docs/verify/game/` and everything under `framework/` are untouched, and every verdict pin stays.
+
+Page strings, old to new:
+
+1. Subhead: `Does your AI get your numbers right?` to `"Strawberry" has three r's. AI once said two.` The first version wrapped to two lines at 390 px, so the line was shortened to keep the first decision above the fold.
+2. Tagline: `Six sentences an AI wrote. Some hide a fib. Can you beat the checker?` to `Six sentences an AI wrote. Some hide a trap. Can you beat the checker?`
+3. Credit line: `Muse Wonder, Meta's AI, wrote these sentences, and we asked it to hide some fibs.` to `Muse Wonder, Meta's AI, wrote these sentences, and we asked it to set traps in some.`
+4. Privacy line: `It runs on your device; nothing you type leaves it.` to `It runs in your browser; nothing you type leaves your device.`
+5. "Make your own round" sub: `The checker tells you if it's a fib.` to `The checker tells you if the sentence gets your numbers wrong.`
+6. Plain verdict head: `Caught a fib.` to `Caught a mistake.`
+7. Game reveal: `It's a fib.` to `It's a trap.`
+8. Score line: `You caught every fib.` to `You caught every trap.`
+
+README first screen: `Muse Wonder wrote six sentences and hid a fib in some.` to `Muse Wonder wrote six sentences and set traps in some.` Nothing else in `README.md` changed.
+
+Why: "fib" is a word many readers outside the UK and US do not know; "trap" fits the game because the mistakes were planted on purpose, while a real AI's wrong number in "Make your own round" is a mistake, not a trap; the strawberry line recalls a well-known 2024 counting slip by chat assistants; the page runs in the browser, and nothing typed leaves the device.
+
+Pins updated in `tests/test_verify_page.py` (subhead, tagline, privacy line, "Make your own round" sub) and `tests/test_verify_game.py` (tagline, credit line, subhead assertion, game reveal, score line); no check was weakened in any other way.
+
+Implementation: Muse Code, powered by Meta Muse Spark, headless, in one session. I never opened anything under `evals/heldout/`, and I never read the path in `HIDDEN_CRITERIA_DIR`.

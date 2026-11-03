@@ -737,3 +737,9 @@ Replaced everything in `README.md` between the title line and `## How it works` 
 Tests run: `tests/test_trust_page.py` and `tests/test_verify_page.py` (69 passed), the README pins in `tests/test_tryit.py` (2 passed), `tests/test_provenance_docs.py`, `tests/test_briefing_review_rules.py` and `tests/test_redteam.py` (420 passed), and ruff check and format on `tests/test_trust_page.py` (clean).
 
 A correction to Ticket 25's section: Muse Code built the game in one headless session, then changed it in three more, from design-review and browser-play notes. Pull request #61 lists all six sessions behind the page.
+
+## Ticket 25b - the game in plainer words (2026-11-03)
+
+Built on branch `docs4-readme`: eight copy-only swaps on the checker page (`trap` for `fib`, `mistake` for the "Make your own round" verdict, the strawberry subhead, the in-browser privacy line), one matching sentence in the README first screen, the pins in `tests/test_verify_page.py` and `tests/test_verify_game.py` updated with no other check changed, and a new section in `docs/sessions/025-checker-page-for-everyone.md` recording the old and new strings. The verdict logic, `docs/verify/bundle.json`, `docs/verify/examples/`, `docs/verify/game/` and everything under `framework/` are untouched. Evidence in [docs/sessions/025-checker-page-for-everyone.md](docs/sessions/025-checker-page-for-everyone.md).
+
+Implementation: Muse Code, powered by Meta Muse Spark, headless, in one session. I never opened anything under `evals/heldout/`, and I never read the path in `HIDDEN_CRITERIA_DIR`.
