@@ -1,140 +1,140 @@
 {
   "version": 1,
   "written_by": "muse-wonder-1.0",
-  "disclosure": "Muse Wonder, a Meta model, wrote these sentences from each card. We asked it to slip mistakes into some.",
+  "disclosure": "Muse Wonder, a Meta model, wrote these sentences from each card. We asked it to slip mistakes into some. Six fixed, made-up examples, not an accuracy test.",
   "rounds": [
     {
       "id": "r1",
-      "title": "A cafe on Tuesday",
+      "title": "Tabs I swore I would close",
       "rows": [
         {
-          "name": "morning coffees",
-          "value": 26
+          "name": "open tabs",
+          "value": 34
         },
         {
-          "name": "afternoon teas",
-          "value": 13
+          "name": "pinned tabs",
+          "value": 6
         },
         {
-          "name": "tables cleared",
-          "value": 18
+          "name": "tab groups",
+          "value": 4
         }
       ],
-      "sentence": "The cafe served 26 morning coffees.",
+      "sentence": "I still have 34 open tabs.",
       "answer": "right",
-      "why": "The card says 26 morning coffees; the sentence says 26.",
+      "why": "The card says 34 open tabs; the sentence says 34.",
       "checker_sees_it": true
     },
     {
       "id": "r2",
-      "title": "A bookshop this week",
+      "title": "Screenshots I never sorted",
       "rows": [
         {
-          "name": "novels shelved",
-          "value": 42
+          "name": "desktop screenshots",
+          "value": 58
         },
         {
-          "name": "picture books stacked",
-          "value": 15
+          "name": "phone screenshots",
+          "value": 41
         },
         {
-          "name": "bookmarks sold",
-          "value": 18
+          "name": "duplicate screenshots",
+          "value": 19
         }
       ],
-      "sentence": "The bookshop had 45 novels shelved.",
+      "sentence": "My laptop holds 52 desktop screenshots.",
       "answer": "wrong",
-      "why": "The card says 42 novels shelved; the sentence says 45.",
+      "why": "The card says 58 desktop screenshots; the sentence says 52.",
       "checker_sees_it": true
     },
     {
       "id": "r3",
-      "title": "City weather this week",
+      "title": "Mystery cables in the drawer",
       "rows": [
         {
-          "name": "sunny days",
-          "value": 4
+          "name": "mystery cables",
+          "value": 14
         },
         {
-          "name": "rainy days",
-          "value": 2
+          "name": "phone chargers",
+          "value": 5
         },
         {
-          "name": "windy afternoons",
-          "value": 1
+          "name": "tangled earbuds",
+          "value": 3
         }
       ],
-      "sentence": "The city had 4 sunny days.",
+      "sentence": "The drawer hides 14 mystery cables.",
       "answer": "right",
-      "why": "The card says 4 sunny days; the sentence says 4.",
+      "why": "The card says 14 mystery cables; the sentence says 14.",
       "checker_sees_it": true
     },
     {
       "id": "r4",
-      "title": "A football club this season",
+      "title": "Untitled files piling up this season",
       "rows": [
         {
-          "name": "home wins",
+          "name": "untitled documents",
+          "value": 23
+        },
+        {
+          "name": "untitled spreadsheets",
           "value": 9
         },
         {
-          "name": "away wins",
-          "value": 5
-        },
-        {
-          "name": "drawn matches",
-          "value": 6
+          "name": "untitled notes",
+          "value": 11
         }
       ],
-      "sentence": "The club had 9 home wins last season.",
+      "sentence": "I saved 23 untitled documents last season.",
       "answer": "wrong",
-      "why": "The card is for this season; the sentence puts 9 home wins last season.",
+      "why": "The card is for this season; the sentence puts 23 untitled documents last season.",
       "checker_sees_it": false,
       "checker_note": "The checker only compares numbers here and cannot see time windows."
     },
     {
       "id": "r5",
-      "title": "A bakery on Saturday",
+      "title": "Retakes cluttering the camera roll",
       "rows": [
         {
-          "name": "croissants",
+          "name": "song retakes",
           "value": 12
         },
         {
-          "name": "muffins",
-          "value": 20
+          "name": "voice memos",
+          "value": 8
         },
         {
-          "name": "loaves",
-          "value": 15
+          "name": "practice clips",
+          "value": 6
         }
       ],
-      "sentence": "The bakery did not sell 12 croissants.",
+      "sentence": "The session did not keep 12 song retakes.",
       "answer": "wrong",
-      "why": "The card says 12 croissants; the sentence says it did not sell 12.",
+      "why": "The card says 12 song retakes; the sentence says it did not keep 12.",
       "checker_sees_it": true,
       "checker_note": "The checker catches the \"not\" because it cannot prove a \"did not\" sentence from the card."
     },
     {
       "id": "r6",
-      "title": "A school concert on Friday",
+      "title": "Group chat I keep muting",
       "rows": [
         {
-          "name": "songs sung",
-          "value": 18
+          "name": "unread messages",
+          "value": 87
         },
         {
-          "name": "poems read",
-          "value": 7
+          "name": "shared photos",
+          "value": 26
         },
         {
-          "name": "dances performed",
-          "value": 5
+          "name": "voice notes",
+          "value": 13
         }
       ],
-      "sentence": "The concert had 17 songs sung.",
+      "sentence": "The chat has 86 unread messages.",
       "answer": "wrong",
-      "why": "The card says 18 songs sung; the sentence says 17.",
+      "why": "The card says 87 unread messages; the sentence says 86.",
       "checker_sees_it": true
     }
   ]
