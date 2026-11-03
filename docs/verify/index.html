@@ -9,32 +9,69 @@
 :root { color-scheme: light dark; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  margin: 0 auto; max-width: 44rem; padding: 1rem; line-height: 1.5;
+  margin: 0 auto; max-width: 680px; padding: 0 20px 4rem; box-sizing: border-box;
+  line-height: 1.55; background: #fff; color: #111;
 }
+h1 { font-size: 2.2rem; line-height: 1.2; margin: 1.6rem 0 0.6rem; }
+h2 { font-size: 1.25rem; line-height: 1.3; margin: 2rem 0 0.5rem; }
+@media (max-width: 600px) {
+  h1 { font-size: 1.8rem; }
+}
+.intro { font-size: 1.15rem; }
+section { margin: 2.2rem 0; }
+.steps-card { background: #f4f4f4; border-radius: 12px; padding: 20px; margin: 2rem 0; }
+.step { margin: 1.5rem 0; }
+.step:first-child { margin-top: 0; }
+.step:last-child { margin-bottom: 0; }
+.step-label { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.6rem; font-size: 1.05rem; }
+.step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.7rem; height: 1.7rem; flex: none; border-radius: 999px;
+  background: #0b57d0; color: #fff; font-weight: bold; font-size: 1rem;
+}
+.step p { margin: 0.5rem 0; }
 @media (prefers-color-scheme: dark) {
   body { background: #111; color: #eee; }
   textarea, pre, input { background: #1c1c1c; color: #eee; border-color: #444; }
   button { background: #2a2a2a; color: #eee; border-color: #555; }
+  .steps-card { background: #1c1c1c; }
+  .step-num { background: #7aa2f7; color: #111; }
 }
 textarea, pre, input {
   width: 100%; box-sizing: border-box;
   border: 1px solid #bbb; border-radius: 0.4rem; padding: 0.6rem;
   font-size: 1rem;
 }
+textarea:not(.mono), input { font-family: inherit; }
 textarea { min-height: 6rem; }
 textarea.mono, pre {
   font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.85rem;
   white-space: pre-wrap; word-break: break-word;
 }
 pre { margin: 0; }
-table { width: 100%; border-collapse: collapse; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 th, td { text-align: left; padding: 0.25rem; }
+#records-table th:first-child, #records-table td:first-child { width: 60%; }
+td input { min-width: 0; }
 .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.8rem 0; align-items: center; }
 .controls .examples-label { align-self: center; }
 button { padding: 0.5rem 1rem; border: 1px solid #bbb; border-radius: 0.4rem; font-size: 1rem; }
 button.primary { font-weight: bold; background: #0b57d0; border-color: #0b57d0; color: #fff; }
+button.pill { border-radius: 999px; }
+button, input, summary { min-height: 44px; }
 .card { border: 1px solid #bbb; border-radius: 0.6rem; padding: 0.8rem 1rem; margin: 0.8rem 0; }
 .claim { border: 1px solid #bbb; border-radius: 0.6rem; padding: 0.6rem 0.8rem; margin: 0.6rem 0; }
+.claim.card { animation: fade 0.45s ease-out; border-left-width: 6px; border-left-color: #1a7f37; }
+.claim.card.catch { border-left-color: #b42318; animation: rise 0.45s ease-out; }
+.result-head { font-size: 1.3rem; font-weight: bold; color: #1a7f37; margin: 0.2rem 0 0.6rem; }
+.claim.card.catch .result-head { color: #b42318; }
+.result-quote { font-weight: bold; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .claim.card, .claim.card.catch { animation: none; }
+  * { transition: none; }
+}
 .badge { display: inline-block; padding: 0.1rem 0.6rem; border-radius: 999px; font-weight: bold; color: #fff; }
 .badge-pass { background: #1a7f37; }
 .badge-fail { background: #b42318; }
@@ -43,6 +80,17 @@ button.primary { font-weight: bold; background: #0b57d0; border-color: #0b57d0; 
   .card, .claim { border-color: #555; }
   .badge-pass { background: #3fb950; color: #111; }
   .badge-fail { background: #ff7b72; color: #111; }
+  .claim.card { border-left-color: #3fb950; }
+  .claim.card.catch { border-left-color: #ff7b72; }
+  .result-head { color: #3fb950; }
+  .claim.card.catch .result-head { color: #ff7b72; }
+}
+.why-card {
+  border-left: 6px solid #0b57d0; border-radius: 12px;
+  background: #f4f4f4; padding: 20px; margin: 2.5rem 0; font-size: 1.05rem;
+}
+@media (prefers-color-scheme: dark) {
+  .why-card { border-left-color: #7aa2f7; background: #1c1c1c; }
 }
 .note { font-size: 0.9rem; opacity: 0.9; }
 details { margin: 0.8rem 0; }
@@ -51,50 +99,47 @@ summary { cursor: pointer; }
 </style>
 </head>
 <body data-state="loading">
-<h1>Check your AI agent's numbers</h1>
-<p>If your agent says it shipped 12 deploys and your records say 7, this page catches it.</p>
-<p>It's for anyone whose AI agent reports numbers. I built it to check my own agent before I read what it says.</p>
-<div class="card">
-<h2>Made-up example</h2>
-<p><strong>Your agent wrote</strong>: "Deploys reached 12 in November."</p>
-<p><strong>Your records say</strong>: November deploys: 7.</p>
+<h1>Does your AI get your numbers right?</h1>
+<p class="intro">Paste a sentence your AI wrote, add the real numbers, and this page checks that they match.</p>
+<p>It runs on your device; nothing you type leaves it.</p>
+<p id="status" class="note" aria-live="polite">Getting the checker ready. It loads once, about 8 MB. That takes about 3 seconds on a fast connection, or 15 to 30 on a slow phone. After that, everything runs on your device.</p>
+<section class="steps-card" aria-label="Check a sentence in three steps">
+<div class="step">
+<p class="step-label"><span class="step-num" aria-hidden="true">1</span><label for="agent-text"><strong>What did your AI say?</strong></label></p>
+<textarea id="agent-text" spellcheck="true">Deploys reached 12 in November.</textarea>
 </div>
-<div class="controls">
-<button id="example-check" class="primary" type="button">Check this example</button>
-</div>
-<p id="status" class="note" aria-live="polite">Getting the checker ready in your browser. The first visit downloads about 8 MB: about 3 seconds on a fast connection, 15 to 30 on a slow phone.</p>
-<p class="note">Everything runs on your machine: I load the checker once, then nothing you type is sent anywhere.</p>
-<div id="example-verdict" class="verdict" aria-live="polite"></div>
-<p><a href="#try-your-own">Try it on your own agent's words</a></p>
-<h2 id="try-your-own">Try your own</h2>
-<p>Paste what your agent wrote. Every sentence with a number gets checked.</p>
-<p>For each number, add a row with what your records say: a name that appears in the sentence, like deploys, and the number. One record per sentence.</p>
-<div>
-<label for="agent-text"><strong>What your agent wrote</strong></label>
-<textarea id="agent-text" spellcheck="true"></textarea>
-</div>
+<div class="step">
+<p class="step-label"><span class="step-num" aria-hidden="true">2</span><strong>What are the real numbers?</strong></p>
 <table id="records-table">
-<caption><strong>What your records say</strong></caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Number</th></tr></thead>
 <tbody>
-<tr><td><input type="text" name="name" placeholder="e.g. deploys" aria-label="Record name"></td><td><input type="text" name="number" placeholder="e.g. 7" aria-label="Record number" inputmode="decimal"></td></tr>
-<tr><td><input type="text" name="name" aria-label="Record name"></td><td><input type="text" name="number" aria-label="Record number" inputmode="decimal"></td></tr>
-<tr><td><input type="text" name="name" aria-label="Record name"></td><td><input type="text" name="number" aria-label="Record number" inputmode="decimal"></td></tr>
+<tr><td><input type="text" name="name" value="November deploys" aria-label="Record name"></td><td><input type="text" name="number" value="7" aria-label="Record number" inputmode="decimal"></td></tr>
 </tbody>
 </table>
-<div class="controls">
-<button id="row-add" type="button">Add a row</button>
-<button id="try-check" class="primary" type="button">Check</button>
-<button id="try-fill" type="button">Fill in the made-up example</button>
+<p><button id="row-add" type="button" disabled>Add a row</button></p>
 </div>
+<div class="step">
+<p class="step-label"><span class="step-num" aria-hidden="true">3</span><strong>Check it</strong></p>
+<p><button id="try-check" class="primary" type="button" disabled>Check</button></p>
+</div>
+</section>
 <div id="try-verdict" class="verdict" aria-live="polite"></div>
-<p class="note">The plain form does not supply units or periods, so those checks show as not checked.</p>
-<details>
-<summary>Show the JSON (for scripts)</summary>
-<pre id="try-json">The exact input the checker ran lands here.</pre>
-<p>The <a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">worked example</a> runs the same input on the command line.</p>
-</details>
-<h2>What this checks</h2>
+<div class="controls">
+<span class="examples-label" id="try-one-label">Try one:</span>
+<button id="try-ex1" class="pill" type="button" disabled>Wrong number</button>
+<button id="try-ex2" class="pill" type="button" disabled>Matching numbers</button>
+<button id="try-ex3" class="pill" type="button" disabled>A sneaky "not"</button>
+</div>
+<h2>Can you fool it?</h2>
+<p>Try a sentence that sounds right but bends a number, a word or a period. <a href="#limits">See what this checker does not check</a>.</p>
+<section class="why-card" aria-label="Why this page exists">
+<h2>Why I built this</h2>
+<p>Assistants that read your data and answer in numbers get some of them wrong. They sound just as sure either way, and nobody checks every number by hand.</p>
+<p>I built an assistant that offers each free hour of my day to promises I wrote down. Before a card reaches my phone, this check compares every number on it with my records.</p>
+<p>It still let some through. On Nov 2 a card said "Prs rose by 3 in the last period": the right number, from the wrong window. Five more sentences that day made the same mistake. A test that fails on that sentence came first, then the rule that stops it. Every miss so far is in <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/TRUST.md">TRUST.md</a>.</p>
+<p>When it works, a wrong number is stopped before anyone acts on it. That's why you can try it here, for free, on any sentence an AI wrote for you.</p>
+</section>
+<h2 id="limits">What this does not check</h2>
 <p>Every word of a row's name must appear in the sentence, in any letter case, so deploy doesn't match deploys and synonyms don't count.</p>
 <p>Numbers are read as written: 1,200, 3.5 and twelve work. Dates and clock times aren't read as numbers. In the plain form, a percent sign is ignored.</p>
 <p>The number must equal the record. 3.5 and 3.50 are equal.</p>
@@ -105,17 +150,17 @@ summary { cursor: pointer; }
 <p>It can't tell whether a sentence is true, only whether its numbers match what you typed.</p>
 <p>To see for yourself that nothing is sent: open your browser's network panel, then use the page. After loading, the page makes no more requests.</p>
 <details>
-<summary>Check JSON directly (for developers)</summary>
+<summary>For engineers: JSON input</summary>
 <div>
 <label for="input"><strong>Input JSON</strong></label>
 <textarea id="input" class="mono" spellcheck="false" placeholder='{"claims": [...], "facts": {...}, "metrics": {...}}'></textarea>
 </div>
 <div class="controls">
-<button id="run">Run</button>
+<button id="run" disabled>Run</button>
 <span class="examples-label">Made-up examples:</span>
-<button id="ex1">Clean pass</button>
-<button id="ex2">False number</button>
-<button id="ex3">Leaked private term</button>
+<button id="ex1" class="pill" disabled>Clean pass</button>
+<button id="ex2" class="pill" disabled>False number</button>
+<button id="ex3" class="pill" disabled>Leaked private term</button>
 </div>
 <div id="json-verdict" class="verdict" aria-live="polite"></div>
 <p>This is what the full checker covers:</p>
@@ -124,6 +169,11 @@ summary { cursor: pointer; }
 <p>What this checker does not check: it never checks that a sentence is true; a word after a number that is not a unit, a magnitude or a percent form isn't checked; disguised spellings of your private terms aren't caught; advice and instructions in the text aren't caught unless you list advice words.</p>
 <p>Disclosed limits: the bare word one as a value, period compounds and comparisons with than are not checked; a number-like or quantity-like word inside a name that a cited fact carries is not skipped, which can only make the check stricter; a unit word that agrees with one cited metric can still fail against another, because the sentence does not say which metric the word belongs to; the Python function verify_claims keeps the earlier, smaller set of checks and verify_and_repair still wraps it.</p>
 <p><a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">Every field</a> is in the worked example, and <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/ADAPTER.md">the adapter recipe</a> maps another shape to it.</p>
+<details>
+<summary>Show the JSON (for scripts)</summary>
+<pre id="try-json">The exact input the checker ran lands here.</pre>
+<p>The <a href="https://github.com/macayaven/ikigai-loop/blob/main/examples/verify/README.md">worked example</a> runs the same input on the command line.</p>
+</details>
 </details>
 <p class="note">The page and the checker it runs are open source in <a href="https://github.com/macayaven/ikigai-loop">macayaven/ikigai-loop</a>. The page lives at https://carloscrespomacaya.com/ikigai-loop/verify/. Bad input shows a short message and sends nothing.</p>
 <script type="application/json" id="ex-pass">{
@@ -249,10 +299,9 @@ summary { cursor: pointer; }
 <script>
 "use strict";
 const statusEl = document.getElementById("status");
-const LOADING_SENTENCE = "Getting the checker ready in your browser. The first visit downloads about 8 MB: about 3 seconds on a fast connection, 15 to 30 on a slow phone.";
+const LOADING_SENTENCE = "Getting the checker ready. It loads once, about 8 MB. That takes about 3 seconds on a fast connection, or 15 to 30 on a slow phone. After that, everything runs on your device.";
+const PLAIN_SCOPE_LINE = "It checked the number against your record. It didn't check units, time periods or words like rose and fell.";
 let checker = null;
-let pendingRun = null;
-let pendingArea = null;
 function pe(tag, text) {
   const node = document.createElement(tag);
   node.textContent = text;
@@ -275,24 +324,7 @@ function badge(pass) {
   node.textContent = pass ? "PASS" : "FAIL";
   return node;
 }
-function withChecker(area, fn) {
-  if (checker) {
-    fn();
-    return;
-  }
-  if (pendingArea !== null && pendingArea !== area) {
-    while (pendingArea.firstChild) {
-      pendingArea.removeChild(pendingArea.firstChild);
-    }
-  }
-  pendingArea = area;
-  pendingRun = fn;
-  while (area.firstChild) {
-    area.removeChild(area.firstChild);
-  }
-  area.append(pe("p", "The checker is getting ready in your browser. Your result will appear here by itself."));
-}
-function showVerdict(root, inputText, renderRaw, notesById, extraLines) {
+function showVerdict(root, inputText, renderRaw, notesById, extraLines, plain) {
   while (root.firstChild) {
     root.removeChild(root.firstChild);
   }
@@ -331,13 +363,77 @@ function showVerdict(root, inputText, renderRaw, notesById, extraLines) {
     scrollVerdict(root);
     return;
   }
+  if (plain) {
+    for (const claim of explained.claims) {
+      const block = document.createElement("div");
+      let cls = "claim card";
+      if (!claim.passed) {
+        cls = cls + " catch";
+      }
+      block.setAttribute("class", cls);
+      const head = document.createElement("p");
+      head.setAttribute("class", "result-head");
+      head.append(badge(claim.passed));
+      head.append(document.createTextNode(" " + explained.overall));
+      block.append(head);
+      let locator = claim.id;
+      if (claim.text === null || claim.text === undefined) {
+        if (/^s\d+$/.test(claim.id)) {
+          locator = "sentence " + claim.id.slice(1);
+        }
+      } else {
+        locator = '"' + claim.text + '"';
+      }
+      const quote = pe("p", locator);
+      quote.setAttribute("class", "result-quote");
+      block.append(quote);
+      for (const finding of claim.findings) {
+        block.append(pe("p", finding.sentence));
+        const codeLine = pe("p", "Code: " + finding.code);
+        codeLine.setAttribute("class", "note");
+        block.append(codeLine);
+      }
+      block.append(pe("p", PLAIN_SCOPE_LINE));
+      root.append(block);
+    }
+    if (extraLines) {
+      for (const line of extraLines) {
+        root.append(pe("p", line));
+      }
+    }
+    const plainDetails = document.createElement("details");
+    plainDetails.append(pe("summary", "Technical details: codes, and the report the command line prints"));
+    if (notesById) {
+      for (const claim of explained.claims) {
+        const lines = notesById[claim.id];
+        if (lines) {
+          for (const line of lines) {
+            plainDetails.append(pe("p", line));
+          }
+        }
+      }
+    }
+    for (const claim of explained.claims) {
+      for (const finding of claim.findings) {
+        plainDetails.append(pe("p", claim.id + " " + finding.code + ": " + finding.meaning));
+      }
+    }
+    plainDetails.append(preBlock(exact));
+    root.append(plainDetails);
+    scrollVerdict(root);
+    return;
+  }
   const overall = document.createElement("p");
   overall.append(badge(pass));
   overall.append(document.createTextNode(" " + explained.overall));
   root.append(overall);
   for (const claim of explained.claims) {
     const block = document.createElement("div");
-    block.setAttribute("class", "claim");
+    let cls = "claim card";
+    if (!claim.passed) {
+      cls = cls + " catch";
+    }
+    block.setAttribute("class", cls);
     block.append(badge(claim.passed));
     let locator = claim.id;
     if (claim.text === null || claim.text === undefined) {
@@ -356,6 +452,9 @@ function showVerdict(root, inputText, renderRaw, notesById, extraLines) {
     }
     for (const finding of claim.findings) {
       block.append(pe("p", finding.sentence));
+      const codeLine = pe("p", "Code: " + finding.code);
+      codeLine.setAttribute("class", "note");
+      block.append(codeLine);
     }
     if (claim.gaps) {
       block.append(pe("p", claim.gaps));
@@ -382,18 +481,12 @@ function fillPretty(id) {
   document.getElementById("input").value = JSON.stringify(JSON.parse(document.getElementById(id).textContent), null, 2);
 }
 function runCheck() {
+  if (!checker) {
+    return;
+  }
   const area = document.getElementById("json-verdict");
   const raw = document.getElementById("input").value;
-  withChecker(area, () => {
-    showVerdict(area, raw, checker.render(raw), null);
-  });
-}
-function runExample() {
-  const area = document.getElementById("example-verdict");
-  withChecker(area, () => {
-    const inputText = JSON.stringify(JSON.parse(document.getElementById("ex-false-number").textContent), null, 2);
-    showVerdict(area, inputText, checker.render(inputText), null);
-  });
+  showVerdict(area, raw, checker.render(raw), null);
 }
 function collectRows() {
   const rows = [];
@@ -407,10 +500,13 @@ function collectRows() {
   return JSON.stringify(rows);
 }
 function runTryCheck() {
+  if (!checker) {
+    return;
+  }
   const area = document.getElementById("try-verdict");
   const agentText = document.getElementById("agent-text").value;
   const rowsJson = collectRows();
-  withChecker(area, () => {
+  {
     while (area.firstChild) {
       area.removeChild(area.firstChild);
     }
@@ -458,10 +554,19 @@ function runTryCheck() {
       }
       const verdict = document.createElement("div");
       area.append(verdict);
-      showVerdict(verdict, built.input, checker.render(built.input), notesById, uncheckedLines);
+      showVerdict(verdict, built.input, checker.render(built.input), notesById, uncheckedLines, true);
       document.getElementById("try-json").textContent = built.input;
     }
-  });
+  }
+}
+function fillTry(sentence, name, number) {
+  document.getElementById("agent-text").value = sentence;
+  const tbody = document.querySelector("#records-table tbody");
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
+  addRow(name, number);
+  runTryCheck();
 }
 function addRow(name, number) {
   const tbody = document.querySelector("#records-table tbody");
@@ -490,9 +595,7 @@ async function boot() {
   try {
     statusEl.textContent = LOADING_SENTENCE;
     const pyodide = await loadPyodide();
-    statusEl.textContent = LOADING_SENTENCE + " Loading the checker…";
     await pyodide.loadPackage("pydantic");
-    statusEl.textContent = LOADING_SENTENCE + " Loading the checker bundle…";
     const res = await fetch("bundle.json");
     if (!res.ok) {
       throw new Error("bundle fetch failed");
@@ -509,7 +612,6 @@ async function boot() {
       throw new Error("page helper fetch failed");
     }
     pyodide.FS.writeFile("/home/pyodide/verify_page.py", await pageRes.text());
-    statusEl.textContent = LOADING_SENTENCE + " Starting the checker…";
     await pyodide.runPythonAsync("from framework.verify.hardened import page_render_hardened");
     await pyodide.runPythonAsync("from verify_page import build_checker_input, explain_report");
     checker = {
@@ -518,36 +620,22 @@ async function boot() {
       explain: pyodide.globals.get("explain_report")
     };
     document.body.dataset.state = "ready";
-    statusEl.textContent = "The checker is ready. Press Check this example or try your own below.";
-    if (pendingRun !== null) {
-      const run = pendingRun;
-      pendingRun = null;
-      pendingArea = null;
-      run();
+    statusEl.textContent = "The checker is ready.";
+    const buttons = document.querySelectorAll("button[disabled]");
+    for (let i = 0; i < buttons.length; i++) {
+      buttons[i].removeAttribute("disabled");
     }
+    runTryCheck();
   } catch (err) {
     document.body.dataset.state = "failed";
-    statusEl.textContent = "The checker could not load. Nothing was sent anywhere.";
-    if (pendingArea !== null) {
-      while (pendingArea.firstChild) {
-        pendingArea.removeChild(pendingArea.firstChild);
-      }
-      pendingArea.append(pe("p", "The checker could not load. Nothing was sent anywhere."));
-    }
+    statusEl.textContent = "The checker could not load. Nothing was sent anywhere. Check your connection, then reload the page.";
   }
 }
-document.getElementById("example-check").addEventListener("click", runExample);
 document.getElementById("try-check").addEventListener("click", runTryCheck);
 document.getElementById("row-add").addEventListener("click", () => { addRow("", ""); });
-document.getElementById("try-fill").addEventListener("click", () => {
-  document.getElementById("agent-text").value = "Deploys reached 12 in November.";
-  const tbody = document.querySelector("#records-table tbody");
-  while (tbody.firstChild) {
-    tbody.removeChild(tbody.firstChild);
-  }
-  addRow("November deploys", "7");
-  runTryCheck();
-});
+document.getElementById("try-ex1").addEventListener("click", () => { fillTry("Deploys reached 12 in November.", "November deploys", "7"); });
+document.getElementById("try-ex2").addEventListener("click", () => { fillTry("Deploys reached 7 in November.", "November deploys", "7"); });
+document.getElementById("try-ex3").addEventListener("click", () => { fillTry("Deploys did not reach 7 in November.", "November deploys", "7"); });
 document.getElementById("run").addEventListener("click", runCheck);
 document.getElementById("ex1").addEventListener("click", () => { fillPretty("ex-pass"); runCheck(); });
 document.getElementById("ex2").addEventListener("click", () => { fillPretty("ex-false-number"); runCheck(); });

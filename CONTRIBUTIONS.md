@@ -697,6 +697,14 @@ the source audit now collects every delivered card at a slot — the slot card p
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation, the fix and this commit step: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code ran the re-audit and the provenance export on scratch copies of my store outside those sessions; it created the branch and typed nothing in this repository.
 
+## Ticket 25 — a checker page anyone can use, with no setup (2026-11-03)
+
+Built on branch `t25-checker-page` per [docs/plans/025-checker-page-for-everyone.md](docs/plans/025-checker-page-for-everyone.md):
+the page at `docs/verify/index.html` runs the worked example by itself on load, speaks in plain sentences instead of codes ("The sentence says 12; your record says 7."), puts the plain-words form first with one-tap examples (a wrong number, a matching sentence, a sneaky "not"), and moves the JSON box into one collapsed section at the bottom. The checker's verdict logic did not change: nothing under `framework/` moved, the bundle and the file examples are byte-identical, and every code list is pinned through the plain pipeline. The page's copy was pinned in the plan, and the four rulings and the "Why I built this" wording came from Claude Code's review of the plan, written as Carlos. Evidence in
+[docs/sessions/025-checker-page-for-everyone.md](docs/sessions/025-checker-page-for-everyone.md).
+
+Muse Code wrote the plan update, the code, the tests and these docs, powered by Meta Muse Spark, in one headless session Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code reviewed the plan (its four rulings are recorded in the plan and the session note) and runs the gate checks and `make check` afterwards. I never opened the held-out sets or the hidden-criteria path.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the
