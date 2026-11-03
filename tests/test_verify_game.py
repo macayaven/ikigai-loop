@@ -33,7 +33,7 @@ PINNED_FINAL_LEAD = '"You: " + n + "/6 · Checker: " + m + "/6"'
 PINNED_TAGLINE = (
     "Six sentences an AI wrote. Some hide a trap. Can you beat the checker?"
 )
-PINNED_BYLINE = "Muse Wonder, Meta's AI, wrote these sentences, and we asked it to set traps in some."
+PINNED_BYLINE = "Muse Wonder, Meta's AI, wrote these sentences, and I asked it to set traps in some."
 PINNED_HOW_LINE = (
     "Muse Wonder wrote the cards and sentences. Your browser checks their numbers."
 )
@@ -431,3 +431,348 @@ def test_game_copy_rules() -> None:
     for word in BANNED_WORDS:
         assert word not in lowered, word
     assert "!!" not in page
+
+
+def _study_slice() -> str:
+    page = PAGE.read_text()
+    start = page.index("/* study-version-start */")
+    end = page.index("/* study-version-end */")
+    assert start < end
+    return page[start:end]
+
+
+def test_first_person_how_this_works_is_pinned() -> None:
+    page = PAGE.read_text()
+    assert "The cards and sentences are exactly what Muse Wonder wrote:" in page
+    assert (
+        'Only its disclosure line changed, on Nov 3, from "We asked" '
+        'to "I asked": this is a solo project, and that line was set '
+        "word for word in the brief." in page
+    )
+    assert (
+        "A paid study uses a separate version of this page, with consent; "
+        "ordinary players send nothing." in page
+    )
+    assert "The rounds are exactly what Muse Wonder wrote, unedited:" not in page
+    assert "and we asked it to set traps in some." not in page
+    assert "We asked it to slip mistakes into some." not in page
+
+
+def test_rounds_file_changed_only_its_disclosure_line() -> None:
+    data = _rounds()
+    assert data["disclosure"] == (
+        "Muse Wonder, a Meta model, wrote these sentences from each card. "
+        "I asked it to slip mistakes into some. "
+        "Six fixed, made-up examples, not an accuracy test."
+    )
+    assert data["version"] == 1
+    assert data["written_by"] == "muse-wonder-1.0"
+    assert [round_["id"] for round_ in data["rounds"]] == [
+        "r1",
+        "r2",
+        "r3",
+        "r4",
+        "r5",
+        "r6",
+    ]
+
+
+STUDY_CONSENT_PARAGRAPH = (
+    "Carlos Crespo Macaya is studying how people compare sentences with "
+    "cards. This takes about four minutes and pays £0.60 regardless of "
+    "accuracy. With your consent, I collect your choices, response times, "
+    "screen-size category and a scrambled form of your Prolific ID. Results "
+    "will appear in aggregate in a public hackathon write-up. Participation "
+    "is voluntary. You may stop or request deletion through Prolific without "
+    "losing earned payment. Raw study records will be deleted by "
+    "December 4, 2026."
+)
+
+STUDY_DEBRIEF_PARAGRAPH = (
+    "Thank you. These were six made-up examples. I asked an AI to plant "
+    "mistakes in some of them. The checker misses time-window mismatches, "
+    "like this season against last season. These scores do not establish "
+    "general human or AI accuracy."
+)
+
+STUDY_PRIVACY_URL = (
+    "https://github.com/macayaven/ikigai-loop/blob/main/docs/study-privacy.md"
+)
+
+
+def test_study_user_facing_strings_are_pinned() -> None:
+    page = PAGE.read_text()
+    for line in (
+        "This study isn't open yet",
+        "Please return the study on Prolific.",
+        "Before you start",
+        STUDY_CONSENT_PARAGRAPH,
+        "Privacy notice",
+        STUDY_PRIVACY_URL,
+        "I agree to participate.",
+        (
+            "Read six cards and decide whether each sentence is supported by "
+            "its card. Work alone, without AI or other tools. Payment does "
+            "not depend on accuracy."
+        ),
+        "Have you played Catch the AI before?",
+        "For this instruction check, select Ready.",
+        "Last step: submit your answers",
+        (
+            "Tap the button to open a short Google Form with your answers "
+            "filled in, then press Submit there. Its confirmation page has "
+            "your Prolific completion link."
+        ),
+        "Submit your answers",
+        STUDY_DEBRIEF_PARAGRAPH,
+    ):
+        assert line in page, line[:60]
+
+
+def test_study_runs_only_with_src_prolific() -> None:
+    page = PAGE.read_text()
+    study = _study_slice()
+    assert 'studyQuery.get("src") === "prolific"' in study
+    assert "studyIsProlific" in study
+    boot = study.split("function studyBoot")[1]
+    assert "if (!studyIsProlific)" in boot
+    assert page.index("studyBoot();") < page.index("boot();")
+    assert 'id="study"' in page
+
+
+def test_study_not_open_guard_with_empty_constants() -> None:
+    page = PAGE.read_text()
+    study = _study_slice()
+    assert 'const RESULTS_FORM_VIEW = "";' in page
+    assert 'const RESULTS_FORM_FIELD = "";' in page
+    assert "if (!RESULTS_FORM_VIEW || !RESULTS_FORM_FIELD)" in study
+    guard = study.split("if (!RESULTS_FORM_VIEW || !RESULTS_FORM_FIELD)")[1]
+    assert "studyNotOpen" in guard.split("}")[0]
+    assert "This study isn't open yet" in study
+    assert "Please return the study on Prolific." in study
+
+
+def test_consent_start_stays_disabled_until_checked() -> None:
+    study = _study_slice()
+    consent = study.split("function studyConsent")[1].split(
+        "function studyInstructions"
+    )[0]
+    assert '"Before you start"' in consent
+    assert STUDY_CONSENT_PARAGRAPH in consent
+    assert STUDY_PRIVACY_URL in consent
+    assert '"Privacy notice"' in consent
+    assert '"I agree to participate."' in consent
+    assert '"Start"' in consent
+    assert "start.disabled = true" in consent
+    assert "start.disabled = !box.checked" in consent
+
+
+def test_played_before_and_instruction_check_are_recorded() -> None:
+    study = _study_slice()
+    ask = study.split("function studyInstructions")[1].split("function studyCheckAsk")[
+        0
+    ]
+    assert "Have you played Catch the AI before?" in ask
+    assert 'studyPrior = label === "Yes" ? "y" : "n"' in ask
+    check = study.split("function studyCheckAsk")[1].split("function studyCards")[0]
+    assert "For this instruction check, select Ready." in check
+    assert 'studyCheck = label === "Ready" ? "r" : "s"' in check
+
+
+def test_study_cards_have_no_reveal_stamp_or_live_score() -> None:
+    study = _study_slice()
+    cards = study.split("function studyCards")[1].split("function studySubmitAsk")[0]
+    assert '"Round " + (pos + 1) + " of 6"' in cards
+    assert 'studyButtons(root, ["It matches", "It doesn\'t"]' in cards
+    buttons = study.split("function studyButtons")[1].split("function studyNotOpen")[0]
+    assert "gameClick" in buttons
+    assert "gameChime" not in buttons
+    assert "gameMissTone" not in buttons
+    assert "Date.now()" in cards
+    assert "studyMsById[round.id] = Date.now() - studyCardAt" in cards
+    for token in (
+        "game-dots",
+        "game-score",
+        "game-stamp",
+        "game-chosen",
+        "game-dot",
+        "gameChime",
+        "gameMissTone",
+        "gameTriad",
+        "gameFanfare",
+        "gameConfetti",
+        "gameNoteChecker",
+        "gameFinal",
+        "game-next",
+    ):
+        assert token not in study, token
+
+
+def test_study_rotation_is_chosen_once_and_seq_matches() -> None:
+    study = _study_slice()
+    assert page_count("Math.floor(Math.random() * 6)") == 1
+    assert "const studyRot = Math.floor(Math.random() * 6);" in study
+    assert "gameRounds[(i + studyRot) % 6].id" in study
+    assert "gameRounds[(pos + studyRot) % 6]" in study
+    assert '";seq=" + studyOrder.join(",")' in study
+
+
+def page_count(token: str) -> int:
+    return PAGE.read_text().count(token)
+
+
+def _clean(raw: str | None) -> str:
+    return re.sub(r"[^A-Za-z0-9]", "", raw or "")[:64]
+
+
+def _study_payload(
+    *,
+    pid_hash: str,
+    study: str,
+    prior: str,
+    check: str,
+    rot: int,
+    seq: list[str],
+    answers: dict[str, str],
+    times_ms: dict[str, int],
+    width: str,
+) -> str:
+    import math
+
+    order = ["r1", "r2", "r3", "r4", "r5", "r6"]
+    letter = {"right": "m", "wrong": "d"}
+    g = "".join(letter[answers[id_]] for id_ in order)
+    t = ",".join(str(math.floor(times_ms[id_] / 100 + 0.5) * 100) for id_ in order)
+    return (
+        "v2;src=prolific;pidh=" + pid_hash + ";study=" + study + ";consent=c1"
+        ";prior="
+        + prior
+        + ";check="
+        + check
+        + ";rot="
+        + str(rot)
+        + ";seq="
+        + ",".join(seq)
+        + ";g="
+        + g
+        + ";ms="
+        + t
+        + ";w="
+        + width
+    )
+
+
+def test_study_payload_exact_for_a_fixed_game() -> None:
+    import hashlib
+
+    raw_pid = "Prolific-P_42!~/AB"
+    raw_study = "s1?x"
+    pid = _clean(raw_pid)
+    assert pid == "ProlificP42AB"
+    assert _clean(raw_study) == "s1x"
+    pid_hash = hashlib.sha256(("catch-the-ai-v1:" + pid).encode()).hexdigest()[:12]
+    payload = _study_payload(
+        pid_hash=pid_hash,
+        study=_clean(raw_study),
+        prior="y",
+        check="r",
+        rot=3,
+        seq=["r4", "r5", "r6", "r1", "r2", "r3"],
+        answers={
+            "r1": "right",
+            "r2": "wrong",
+            "r3": "right",
+            "r4": "wrong",
+            "r5": "wrong",
+            "r6": "wrong",
+        },
+        times_ms={
+            "r1": 1234,
+            "r2": 456,
+            "r3": 789,
+            "r4": 2345,
+            "r5": 150,
+            "r6": 3050,
+        },
+        width="m",
+    )
+    assert payload == (
+        "v2;src=prolific;pidh=" + pid_hash + ";study=s1x;consent=c1;prior=y"
+        ";check=r;rot=3;seq=r4,r5,r6,r1,r2,r3;g=mdmddd"
+        ";ms=1200,500,800,2300,200,3100;w=m"
+    )
+    assert raw_pid not in payload
+    study = _study_slice()
+    assert '"catch-the-ai-v1:"' in study
+    assert 'crypto.subtle.digest("SHA-256"' in study
+    assert ".slice(0, 12)" in study
+    assert '"v2;src=prolific;pidh="' in study
+    assert ".replace(/[^A-Za-z0-9]/g, " in study
+    assert ".slice(0, 64)" in study
+    for fragment in (
+        '";study="',
+        '";consent=c1;prior="',
+        '";check="',
+        '";rot="',
+        '";seq="',
+        '";g="',
+        '";ms="',
+        '";w="',
+    ):
+        assert fragment in study, fragment
+    assert "Math.round(studyMsById[id] / 100) * 100" in study
+    assert "w < 600" in study
+    assert "w < 1024" in study
+
+
+def test_study_prefilled_url_shape_and_debrief_after_submit() -> None:
+    study = _study_slice()
+    ask = study.split("function studySubmitAsk")[1].split("function studyReveal")[0]
+    assert '"Last step: submit your answers"' in ask
+    assert '"Submit your answers"' in ask
+    assert (
+        'RESULTS_FORM_VIEW + "?usp=pp_url&" + RESULTS_FORM_FIELD + "=" '
+        "+ encodeURIComponent(payload)" in ask
+    )
+    assert 'window.open(url, "_blank", "noopener")' in ask
+    assert "studyDebrief(root)" in ask
+    debrief = study.split("function studyDebrief")[1].split("function studyBoot")[0]
+    assert STUDY_DEBRIEF_PARAGRAPH in debrief
+    assert '"You: " + n + "/6 · Checker: 5/6"' in debrief
+    reveal = study.split("function studyReveal")[1].split("function studyDebrief")[0]
+    assert "gameCheckerVerdict(round).line" in reveal
+
+
+def test_ordinary_game_keeps_reveals_score_sounds_and_hook() -> None:
+    page = PAGE.read_text()
+    assert 'const ANSWERS_FORM_URL = "";' in page
+    assert "if (ANSWERS_FORM_URL)" in page
+    assert "function gameGuess" in page
+    assert "function gameFinal" in page
+    assert "function gameChime" in page
+    assert "function gameMissTone" in page
+    assert '"You " + gamePlayer + " · Checker " + gameCheckerDone' in page
+
+
+def test_page_sends_nothing_by_itself() -> None:
+    page = PAGE.read_text()
+    fetches = re.findall(r'fetch\(\s*["\']([^"\']+)["\']', page)
+    assert sorted(fetches) == ["bundle.json", "game/rounds.json", "verify_page.py"]
+    assert "sendBeacon" not in page
+    assert "<form" not in page
+    assert ".submit(" not in page
+
+
+def test_new_study_docs_exist_with_their_headings() -> None:
+    prereg = ROOT / "docs" / "prereg-game.md"
+    privacy = ROOT / "docs" / "study-privacy.md"
+    assert prereg.is_file()
+    assert privacy.is_file()
+    prereg_text = prereg.read_text()
+    privacy_text = privacy.read_text()
+    assert prereg_text.startswith(
+        "# Catch the AI: the study plan, registered before the first answer\n"
+    )
+    assert privacy_text.startswith("# Privacy notice: the Catch the AI study\n")
+    assert "Nov 4, 18:00 Madrid" in prereg_text
+    assert "December 4, 2026" in privacy_text
