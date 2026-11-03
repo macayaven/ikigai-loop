@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "written_by": "muse-wonder-1.0",
+  "disclosure": "Muse Wonder, a Meta model, wrote these sentences from each card. We asked it to slip mistakes into some.",
+  "rounds": [
+    {
+      "id": "r1",
+      "title": "A cafe on Tuesday",
+      "rows": [
+        {
+          "name": "morning coffees",
+          "value": 26
+        },
+        {
+          "name": "afternoon teas",
+          "value": 13
+        },
+        {
+          "name": "tables cleared",
+          "value": 18
+        }
+      ],
+      "sentence": "The cafe served 26 morning coffees.",
+      "answer": "right",
+      "why": "The card says 26 morning coffees; the sentence says 26.",
+      "checker_sees_it": true
+    },
+    {
+      "id": "r2",
+      "title": "A bookshop this week",
+      "rows": [
+        {
+          "name": "novels shelved",
+          "value": 42
+        },
+        {
+          "name": "picture books stacked",
+          "value": 15
+        },
+        {
+          "name": "bookmarks sold",
+          "value": 18
+        }
+      ],
+      "sentence": "The bookshop had 45 novels shelved.",
+      "answer": "wrong",
+      "why": "The card says 42 novels shelved; the sentence says 45.",
+      "checker_sees_it": true
+    },
+    {
+      "id": "r3",
+      "title": "City weather this week",
+      "rows": [
+        {
+          "name": "sunny days",
+          "value": 4
+        },
+        {
+          "name": "rainy days",
+          "value": 2
+        },
+        {
+          "name": "windy afternoons",
+          "value": 1
+        }
+      ],
+      "sentence": "The city had 4 sunny days.",
+      "answer": "right",
+      "why": "The card says 4 sunny days; the sentence says 4.",
+      "checker_sees_it": true
+    },
+    {
+      "id": "r4",
+      "title": "A football club this season",
+      "rows": [
+        {
+          "name": "home wins",
+          "value": 9
+        },
+        {
+          "name": "away wins",
+          "value": 5
+        },
+        {
+          "name": "drawn matches",
+          "value": 6
+        }
+      ],
+      "sentence": "The club had 9 home wins last season.",
+      "answer": "wrong",
+      "why": "The card is for this season; the sentence puts 9 home wins last season.",
+      "checker_sees_it": false,
+      "checker_note": "The checker only compares numbers here and cannot see time windows."
+    },
+    {
+      "id": "r5",
+      "title": "A bakery on Saturday",
+      "rows": [
+        {
+          "name": "croissants",
+          "value": 12
+        },
+        {
+          "name": "muffins",
+          "value": 20
+        },
+        {
+          "name": "loaves",
+          "value": 15
+        }
+      ],
+      "sentence": "The bakery did not sell 12 croissants.",
+      "answer": "wrong",
+      "why": "The card says 12 croissants; the sentence says it did not sell 12.",
+      "checker_sees_it": true,
+      "checker_note": "The checker catches the \"not\" because it cannot prove a \"did not\" sentence from the card."
+    },
+    {
+      "id": "r6",
+      "title": "A school concert on Friday",
+      "rows": [
+        {
+          "name": "songs sung",
+          "value": 18
+        },
+        {
+          "name": "poems read",
+          "value": 7
+        },
+        {
+          "name": "dances performed",
+          "value": 5
+        }
+      ],
+      "sentence": "The concert had 17 songs sung.",
+      "answer": "wrong",
+      "why": "The card says 18 songs sung; the sentence says 17.",
+      "checker_sees_it": true
+    }
+  ]
+}
