@@ -747,3 +747,9 @@ Implementation: Muse Code, powered by Meta Muse Spark, headless, in one session.
 ## Docs 5 - evidence that Muse Glimmer runs on my own hardware (2026-11-03)
 
 Added [docs/glimmer-evidence.md](docs/glimmer-evidence.md): the screen captures of llama-swap serving the model and of the machine hardware, copied byte for byte from the private evidence files into `docs/evidence/`, plus the run log from the `make glimmer-proof` check and links to the per card provenance and the R10 sample outputs on made-up data. I added one pointer paragraph in `README.md` and changed nothing else there. The captures and the glimmer-proof run come from Claude Code's Nov 3 session on my machine; Muse Code made this edit headless in one session. I never opened anything under `evals/heldout/`, and I never read the path in `HIDDEN_CRITERIA_DIR`.
+
+## Docs 6 - two small text changes from the judges' feedback (2026-11-03)
+
+I added one paragraph to the `README.md` first screen naming the four Meta models and the plain code check, and one paragraph after it with the worked checker case from an outside engineer. Docs only: no behaviour, schema, fixture or test change, and no pinned test needed an update.
+
+Implementation: Muse Code, powered by Meta Muse Spark, headless, in one session. I never opened anything under `evals/heldout/` except `evals/heldout/README.md`, and I never read the path in `HIDDEN_CRITERIA_DIR`.

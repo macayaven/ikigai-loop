@@ -2,6 +2,8 @@
 
 I made myself two promises: do my work, and spend time with my family away from screens. Most hours can only go to one of them. Ikigai Loop is the assistant I built to help me choose, and I'm its first user: I set my goals, made my promises and set up its signals.
 
+Four Meta models do the work: Muse Wonder writes the two options, Muse Glimmer (open weights, on my own GB10) turns my records into facts, Muse Spark turns a voice note into one edit to my list, and Muse Code wrote the code. Plain code checks every number.
+
 Five times a day it reads my calendar and offers my next free hour to those two promises, one option for each, and I choose with a tap. Each card shows what changed since the last one, the free hour and both options; one tap on Why? shows the numbers behind each option, like "Prs rose by 11 since the last card".
 
 Before a card reaches my phone, it checks every number on it against my records. Afterwards, it checks the option I pick against the traces it should have left, such as pushes to GitHub for work. Where nothing can be measured, it rests on my word: I'm doing this to fix something for myself, so I have no reason to cheat.
@@ -13,6 +15,8 @@ Why check numbers separately: the assistant writes friendly sentences, and a fri
 I've used it myself for the past few days. The first real card reached my phone on Nov 2 at 13:30, on time, and I chose with a tap. An independent recount of its pull-request figure, straight from GitHub's own records rather than from my store, matched.
 
 You can try the same check with nothing to install: [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/) opens on a game, Catch the AI. Muse Wonder wrote six sentences and set traps in some. Can you beat the checker? It runs in your browser.
+
+The same checker works on your own numbers: give it a card and a sentence, and it flags a sentence that says 12 deploys when the card says 7. An engineer outside the project tried it on an example from their own work: it passed the matching figure and flagged the mismatch once they changed the record.
 
 ## How it works
 
