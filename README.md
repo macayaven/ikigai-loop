@@ -133,6 +133,8 @@ Not built yet:
 
 On Nov 2, Muse Glimmer ran on my own hardware for every scheduled live card: all 5 slots, two passes each, and 3 of those 5 cards cite at least one of its facts (docs/provenance.jsonl). Muse Glimmer has generated facts through this code in a seeded run on synthetic data. Muse Wonder has written proposals through this code on synthetic data, on Muse Code headless on my subscription, with the numbers in [docs/sessions/011-wonder-proposal.md](docs/sessions/011-wonder-proposal.md). A full synthetic slot ran through this code on my local model and Muse Wonder, with a scratch database and a fake Bot API, as [docs/sessions/013-orchestrator.md](docs/sessions/013-orchestrator.md) records. The first real card went out on Nov 2 at 13:30, on time, as the public line in `docs/provenance.jsonl` records. I tapped my choice. An independent recount of its pull-request figure from GitHub's own records matched at every stage, as [docs/sessions/020-source-audit.md](docs/sessions/020-source-audit.md) records under "The first real card". The registered run continues to Nov 4 and I claim no results before it ends.
 
+Evidence that Muse Glimmer runs on my own hardware, with screen captures and a run log: [docs/glimmer-evidence.md](docs/glimmer-evidence.md).
+
 ## No medical advice
 
 It gives no medical advice by design: it only schedules commitments I wrote, and Apple Health is out of the design. The gate enforces this with two rules: `L1_ACTION_NOT_COMMITTED` rejects any action that isn't one of those commitments, and `L1_ADVICE` rejects advice wording in claims and actions. `L1_ADVICE` is a fixed word list, so it catches wording, not meaning.
