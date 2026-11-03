@@ -19,7 +19,7 @@ The Wonder model wrote the sentences. The numbers were right; the wording placed
 
 On the 22:30 card and its corrected card, four more sentences about my screen hours made the same mistake. My screen numbers stay out of this repository; their cases use made-up values.
 
-PR `#43` added `L1B_SINCE_LAST_WORDING` and taught the prompt to write "since the last card". The rule went live on Nov 2 at 23:29 on commit `3e31338` (gate `2f443fbbc8dd`, prompt `b42e301f613a`). I rehearsed on a copy of my data and ran a go/no-go on 54 synthetic cases: 2 first drafts failed the gate and both passed on the retry; no card fell back; all 29 since-last claims said "since the last card". PR `#52` published them in [`docs/sessions/010c-since-last-wording.md`](sessions/010c-since-last-wording.md)'s addendum. The fixed gate went live on Nov 3 at 01:27 on commit `9825342` (gate `0b84319e4bd9`, prompt `b42e301f613a` unchanged, closure `6e4f699a1b3d`), before any card used the 23:29 gate. When I wrote this page (Nov 3), no real card had used the new rule; the Nov 3 11:30 slot is first on the fixed gate.
+PR `#43` added `L1B_SINCE_LAST_WORDING` and taught the prompt to write "since the last card". The rule went live on Nov 2 at 23:29 on commit `3e31338` (gate `2f443fbbc8dd`, prompt `b42e301f613a`). I rehearsed on a copy of my data and ran a go/no-go on 54 synthetic cases: 2 first drafts failed the gate and both passed on the retry; no card fell back; all 29 since-last claims said "since the last card". PR `#52` published them in [`docs/sessions/010c-since-last-wording.md`](sessions/010c-since-last-wording.md)'s addendum. The fixed gate went live on Nov 3 at 01:27 on commit `9825342` (gate `0b84319e4bd9`, prompt `b42e301f613a` unchanged, closure `6e4f699a1b3d`), before any card used the 23:29 gate. The Nov 3 11:30 card was the first real card on the new rule and the fixed gate: it went out on time, and its first draft passed the gate with no codes.
 
 Late pushes: GitHub's feed reached my records after some cards were built. The settled recounts show it in three slots: the 18:00 chart gave 8 pushes and PRs for the prior period against a settled 10, the 20:30 charts 14 against 16, the 22:30 charts 17 against 20, and the 22:30 since line said 2 where the settled count is 3. Every sentence about pull requests matched. The gate checks the records at card time, so it couldn't see this; the source audit did, six hours later.
 
@@ -29,11 +29,11 @@ A code fact counted 16 pull requests where the repo held 8; each leaves two rows
 
 The first card's since line would have said 32 where the plain count was 17. The source audit caught it; Ticket 13 fixed it before merging ([`docs/sessions/020-source-audit.md`](sessions/020-source-audit.md)).
 
-The gate that went live at 23:29 on Nov 2 stopped some ordinary sentences as private terms. A rehearsal on the product path with the real private-term list found it before any live card used that gate: the Nov 3 11:30 slot fell back 5 of 5 on that gate and 0 of 5 on the fixed gate, reading only error codes on a copy of the live store. It failed closed with a fallback card. Fixed in PR `#58`, open when I wrote this page (Nov 3), live since 01:27, before any card used the 23:29 gate.
+The gate that went live at 23:29 on Nov 2 stopped some ordinary sentences as private terms. A rehearsal on the product path with the real private-term list found it before any live card used that gate: the Nov 3 11:30 slot fell back 5 of 5 on that gate and 0 of 5 on the fixed gate, reading only error codes on a copy of the live store. It failed closed with a fallback card. Fixed in PR `#58`, merged on Nov 3, live since 01:27, before any card used the 23:29 gate.
 
 ## Mistakes in my own tools
 
-The source audit marked the 20:30 card FAIL with correct numbers, reading one card's sentences against the other card's briefing after a voice correction left two cards; the fix is PR #54, open when I wrote this page (Nov 3).
+The source audit marked the 20:30 card FAIL with correct numbers, reading one card's sentences against the other card's briefing after a voice correction left two cards; the fix is PR #54, merged on Nov 3.
 
 Taps on voice-corrected cards never reached the learner, because those rows weren't saved: fixed in PR #53, on the live cards since Nov 3 at 01:27; at 01:28 the backfill wrote the 4 missing rows for the two voice-corrected cards, and a second run wrote 0; so their taps count from the 11:30 slot on.
 
@@ -64,7 +64,7 @@ GPT Sol 6.1 wrote both sets blind from the public docs only; [`evals/heldout/REA
 | Gate set, 40 cases (`3e31338`) | 37/40 | 19/20: since-last 4/4, negation 4/4, period 3/3, mislabelled metric 3/3, invented fact 3/3, unit 2/3 | 18/20 |
 | Checker set, 40 cases (`1cd8db8`) | 35/40 | 17/20: wrong number 4/4, wrong unit 3/3, wrong period 3/3, mislabelled metric 3/3, missing fact 3/3, negation 1/4 | 18/20 |
 
-Each set was scored once: the gate set at 23:30 on Nov 2 on the gate live at the time (commit `3e31338`) and the checker set on commit `1cd8db8`, the first main with C1; PR #55 and PR #56 hold scoring files, open when I wrote this page (Nov 3). The gate set has three misses: one false pass (G18), "The calendar shows 6.5 busy minutes.", citing `calendar.busy_hours` at 6.5, which the unit rule doesn't treat as hours; two true sentences stopped (G23 and G25), one for a direction word outside the list, one for a sum no single metric holds.
+Each set was scored once: the gate set at 23:30 on Nov 2 on the gate live at the time (commit `3e31338`) and the checker set on commit `1cd8db8`, the first main with C1; PR #55 and PR #56 hold the scoring files and were merged on Nov 3. The gate set has three misses: one false pass (G18), "The calendar shows 6.5 busy minutes.", citing `calendar.busy_hours` at 6.5, which the unit rule doesn't treat as hours; two true sentences stopped (G23 and G25), one for a direction word outside the list, one for a sum no single metric holds.
 
 The checker set has five misses: three false passes citing a fact and saying its opposite. Two true sentences were rejected: H13 ("thirty-two") and H23 ("weekly").
 

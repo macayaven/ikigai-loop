@@ -54,7 +54,7 @@ agent's output shape to this input.
 
 Works: cards reach my phone five times a day on a schedule, and the first real one went out on time. Every figure on a card is checked against my records by plain code with no model before it is sent, and a recount of the first card's pull-request figure from GitHub matched. A voice note can correct a card, and that code is built. Anyone can run the checker on their own agent, on the command line or in the browser.
 
-Doesn't, yet: this is set up for one person, me, with no installer and no ready-made timer files in the repo. The run I registered before the first card continues to Nov 4 and I will report its numbers then. There is no viewer for past cards, and the proof harness is built, with receipts that already report results while the registered run is still open.
+Doesn't, yet: this is set up for one person, me, with no installer and no ready-made timer files in the repo. The run I registered before the first card continues to Nov 4 and I will report its numbers then. There is no viewer for past cards.
 
 This is for me first, and the checker is for anyone whose agent cites numbers.
 
@@ -146,3 +146,7 @@ The four-circle ikigai diagram comes from Marc Winn's 2014 blog post, adapted fr
 - The two goals: [profiles/](profiles/)
 - Design record and past plans: [docs/](docs/)
 - What the literature supports and doesn't: [docs/LITERATURE.md](docs/LITERATURE.md)
+
+## License
+
+The code is under the Apache License 2.0; see [LICENSE](LICENSE).
