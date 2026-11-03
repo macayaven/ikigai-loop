@@ -120,6 +120,8 @@ def _db(
         "CREATE TABLE slot_ledger (slot TEXT, step TEXT, outcome TEXT, card_id TEXT);"
         "CREATE TABLE slot_cards (card_id TEXT, slot TEXT, subject_id TEXT, as_of TEXT);"
         "CREATE TABLE slot_card_payloads (card_id TEXT, card_json TEXT, chart_json TEXT);"
+        "CREATE TABLE telegram_card_charts (card_id TEXT, chart_json TEXT);"
+        "CREATE TABLE voice_notes (new_card_id TEXT);"
     )
     rows = [
         (eid, SUBJECT, sid, created, json.dumps({"counts": {action: 1}}))

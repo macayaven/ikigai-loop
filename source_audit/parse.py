@@ -139,6 +139,28 @@ def parse_statement(text: str, metric: str) -> dict[str, Any]:
         elif tok in NEGATORS and _metric_ahead(toks, pos, metric):
             numbers.append(0)
     period_hits = [IDX[t] for t in toks if t in IDX]
+    for pos, tok in enumerate(toks):
+        if (
+            tok
+            in (
+                "rose",
+                "fell",
+                "increased",
+                "decreased",
+                "grew",
+                "dropped",
+                "climbed",
+                "declined",
+                "up",
+                "down",
+            )
+            and pos + 2 < len(toks)
+            and toks[pos + 1] == "by"
+            and (
+                DIGIT_RE.fullmatch(toks[pos + 2]) is not None or toks[pos + 2] in WORDS
+            )
+        ):
+            return {"kind": "unparsed"}
     if not numbers:
         for tok in toks:
             if tok.startswith("#"):
