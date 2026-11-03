@@ -1,0 +1,1278 @@
+{
+  "2011-01-03": {
+    "busy_days": 0,
+    "dates": [
+      "2011-01-03",
+      "2011-01-04",
+      "2011-01-05",
+      "2011-01-06",
+      "2011-01-07",
+      "2011-01-08",
+      "2011-01-09"
+    ],
+    "days": {
+      "2011-01-03": {
+        "casual": 120,
+        "cnt": 1349,
+        "hour_cnt_sum": 1349,
+        "registered": 1229
+      },
+      "2011-01-04": {
+        "casual": 108,
+        "cnt": 1562,
+        "hour_cnt_sum": 1562,
+        "registered": 1454
+      },
+      "2011-01-05": {
+        "casual": 82,
+        "cnt": 1600,
+        "hour_cnt_sum": 1600,
+        "registered": 1518
+      },
+      "2011-01-06": {
+        "casual": 88,
+        "cnt": 1606,
+        "hour_cnt_sum": 1606,
+        "registered": 1518
+      },
+      "2011-01-07": {
+        "casual": 148,
+        "cnt": 1510,
+        "hour_cnt_sum": 1510,
+        "registered": 1362
+      },
+      "2011-01-08": {
+        "casual": 68,
+        "cnt": 959,
+        "hour_cnt_sum": 959,
+        "registered": 891
+      },
+      "2011-01-09": {
+        "casual": 54,
+        "cnt": 822,
+        "hour_cnt_sum": 822,
+        "registered": 768
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 9408
+  },
+  "2011-01-17": {
+    "busy_days": 0,
+    "dates": [
+      "2011-01-17",
+      "2011-01-18",
+      "2011-01-19",
+      "2011-01-20",
+      "2011-01-21",
+      "2011-01-22",
+      "2011-01-23"
+    ],
+    "days": {
+      "2011-01-17": {
+        "casual": 117,
+        "cnt": 1000,
+        "hour_cnt_sum": 1000,
+        "registered": 883
+      },
+      "2011-01-18": {
+        "casual": 9,
+        "cnt": 683,
+        "hour_cnt_sum": 683,
+        "registered": 674
+      },
+      "2011-01-19": {
+        "casual": 78,
+        "cnt": 1650,
+        "hour_cnt_sum": 1650,
+        "registered": 1572
+      },
+      "2011-01-20": {
+        "casual": 83,
+        "cnt": 1927,
+        "hour_cnt_sum": 1927,
+        "registered": 1844
+      },
+      "2011-01-21": {
+        "casual": 75,
+        "cnt": 1543,
+        "hour_cnt_sum": 1543,
+        "registered": 1468
+      },
+      "2011-01-22": {
+        "casual": 93,
+        "cnt": 981,
+        "hour_cnt_sum": 981,
+        "registered": 888
+      },
+      "2011-01-23": {
+        "casual": 150,
+        "cnt": 986,
+        "hour_cnt_sum": 986,
+        "registered": 836
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 8770
+  },
+  "2011-01-24": {
+    "busy_days": 0,
+    "dates": [
+      "2011-01-24",
+      "2011-01-25",
+      "2011-01-26",
+      "2011-01-27",
+      "2011-01-28",
+      "2011-01-29",
+      "2011-01-30"
+    ],
+    "days": {
+      "2011-01-24": {
+        "casual": 86,
+        "cnt": 1416,
+        "hour_cnt_sum": 1416,
+        "registered": 1330
+      },
+      "2011-01-25": {
+        "casual": 186,
+        "cnt": 1985,
+        "hour_cnt_sum": 1985,
+        "registered": 1799
+      },
+      "2011-01-26": {
+        "casual": 34,
+        "cnt": 506,
+        "hour_cnt_sum": 506,
+        "registered": 472
+      },
+      "2011-01-27": {
+        "casual": 15,
+        "cnt": 431,
+        "hour_cnt_sum": 431,
+        "registered": 416
+      },
+      "2011-01-28": {
+        "casual": 38,
+        "cnt": 1167,
+        "hour_cnt_sum": 1167,
+        "registered": 1129
+      },
+      "2011-01-29": {
+        "casual": 123,
+        "cnt": 1098,
+        "hour_cnt_sum": 1098,
+        "registered": 975
+      },
+      "2011-01-30": {
+        "casual": 140,
+        "cnt": 1096,
+        "hour_cnt_sum": 1096,
+        "registered": 956
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 7699
+  },
+  "2011-03-07": {
+    "busy_days": 0,
+    "dates": [
+      "2011-03-07",
+      "2011-03-08",
+      "2011-03-09",
+      "2011-03-10",
+      "2011-03-11",
+      "2011-03-12",
+      "2011-03-13"
+    ],
+    "days": {
+      "2011-03-07": {
+        "casual": 244,
+        "cnt": 1872,
+        "hour_cnt_sum": 1872,
+        "registered": 1628
+      },
+      "2011-03-08": {
+        "casual": 316,
+        "cnt": 2133,
+        "hour_cnt_sum": 2133,
+        "registered": 1817
+      },
+      "2011-03-09": {
+        "casual": 191,
+        "cnt": 1891,
+        "hour_cnt_sum": 1891,
+        "registered": 1700
+      },
+      "2011-03-10": {
+        "casual": 46,
+        "cnt": 623,
+        "hour_cnt_sum": 623,
+        "registered": 577
+      },
+      "2011-03-11": {
+        "casual": 247,
+        "cnt": 1977,
+        "hour_cnt_sum": 1977,
+        "registered": 1730
+      },
+      "2011-03-12": {
+        "casual": 724,
+        "cnt": 2132,
+        "hour_cnt_sum": 2132,
+        "registered": 1408
+      },
+      "2011-03-13": {
+        "casual": 982,
+        "cnt": 2417,
+        "hour_cnt_sum": 2417,
+        "registered": 1435
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 13045
+  },
+  "2011-06-06": {
+    "busy_days": 0,
+    "dates": [
+      "2011-06-06",
+      "2011-06-07",
+      "2011-06-08",
+      "2011-06-09",
+      "2011-06-10",
+      "2011-06-11",
+      "2011-06-12"
+    ],
+    "days": {
+      "2011-06-06": {
+        "casual": 673,
+        "cnt": 4548,
+        "hour_cnt_sum": 4548,
+        "registered": 3875
+      },
+      "2011-06-07": {
+        "casual": 763,
+        "cnt": 4833,
+        "hour_cnt_sum": 4833,
+        "registered": 4070
+      },
+      "2011-06-08": {
+        "casual": 676,
+        "cnt": 4401,
+        "hour_cnt_sum": 4401,
+        "registered": 3725
+      },
+      "2011-06-09": {
+        "casual": 563,
+        "cnt": 3915,
+        "hour_cnt_sum": 3915,
+        "registered": 3352
+      },
+      "2011-06-10": {
+        "casual": 815,
+        "cnt": 4586,
+        "hour_cnt_sum": 4586,
+        "registered": 3771
+      },
+      "2011-06-11": {
+        "casual": 1729,
+        "cnt": 4966,
+        "hour_cnt_sum": 4966,
+        "registered": 3237
+      },
+      "2011-06-12": {
+        "casual": 1467,
+        "cnt": 4460,
+        "hour_cnt_sum": 4460,
+        "registered": 2993
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 31709
+  },
+  "2011-07-04": {
+    "busy_days": 0,
+    "dates": [
+      "2011-07-04",
+      "2011-07-05",
+      "2011-07-06",
+      "2011-07-07",
+      "2011-07-08",
+      "2011-07-09",
+      "2011-07-10"
+    ],
+    "days": {
+      "2011-07-04": {
+        "casual": 3065,
+        "cnt": 6043,
+        "hour_cnt_sum": 6043,
+        "registered": 2978
+      },
+      "2011-07-05": {
+        "casual": 1031,
+        "cnt": 4665,
+        "hour_cnt_sum": 4665,
+        "registered": 3634
+      },
+      "2011-07-06": {
+        "casual": 784,
+        "cnt": 4629,
+        "hour_cnt_sum": 4629,
+        "registered": 3845
+      },
+      "2011-07-07": {
+        "casual": 754,
+        "cnt": 4592,
+        "hour_cnt_sum": 4592,
+        "registered": 3838
+      },
+      "2011-07-08": {
+        "casual": 692,
+        "cnt": 4040,
+        "hour_cnt_sum": 4040,
+        "registered": 3348
+      },
+      "2011-07-09": {
+        "casual": 1988,
+        "cnt": 5336,
+        "hour_cnt_sum": 5336,
+        "registered": 3348
+      },
+      "2011-07-10": {
+        "casual": 1743,
+        "cnt": 4881,
+        "hour_cnt_sum": 4881,
+        "registered": 3138
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 34186
+  },
+  "2011-07-25": {
+    "busy_days": 0,
+    "dates": [
+      "2011-07-25",
+      "2011-07-26",
+      "2011-07-27",
+      "2011-07-28",
+      "2011-07-29",
+      "2011-07-30",
+      "2011-07-31"
+    ],
+    "days": {
+      "2011-07-25": {
+        "casual": 568,
+        "cnt": 3840,
+        "hour_cnt_sum": 3840,
+        "registered": 3272
+      },
+      "2011-07-26": {
+        "casual": 750,
+        "cnt": 4590,
+        "hour_cnt_sum": 4590,
+        "registered": 3840
+      },
+      "2011-07-27": {
+        "casual": 755,
+        "cnt": 4656,
+        "hour_cnt_sum": 4656,
+        "registered": 3901
+      },
+      "2011-07-28": {
+        "casual": 606,
+        "cnt": 4390,
+        "hour_cnt_sum": 4390,
+        "registered": 3784
+      },
+      "2011-07-29": {
+        "casual": 670,
+        "cnt": 3846,
+        "hour_cnt_sum": 3846,
+        "registered": 3176
+      },
+      "2011-07-30": {
+        "casual": 1559,
+        "cnt": 4475,
+        "hour_cnt_sum": 4475,
+        "registered": 2916
+      },
+      "2011-07-31": {
+        "casual": 1524,
+        "cnt": 4302,
+        "hour_cnt_sum": 4302,
+        "registered": 2778
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 30099
+  },
+  "2011-10-17": {
+    "busy_days": 0,
+    "dates": [
+      "2011-10-17",
+      "2011-10-18",
+      "2011-10-19",
+      "2011-10-20",
+      "2011-10-21",
+      "2011-10-22",
+      "2011-10-23"
+    ],
+    "days": {
+      "2011-10-17": {
+        "casual": 713,
+        "cnt": 4570,
+        "hour_cnt_sum": 4570,
+        "registered": 3857
+      },
+      "2011-10-18": {
+        "casual": 637,
+        "cnt": 4748,
+        "hour_cnt_sum": 4748,
+        "registered": 4111
+      },
+      "2011-10-19": {
+        "casual": 254,
+        "cnt": 2424,
+        "hour_cnt_sum": 2424,
+        "registered": 2170
+      },
+      "2011-10-20": {
+        "casual": 471,
+        "cnt": 4195,
+        "hour_cnt_sum": 4195,
+        "registered": 3724
+      },
+      "2011-10-21": {
+        "casual": 676,
+        "cnt": 4304,
+        "hour_cnt_sum": 4304,
+        "registered": 3628
+      },
+      "2011-10-22": {
+        "casual": 1499,
+        "cnt": 4308,
+        "hour_cnt_sum": 4308,
+        "registered": 2809
+      },
+      "2011-10-23": {
+        "casual": 1619,
+        "cnt": 4381,
+        "hour_cnt_sum": 4381,
+        "registered": 2762
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 28930
+  },
+  "2011-11-28": {
+    "busy_days": 0,
+    "dates": [
+      "2011-11-28",
+      "2011-11-29",
+      "2011-11-30",
+      "2011-12-01",
+      "2011-12-02",
+      "2011-12-03",
+      "2011-12-04"
+    ],
+    "days": {
+      "2011-11-28": {
+        "casual": 253,
+        "cnt": 3867,
+        "hour_cnt_sum": 3867,
+        "registered": 3614
+      },
+      "2011-11-29": {
+        "casual": 96,
+        "cnt": 2914,
+        "hour_cnt_sum": 2914,
+        "registered": 2818
+      },
+      "2011-11-30": {
+        "casual": 188,
+        "cnt": 3613,
+        "hour_cnt_sum": 3613,
+        "registered": 3425
+      },
+      "2011-12-01": {
+        "casual": 182,
+        "cnt": 3727,
+        "hour_cnt_sum": 3727,
+        "registered": 3545
+      },
+      "2011-12-02": {
+        "casual": 268,
+        "cnt": 3940,
+        "hour_cnt_sum": 3940,
+        "registered": 3672
+      },
+      "2011-12-03": {
+        "casual": 706,
+        "cnt": 3614,
+        "hour_cnt_sum": 3614,
+        "registered": 2908
+      },
+      "2011-12-04": {
+        "casual": 634,
+        "cnt": 3485,
+        "hour_cnt_sum": 3485,
+        "registered": 2851
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 25160
+  },
+  "2011-12-05": {
+    "busy_days": 0,
+    "dates": [
+      "2011-12-05",
+      "2011-12-06",
+      "2011-12-07",
+      "2011-12-08",
+      "2011-12-09",
+      "2011-12-10",
+      "2011-12-11"
+    ],
+    "days": {
+      "2011-12-05": {
+        "casual": 233,
+        "cnt": 3811,
+        "hour_cnt_sum": 3811,
+        "registered": 3578
+      },
+      "2011-12-06": {
+        "casual": 126,
+        "cnt": 2594,
+        "hour_cnt_sum": 2594,
+        "registered": 2468
+      },
+      "2011-12-07": {
+        "casual": 50,
+        "cnt": 705,
+        "hour_cnt_sum": 705,
+        "registered": 655
+      },
+      "2011-12-08": {
+        "casual": 150,
+        "cnt": 3322,
+        "hour_cnt_sum": 3322,
+        "registered": 3172
+      },
+      "2011-12-09": {
+        "casual": 261,
+        "cnt": 3620,
+        "hour_cnt_sum": 3620,
+        "registered": 3359
+      },
+      "2011-12-10": {
+        "casual": 502,
+        "cnt": 3190,
+        "hour_cnt_sum": 3190,
+        "registered": 2688
+      },
+      "2011-12-11": {
+        "casual": 377,
+        "cnt": 2743,
+        "hour_cnt_sum": 2743,
+        "registered": 2366
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 19985
+  },
+  "2011-12-12": {
+    "busy_days": 0,
+    "dates": [
+      "2011-12-12",
+      "2011-12-13",
+      "2011-12-14",
+      "2011-12-15",
+      "2011-12-16",
+      "2011-12-17",
+      "2011-12-18"
+    ],
+    "days": {
+      "2011-12-12": {
+        "casual": 143,
+        "cnt": 3310,
+        "hour_cnt_sum": 3310,
+        "registered": 3167
+      },
+      "2011-12-13": {
+        "casual": 155,
+        "cnt": 3523,
+        "hour_cnt_sum": 3523,
+        "registered": 3368
+      },
+      "2011-12-14": {
+        "casual": 178,
+        "cnt": 3740,
+        "hour_cnt_sum": 3740,
+        "registered": 3562
+      },
+      "2011-12-15": {
+        "casual": 181,
+        "cnt": 3709,
+        "hour_cnt_sum": 3709,
+        "registered": 3528
+      },
+      "2011-12-16": {
+        "casual": 178,
+        "cnt": 3577,
+        "hour_cnt_sum": 3577,
+        "registered": 3399
+      },
+      "2011-12-17": {
+        "casual": 275,
+        "cnt": 2739,
+        "hour_cnt_sum": 2739,
+        "registered": 2464
+      },
+      "2011-12-18": {
+        "casual": 220,
+        "cnt": 2431,
+        "hour_cnt_sum": 2431,
+        "registered": 2211
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 23029
+  },
+  "2012-02-06": {
+    "busy_days": 0,
+    "dates": [
+      "2012-02-06",
+      "2012-02-07",
+      "2012-02-08",
+      "2012-02-09",
+      "2012-02-10",
+      "2012-02-11",
+      "2012-02-12"
+    ],
+    "days": {
+      "2012-02-06": {
+        "casual": 206,
+        "cnt": 3784,
+        "hour_cnt_sum": 3784,
+        "registered": 3578
+      },
+      "2012-02-07": {
+        "casual": 199,
+        "cnt": 4375,
+        "hour_cnt_sum": 4375,
+        "registered": 4176
+      },
+      "2012-02-08": {
+        "casual": 109,
+        "cnt": 2802,
+        "hour_cnt_sum": 2802,
+        "registered": 2693
+      },
+      "2012-02-09": {
+        "casual": 163,
+        "cnt": 3830,
+        "hour_cnt_sum": 3830,
+        "registered": 3667
+      },
+      "2012-02-10": {
+        "casual": 227,
+        "cnt": 3831,
+        "hour_cnt_sum": 3831,
+        "registered": 3604
+      },
+      "2012-02-11": {
+        "casual": 192,
+        "cnt": 2169,
+        "hour_cnt_sum": 2169,
+        "registered": 1977
+      },
+      "2012-02-12": {
+        "casual": 73,
+        "cnt": 1529,
+        "hour_cnt_sum": 1529,
+        "registered": 1456
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 22320
+  },
+  "2012-02-13": {
+    "busy_days": 0,
+    "dates": [
+      "2012-02-13",
+      "2012-02-14",
+      "2012-02-15",
+      "2012-02-16",
+      "2012-02-17",
+      "2012-02-18",
+      "2012-02-19"
+    ],
+    "days": {
+      "2012-02-13": {
+        "casual": 94,
+        "cnt": 3422,
+        "hour_cnt_sum": 3422,
+        "registered": 3328
+      },
+      "2012-02-14": {
+        "casual": 135,
+        "cnt": 3922,
+        "hour_cnt_sum": 3922,
+        "registered": 3787
+      },
+      "2012-02-15": {
+        "casual": 141,
+        "cnt": 4169,
+        "hour_cnt_sum": 4169,
+        "registered": 4028
+      },
+      "2012-02-16": {
+        "casual": 74,
+        "cnt": 3005,
+        "hour_cnt_sum": 3005,
+        "registered": 2931
+      },
+      "2012-02-17": {
+        "casual": 349,
+        "cnt": 4154,
+        "hour_cnt_sum": 4154,
+        "registered": 3805
+      },
+      "2012-02-18": {
+        "casual": 1435,
+        "cnt": 4318,
+        "hour_cnt_sum": 4318,
+        "registered": 2883
+      },
+      "2012-02-19": {
+        "casual": 618,
+        "cnt": 2689,
+        "hour_cnt_sum": 2689,
+        "registered": 2071
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 25679
+  },
+  "2012-03-19": {
+    "busy_days": 1,
+    "dates": [
+      "2012-03-19",
+      "2012-03-20",
+      "2012-03-21",
+      "2012-03-22",
+      "2012-03-23",
+      "2012-03-24",
+      "2012-03-25"
+    ],
+    "days": {
+      "2012-03-19": {
+        "casual": 982,
+        "cnt": 6153,
+        "hour_cnt_sum": 6153,
+        "registered": 5171
+      },
+      "2012-03-20": {
+        "casual": 1051,
+        "cnt": 6093,
+        "hour_cnt_sum": 6093,
+        "registered": 5042
+      },
+      "2012-03-21": {
+        "casual": 1122,
+        "cnt": 6230,
+        "hour_cnt_sum": 6230,
+        "registered": 5108
+      },
+      "2012-03-22": {
+        "casual": 1334,
+        "cnt": 6871,
+        "hour_cnt_sum": 6871,
+        "registered": 5537
+      },
+      "2012-03-23": {
+        "casual": 2469,
+        "cnt": 8362,
+        "hour_cnt_sum": 8362,
+        "registered": 5893
+      },
+      "2012-03-24": {
+        "casual": 1033,
+        "cnt": 3372,
+        "hour_cnt_sum": 3372,
+        "registered": 2339
+      },
+      "2012-03-25": {
+        "casual": 1532,
+        "cnt": 4996,
+        "hour_cnt_sum": 4996,
+        "registered": 3464
+      }
+    },
+    "expected_commitment": "review-capacity",
+    "week_total": 42077
+  },
+  "2012-04-30": {
+    "busy_days": 0,
+    "dates": [
+      "2012-04-30",
+      "2012-05-01",
+      "2012-05-02",
+      "2012-05-03",
+      "2012-05-04",
+      "2012-05-05",
+      "2012-05-06"
+    ],
+    "days": {
+      "2012-04-30": {
+        "casual": 665,
+        "cnt": 5572,
+        "hour_cnt_sum": 5572,
+        "registered": 4907
+      },
+      "2012-05-01": {
+        "casual": 653,
+        "cnt": 5740,
+        "hour_cnt_sum": 5740,
+        "registered": 5087
+      },
+      "2012-05-02": {
+        "casual": 667,
+        "cnt": 6169,
+        "hour_cnt_sum": 6169,
+        "registered": 5502
+      },
+      "2012-05-03": {
+        "casual": 764,
+        "cnt": 6421,
+        "hour_cnt_sum": 6421,
+        "registered": 5657
+      },
+      "2012-05-04": {
+        "casual": 1069,
+        "cnt": 6296,
+        "hour_cnt_sum": 6296,
+        "registered": 5227
+      },
+      "2012-05-05": {
+        "casual": 2496,
+        "cnt": 6883,
+        "hour_cnt_sum": 6883,
+        "registered": 4387
+      },
+      "2012-05-06": {
+        "casual": 2135,
+        "cnt": 6359,
+        "hour_cnt_sum": 6359,
+        "registered": 4224
+      }
+    },
+    "expected_commitment": "continue-monitoring",
+    "week_total": 43440
+  },
+  "2012-06-04": {
+    "busy_days": 5,
+    "dates": [
+      "2012-06-04",
+      "2012-06-05",
+      "2012-06-06",
+      "2012-06-07",
+      "2012-06-08",
+      "2012-06-09",
+      "2012-06-10"
+    ],
+    "days": {
+      "2012-06-04": {
+        "casual": 1071,
+        "cnt": 6998,
+        "hour_cnt_sum": 6998,
+        "registered": 5927
+      },
+      "2012-06-05": {
+        "casual": 968,
+        "cnt": 7001,
+        "hour_cnt_sum": 7001,
+        "registered": 6033
+      },
+      "2012-06-06": {
+        "casual": 1027,
+        "cnt": 7055,
+        "hour_cnt_sum": 7055,
+        "registered": 6028
+      },
+      "2012-06-07": {
+        "casual": 1038,
+        "cnt": 7494,
+        "hour_cnt_sum": 7494,
+        "registered": 6456
+      },
+      "2012-06-08": {
+        "casual": 1488,
+        "cnt": 7736,
+        "hour_cnt_sum": 7736,
+        "registered": 6248
+      },
+      "2012-06-09": {
+        "casual": 2708,
+        "cnt": 7498,
+        "hour_cnt_sum": 7498,
+        "registered": 4790
+      },
+      "2012-06-10": {
+        "casual": 2224,
+        "cnt": 6598,
+        "hour_cnt_sum": 6598,
+        "registered": 4374
+      }
+    },
+    "expected_commitment": "review-capacity",
+    "week_total": 50380
+  },
+  "2012-06-11": {
+    "busy_days": 4,
+    "dates": [
+      "2012-06-11",
+      "2012-06-12",
+      "2012-06-13",
+      "2012-06-14",
+      "2012-06-15",
+      "2012-06-16",
+      "2012-06-17"
+    ],
+    "days": {
+      "2012-06-11": {
+        "casual": 1017,
+        "cnt": 6664,
+        "hour_cnt_sum": 6664,
+        "registered": 5647
+      },
+      "2012-06-12": {
+        "casual": 477,
+        "cnt": 4972,
+        "hour_cnt_sum": 4972,
+        "registered": 4495
+      },
+      "2012-06-13": {
+        "casual": 1173,
+        "cnt": 7421,
+        "hour_cnt_sum": 7421,
+        "registered": 6248
+      },
+      "2012-06-14": {
+        "casual": 1180,
+        "cnt": 7363,
+        "hour_cnt_sum": 7363,
+        "registered": 6183
+      },
+      "2012-06-15": {
+        "casual": 1563,
+        "cnt": 7665,
+        "hour_cnt_sum": 7665,
+        "registered": 6102
+      },
+      "2012-06-16": {
+        "casual": 2963,
+        "cnt": 7702,
+        "hour_cnt_sum": 7702,
+        "registered": 4739
+      },
+      "2012-06-17": {
+        "casual": 2634,
+        "cnt": 6978,
+        "hour_cnt_sum": 6978,
+        "registered": 4344
+      }
+    },
+    "expected_commitment": "review-capacity",
+    "week_total": 48765
+  },
+  "2012-07-09": {
+    "busy_days": 3,
+    "dates": [
+      "2012-07-09",
+      "2012-07-10",
+      "2012-07-11",
+      "2012-07-12",
+      "2012-07-13",
+      "2012-07-14",
+      "2012-07-15"
+    ],
+    "days": {
+      "2012-07-09": {
+        "casual": 998,
+        "cnt": 6569,
+        "hour_cnt_sum": 6569,
+        "registered": 5571
+      },
+      "2012-07-10": {
+        "casual": 954,
+        "cnt": 6290,
+        "hour_cnt_sum": 6290,
+        "registered": 5336
+      },
+      "2012-07-11": {
+        "casual": 975,
+        "cnt": 7264,
+        "hour_cnt_sum": 7264,
+        "registered": 6289
+      },
+      "2012-07-12": {
+        "casual": 1032,
+        "cnt": 7446,
+        "hour_cnt_sum": 7446,
+        "registered": 6414
+      },
+      "2012-07-13": {
+        "casual": 1511,
+        "cnt": 7499,
+        "hour_cnt_sum": 7499,
+        "registered": 5988
+      },
+      "2012-07-14": {
+        "casual": 2355,
+        "cnt": 6969,
+        "hour_cnt_sum": 6969,
+        "registered": 4614
+      },
+      "2012-07-15": {
+        "casual": 1920,
+        "cnt": 6031,
+        "hour_cnt_sum": 6031,
+        "registered": 4111
+      }
+    },
+    "expected_commitment": "review-capacity",
+    "week_total": 48068
+  },
+  "2012-07-16": {
+    "busy_days": 1,
+    "dates": [
+      "2012-07-16",
+      "2012-07-17",
+      "2012-07-18",
+      "2012-07-19",
+      "2012-07-20",
+      "2012-07-21",
+      "2012-07-22"
+    ],
+    "days": {
+      "2012-07-16": {
+        "casual": 1088,
+        "cnt": 6830,
+        "hour_cnt_sum": 6830,
+        "registered": 5742
+      },
+      "2012-07-17": {
+        "casual": 921,
+        "cnt": 6786,
+        "hour_cnt_sum": 6786,
+        "registered": 5865
+      },
+      "2012-07-18": {
+        "casual": 799,
+        "cnt": 5713,
+        "hour_cnt_sum": 5713,
+        "registered": 4914
+      },
+      "2012-07-19": {
+        "casual": 888,
+        "cnt": 6591,
+        "hour_cnt_sum": 6591,
+        "registered": 5703
+      },
+      "2012-07-20": {
+        "casual": 747,
+        "cnt": 5870,
+        "hour_cnt_sum": 5870,
+        "registered": 5123
+      },
+      "2012-07-21": {
+        "casual": 1264,
+        "cnt": 4459,
+        "hour_cnt_sum": 4459,
+        "registered": 3195
+      },
+      "2012-07-22": {
+        "casual": 2544,
+        "cnt": 7410,
+        "hour_cnt_sum": 7410,
+        "registered": 4866
+      }
+    },
+    "expected_commitment": "review-capacity",
+    "week_total": 43659
+  },
+  "2012-08-06": {
+    "busy_days": 4,
+    "dates": [
+      "2012-08-06",
+      "2012-08-07",
+      "2012-08-08",
+      "2012-08-09",
+      "2012-08-10",
+      "2012-08-11",
+      "2012-08-12"
+    ],
+    "days": {
+      "2012-08-06": {
+        "casual": 1233,
+        "cnt": 7013,
+        "hour_cnt_sum": 7013,
+        "registered": 5780
+      },
+      "2012-08-07": {
+        "casual": 1278,
+        "cnt": 7273,
+        "hour_cnt_sum": 7273,
+        "registered": 5995
+      },
+      "2012-08-08": {
+        "casual": 1263,
+        "cnt": 7534,
+        "hour_cnt_sum": 7534,
+        "registered": 6271
+      },
+      "2012-08-09": {
+        "casual": 1196,
+        "cnt": 7286,
+        "hour_cnt_sum": 7286,
+        "registered": 6090
+      },
+      "2012-08-10": {
+        "casual": 1065,
+        "cnt": 5786,
+        "hour_cnt_sum": 5786,
+        "registered": 4721
+      },
+      "2012-08-11": {
+        "casual": 2247,
+        "cnt": 6299,
+        "hour_cnt_sum": 6299,
+        "registered": 4052
+      },
+      "2012-08-12": {
+        "casual": 2182,
+        "cnt": 6544,
+        "hour_cnt_sum": 6544,
+        "registered": 4362
+      }
+    },
+    "expected_commitment": "review-capacity",
+    "week_total": 47735
+  },
+  "2012-09-10": {
+    "busy_days": 7,
+    "dates": [
+      "2012-09-10",
+      "2012-09-11",
+      "2012-09-12",
+      "2012-09-13",
+      "2012-09-14",
+      "2012-09-15",
+      "2012-09-16"
+    ],
+    "days": {
+      "2012-09-10": {
+        "casual": 1118,
+        "cnt": 7525,
+        "hour_cnt_sum": 7525,
+        "registered": 6407
+      },
+      "2012-09-11": {
+        "casual": 1070,
+        "cnt": 7767,
+        "hour_cnt_sum": 7767,
+        "registered": 6697
+      },
+      "2012-09-12": {
+        "casual": 1050,
+        "cnt": 7870,
+        "hour_cnt_sum": 7870,
+        "registered": 6820
+      },
+      "2012-09-13": {
+        "casual": 1054,
+        "cnt": 7804,
+        "hour_cnt_sum": 7804,
+        "registered": 6750
+      },
+      "2012-09-14": {
+        "casual": 1379,
+        "cnt": 8009,
+        "hour_cnt_sum": 8009,
+        "registered": 6630
+      },
+      "2012-09-15": {
+        "casual": 3160,
+        "cnt": 8714,
+        "hour_cnt_sum": 8714,
+        "registered": 5554
+      },
+      "2012-09-16": {
+        "casual": 2166,
+        "cnt": 7333,
+        "hour_cnt_sum": 7333,
+        "registered": 5167
+      }
+    },
+    "expected_commitment": "review-capacity",
+    "week_total": 55022
+  },
+  "2012-10-22": {
+    "busy_days": 6,
+    "dates": [
+      "2012-10-22",
+      "2012-10-23",
+      "2012-10-24",
+      "2012-10-25",
+      "2012-10-26",
+      "2012-10-27",
+      "2012-10-28"
+    ],
+    "days": {
+      "2012-10-22": {
+        "casual": 830,
+        "cnt": 7058,
+        "hour_cnt_sum": 7058,
+        "registered": 6228
+      },
+      "2012-10-23": {
+        "casual": 841,
+        "cnt": 7466,
+        "hour_cnt_sum": 7466,
+        "registered": 6625
+      },
+      "2012-10-24": {
+        "casual": 795,
+        "cnt": 7693,
+        "hour_cnt_sum": 7693,
+        "registered": 6898
+      },
+      "2012-10-25": {
+        "casual": 875,
+        "cnt": 7359,
+        "hour_cnt_sum": 7359,
+        "registered": 6484
+      },
+      "2012-10-26": {
+        "casual": 1182,
+        "cnt": 7444,
+        "hour_cnt_sum": 7444,
+        "registered": 6262
+      },
+      "2012-10-27": {
+        "casual": 2643,
+        "cnt": 7852,
+        "hour_cnt_sum": 7852,
+        "registered": 5209
+      },
+      "2012-10-28": {
+        "casual": 998,
+        "cnt": 4459,
+        "hour_cnt_sum": 4459,
+        "registered": 3461
+      }
+    },
+    "expected_commitment": "review-capacity",
+    "week_total": 49331
+  }
+}
