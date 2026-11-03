@@ -696,6 +696,11 @@ the source audit now collects every delivered card at a slot — the slot card p
 [docs/sessions/020b-corrected-cards.md](docs/sessions/020b-corrected-cards.md).
 
 Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implementation, the fix and this commit step: muse-spark-1.3 (effort medium), in Muse Code, in headless sessions Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code ran the re-audit and the provenance export on scratch copies of my store outside those sessions; it created the branch and typed nothing in this repository.
+## Held-out checker set v1 scored (2026-11-02)
+
+Claude Code ran the public checker once per case on 1cd8db8 from a scratch script outside the repository, and checked the counts. It also placed the three published files, including the author's task it had written.
+
+Muse Code, muse-spark-1.3 at medium effort, wrote the scorer, its tests, the results doc and the README line, ran the scorer once to write the results JSON, and made this commit, in a headless session Claude Code started, in Contributor mode, on this public repo.
 
 ## AI assistance outside the Muse family
 

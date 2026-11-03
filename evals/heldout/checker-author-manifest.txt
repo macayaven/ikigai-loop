@@ -1,0 +1,19 @@
+Held-out checker set v1: what the author saw
+
+Source: github.com/macayaven/ikigai-loop at commit 5b8dad6e65968860c63bc2c3e362ef9d1b3f7acb, main on 2026-11-02, fetched at 21:03 CET.
+The author's folder held its task, INSTRUCTIONS.md (written by Claude Code, published here as checker-author-task.md), and the files under contract/, each public text from that commit. Paths are relative to that folder.
+
+sha256 of the file in the author's folder, the file, and where it came from:
+
+c0efc69c4855b22f9a83f2f195cdb6dbf3ec63d5ab0bc007acd1242ecb08ec03  INSTRUCTIONS.md  <- the task, written by Claude Code
+3e46c446812bc8acef64f0e37ef679042d8e6b21c4703234415c34f49d4eccce  contract/checker-page.md  <- docs/verify/index.html, its visible text only (script and style dropped), extracted by a script outside this repository
+b0c0dd943de68c8f01e7266e268ea85618fc4cdf657e3a8828324633ec98b39d  contract/readme-check-your-own-agent.md  <- README.md lines 23 to 44, the section 'Check your own agent', verbatim
+663405fb04f07f71f16474b5e7748bd446e68169956305a1bbc0dbd740dc0298  contract/redteam-limits-and-true-rejects.md  <- docs/redteam/README.md lines 132 to 159, the sections 'What the gate still can't catch' and 'What it rejects that's true', verbatim
+9be358f5abcd39db4e048410b7ee55088b204718c9d2e30f55a34839196eeec2  contract/worked-example/README.md  <- examples/verify/README.md, verbatim
+4a8b20f00f18b11fbe4476381edcb6ad728ab70eb347f803104c327e0012c5a9  contract/worked-example/input.json  <- examples/verify/input.json, verbatim
+d674681f21650db77db6e4c1cb362c4fa928826901a846d20ae63f77485ce21b  contract/worked-example/input-fixed.json  <- examples/verify/input-fixed.json, verbatim
+b595aff34ca859c992f38a54613f6e2f311e41abe862cead0afce35492cd305b  contract/page-examples/pass.json  <- docs/verify/examples/pass.json, verbatim
+76eb105c0118c6a15c0bcee2d731c44a7571e1a332f9a3a4f1419c6135b9640f  contract/page-examples/false-number.json  <- docs/verify/examples/false-number.json, verbatim
+78e7068e6acbe277783011aa874ce9c22bfd980ae825ec3393099c437408c29d  contract/page-examples/leaked-term.json  <- docs/verify/examples/leaked-term.json, verbatim
+
+Not given to the author: framework/ (any source), tests/, docs/verify/bundle.json, docs/verify/verify_page.py, the page's JavaScript, docs/ADAPTER.md, examples/verify/foreign/.
