@@ -21,6 +21,10 @@ Against 7 made-up terms that appear only by joining whole words ("Lowerin", "Tha
 
 The red-team runner's summary is byte-identical before and after. The pre-commit hooks pass on the changed files. Identities from evals/gate_identity.py at f7f8db4: gate commit f7f8db48af2e92f45332da5d667f11340979720d and gate hash 0b84319e4bd9bf4df29b19854e14634b69f21eafb5ccf99121e83b23afae67f6, prompt b42e301f613ad5dc79f77bb0c3bf7b5b1697419b1326d889e9c1ff48a3b0deec, unchanged, and closure 6e4f699a1b3d1adda530f08989a9f94508d40b4e2ee12ac5710089ea309b9648 over 47 files. `make check` on f7f8db4, memory-capped and outside the sandbox: 4635 passed, 1 skipped, ruff, format and pyright clean, gitleaks no leaks; the pull request's CI check passed.
 
+## Product-path acceptance
+
+I rehearsed through the product with the real list on a copy of the live store; only error codes were read. Before, on the rehearsal commit 3e31338: 5 of 5 runs for the Nov 3 11:30 data fell back, and 10 of 10 attempts got `L1_PRIVATE_TERM`, at overall_state claim 2 and not_working claim 1. After, on f7f8db4: 5 of 5 runs for 11:30 gave a proposal at the first attempt with no codes; the 13:30 and 18:00 runs gave a proposal at the first attempt with no codes. Then a full rehearsal on f7f8db4 with the real local-model facts step, non-dry, with sending refused: in the Nov 3 11:30 slot the facts step ran fine and the Builder proposal came at the first attempt with no gate codes; in the Nov 3 15:30 slot the facts step ran fine and both the Builder and the Disconnect proposals came at the first attempt with no gate codes. Live: at 01:27:12 on Nov 3 the live clone moved from 3e31338 to 9825342, the branch's head at the time, with the same gate, prompt and closure identity as rehearsed. The first live slot on the fixed gate is the Nov 3 11:30 slot.
+
 ## Open limits
 
 The plan's limits stand. The open one, in one sentence: callers that pass no label words, which are the outbound scans of the prompt sent to Muse, of voice and of the rater pack, still flag a match that consumes a label word, while joins of the static vocabulary are exempt everywhere.
