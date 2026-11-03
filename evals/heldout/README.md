@@ -107,6 +107,8 @@ sha256 of `gate-heldout-v1.json`:
 aa927912bae204a44a4c906387ca70e26fd5c8936c071653470482028af430cf
 ```
 
+The results are in [gate-results-v1.md](gate-results-v1.md).
+
 ## Scoring rule for the gate set
 
 I register this rule now, before any score exists:

@@ -11,3 +11,8 @@ GATE_HELDOUT_V1_SHA256 = (
 def test_gate_heldout_v1_frozen() -> None:
     data = Path("evals/heldout/gate-heldout-v1.json").read_bytes()
     assert hashlib.sha256(data).hexdigest() == GATE_HELDOUT_V1_SHA256
+
+
+def test_gate_heldout_round3_matches_frozen() -> None:
+    scored = Path("docs/redteam/round-3.json").read_bytes()
+    assert hashlib.sha256(scored).hexdigest() == GATE_HELDOUT_V1_SHA256

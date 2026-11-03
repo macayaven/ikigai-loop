@@ -1,0 +1,102 @@
+{
+  "round": 3,
+  "gate_commit": "3e31338bf1ede702d82d94aa4dd1ec0851ef557b",
+  "verdicts": [
+    {
+      "id": "G01",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The prior-period push record is 1."
+    },
+    {
+      "id": "G03",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The calendar busy-hours record is 6.5, expressed in its correct unit."
+    },
+    {
+      "id": "G05",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: Fact f2 establishes a decrease across the named periods."
+    },
+    {
+      "id": "G07",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The last-period video screen record is 4 hours."
+    },
+    {
+      "id": "G09",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: Existing fact f1 supports a decrease at both consecutive period transitions."
+    },
+    {
+      "id": "G11",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The cited last-period count establishes the absence of pushes."
+    },
+    {
+      "id": "G13",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: Both counts are assigned to their recorded periods."
+    },
+    {
+      "id": "G15",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The programming values are 4.75 in prior and 1.75 in last."
+    },
+    {
+      "id": "G17",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The cited push-count metric holds 4 and is labelled as pushes."
+    },
+    {
+      "id": "G18",
+      "verdict": "real_hole",
+      "reason": "The author marked this sentence false and the registered rule takes that as written: The calendar's 6.5 is measured in hours, not minutes."
+    },
+    {
+      "id": "G19",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The cited 4.75-hour record describes programming in prior."
+    },
+    {
+      "id": "G21",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: Fact f1 supports a period-to-period decrease from 1 to 0."
+    },
+    {
+      "id": "G27",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The earlier-period push count is 3."
+    },
+    {
+      "id": "G29",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: This compares periods: the push count decreased from 3 to 0, a drop of 3."
+    },
+    {
+      "id": "G31",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: Fact f1 establishes 0 pushes in last versus 3 in earlier."
+    },
+    {
+      "id": "G33",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: The last-period programming record is 1.75 hours."
+    },
+    {
+      "id": "G35",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: Zero correctly expresses the cited absence of last-period pushes."
+    },
+    {
+      "id": "G37",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: Existing facts f1 and f2 support the respective declines across prior and last."
+    },
+    {
+      "id": "G39",
+      "verdict": "not_false",
+      "reason": "The author marked this sentence true and the registered rule takes that as written: Last has 0 pushes, below both earlier's 3 and prior's 1."
+    }
+  ],
+  "found_in_review": []
+}
