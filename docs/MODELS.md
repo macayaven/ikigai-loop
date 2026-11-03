@@ -1,6 +1,6 @@
 # Models
 
-My card path uses two Meta models for one job each, plain code does the rest, and Muse Code wrote all of it.
+My card path uses three Meta models for one job each, and Muse Code wrote the code, with the exceptions CONTRIBUTIONS.md lists.
 
 | Job | Model | Where | What crosses |
 |---|---|---|---|

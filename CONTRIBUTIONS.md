@@ -701,6 +701,12 @@ Prompts and review by Claude Code. Plan: muse-wonder-1.0 (effort high). Implemen
 Claude Code ran the public checker once per case on 1cd8db8 from a scratch script outside the repository, and checked the counts. It also placed the three published files, including the author's task it had written.
 
 Muse Code, muse-spark-1.3 at medium effort, wrote the scorer, its tests, the results doc and the README line, ran the scorer once to write the results JSON, and made this commit, in a headless session Claude Code started, in Contributor mode, on this public repo.
+## Ticket 24 — trust page (2026-11-03)
+
+Built on branch `trust-page` per [docs/plans/024-trust-page.md](docs/plans/024-trust-page.md):
+[docs/TRUST.md](docs/TRUST.md), the public page of misses, limits and blind tests, bound to the code by [tests/test_trust_page.py](tests/test_trust_page.py); five new cases in [evals/briefing_cases.py](evals/briefing_cases.py) outside `MUTANTS` with the `PHONE_MISSES` record, so `MUTANTS` still holds 119 and `KNOWN_GOOD` still holds 57; [evals/replay_sentence.py](evals/replay_sentence.py), which gates one sentence in the 15:30 claim's context; [tests/test_replay_sentence.py](tests/test_replay_sentence.py); the scope sentence under the README's pitch line with a link to the page; and the rewritten AGENTS.md Mission around the same sentence. Evidence in [docs/sessions/024-trust-page.md](docs/sessions/024-trust-page.md).
+
+Muse Code wrote the plan (muse-wonder-1.0 at high, three sessions) and the code, tests and docs (muse-spark-1.3 at medium, six sessions, including the move onto the current main), and this commit (muse-spark-1.3 at medium), in headless sessions Claude Code started; the outside-try paragraph's wording in the README was suggested by Claude Code from the engineer's report. Claude Code wrote the prompts in prose, including the scope sentence, the six card sentences and the other quoted sentences word for word, checked the facts on a copy of my store, ran the mutation pass and make check, and typed nothing in this repository. GPT Astra 6 (OpenAI), through Codex at maximum effort, read-only, reviewed the page for overclaiming in two passes; Muse Code applied the fixes. I opened the README's Glimmer paragraph with the Nov 2 live facts, bound by a test to docs/provenance.jsonl.
 
 ## AI assistance outside the Muse family
 

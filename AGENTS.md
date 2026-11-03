@@ -4,7 +4,7 @@ Muse Code reads this file as project rules when it runs in this directory.
 
 ## Mission
 
-Ikigai Loop: two goals, Builder and Disconnect, compete for Carlos's next free hour; the agent proposes one commitment per goal and can't tell him anything it can't prove from his own data.
+Ikigai Loop: two goals, Builder and Disconnect, compete for Carlos's next free hour; the agent proposes one commitment per goal and a deterministic gate checks the card's reason sentences and the commitment it proposes before it is sent. In Carlos's words: "It checks numbers, sources and wording against my records. It doesn't check that a sentence is true." [Misses so far](docs/TRUST.md).
 [README.md](README.md) describes the current entry and what is and isn't built.
 
 ## Commands
