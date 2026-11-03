@@ -4,7 +4,7 @@ I made myself two promises: do my work, and spend time with my family away from 
 
 Four Meta models do the work: Muse Wonder writes the two options, Muse Glimmer (open weights, on my own GB10) turns my records into facts, Muse Spark turns a voice note into one edit to my list, and Muse Code wrote the code. Plain code checks every number.
 
-Five times a day it reads my calendar and offers my next free hour to those two promises, one option for each, and I choose with a tap. Each card shows what changed since the last one, the free hour and both options; one tap on Why? shows the numbers behind each option, like "Prs rose by 11 since the last card".
+Five times a day it reads my calendar and offers my next free hour to those two promises, one option for each, and I choose with a tap. Each card shows what changed since the last one, the free hour and both options; one tap on Why? shows the numbers behind each option, like "Prs rose by 11 since the last card" (PRs are pull requests on GitHub).
 
 Before a card reaches my phone, it checks every number on it against my records. Afterwards, it checks the option I pick against the traces it should have left, such as pushes to GitHub for work. Where nothing can be measured, it rests on my word: I'm doing this to fix something for myself, so I have no reason to cheat.
 
