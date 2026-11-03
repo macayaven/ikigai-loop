@@ -93,7 +93,7 @@
     }
   ],
   "facts": {
-    "busy_rule": "A busy day is a day with more total rentals than the declared threshold.",
-    "source": "UCI Bike Sharing dataset, day.csv and hour.csv, CC BY 4.0."
+    "busy_rule": "Busy days are days whose total rentals exceed the declared threshold.",
+    "source": "The records come from the UCI Bike Sharing dataset, under a Creative Commons Attribution license."
   }
 }

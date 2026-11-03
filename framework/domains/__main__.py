@@ -15,6 +15,7 @@ from framework.domains.csv_adapter import (
     WindowError,
     build_reference,
 )
+from framework.domains.lint import lint_pack
 from framework.domains.runner import git_commit, run_window
 from framework.domains.schema import DomainPack, PackError, load_pack
 from framework.proposal.core import WonderClient
@@ -89,6 +90,25 @@ def _cmd_check(pack_path: str, window: str, claims_path: str) -> int:
     return 0 if report.passed else 1
 
 
+def _cmd_lint(pack_path: str, window: str) -> int:
+    pack = _load_pack(pack_path)
+    if pack is None:
+        return _fail("pack is invalid")
+    try:
+        ref = build_reference(pack, str(Path(pack_path).parent), window)
+    except (WindowError, SourceHashMismatch, IdentityError):
+        return _fail("window cannot be built")
+    results = lint_pack(pack, ref)
+    for item in results:
+        if item.passed:
+            print(f"ok {item.subject}")
+        else:
+            print(f"FAIL {item.subject}: {','.join(item.codes)}")
+    done = sum(1 for item in results if item.passed)
+    print(f"lint: {done} of {len(results)} passed")
+    return 0 if done == len(results) else 1
+
+
 def _default_factory() -> WonderClient:
     from framework.proposal.muse_client import MuseExecClient
 
@@ -144,6 +164,9 @@ def main(
     check.add_argument("--pack", required=True)
     check.add_argument("--window", required=True)
     check.add_argument("--claims", required=True)
+    lint = sub.add_parser("lint")
+    lint.add_argument("--pack", required=True)
+    lint.add_argument("--window", required=True)
     propose = sub.add_parser("propose")
     propose.add_argument("--pack", required=True)
     propose.add_argument("--window", required=True)
@@ -156,6 +179,8 @@ def main(
         return _cmd_show(str(args.pack), str(args.window))
     if command == "check":
         return _cmd_check(str(args.pack), str(args.window), str(args.claims))
+    if command == "lint":
+        return _cmd_lint(str(args.pack), str(args.window))
     if command == "propose":
         return _cmd_propose(
             str(args.pack),

@@ -876,3 +876,93 @@ def test_f8_show_prints_identity_lines(capsys: Any) -> None:
     assert "identity daily_matches: held on 7 of 7 dates" in out
     assert "identities: 2 of 2 hold" in out
     assert out.index("identity columns_sum") < out.index("identities: 2 of 2 hold")
+
+
+def test_f9_bikes_pack_fact_wording() -> None:
+    data = json.loads(
+        (ROOT / "examples" / "domains" / "bikes" / "pack.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert (
+        data["facts"]["busy_rule"]
+        == "Busy days are days whose total rentals exceed the declared threshold."
+    )
+    assert (
+        data["facts"]["source"]
+        == "The records come from the UCI Bike Sharing dataset, "
+        "under a Creative Commons Attribution license."
+    )
+
+
+def test_f10_lint_bikes_clean() -> None:
+    from framework.domains.csv_adapter import build_reference
+    from framework.domains.lint import lint_pack
+    from framework.domains.schema import load_pack
+
+    pack = load_pack(ROOT / "examples" / "domains" / "bikes" / "pack.json")
+    ref = build_reference(pack, ROOT / "examples" / "domains" / "bikes", "2012-06-04")
+    results = lint_pack(pack, ref)
+    assert len(results) == 25
+    assert all(item.passed for item in results)
+
+
+def test_f10_lint_mini_two_fact_fails() -> None:
+    from framework.domains.csv_adapter import build_reference
+    from framework.domains.lint import lint_pack
+    from framework.domains.schema import load_pack
+
+    pack = load_pack(MINI / "pack.json")
+    ref = build_reference(pack, MINI, "2030-01-07")
+    results = lint_pack(pack, ref)
+    by_subject = {item.subject: item for item in results}
+    assert len(results) == 25
+    assert by_subject["fact busy_rule"].codes == ("L1B_UNVERIFIABLE_QUANTITY",)
+    assert by_subject["fact source"].codes == ("L1B_NUMBER_WITHOUT_METRIC_REF",)
+    assert not by_subject["fact busy_rule"].passed
+    assert not by_subject["fact source"].passed
+    assert all(
+        item.passed
+        for subject, item in by_subject.items()
+        if subject.startswith("metric ")
+    )
+
+
+def test_f10_lint_has_no_pack_specific_words() -> None:
+    import ast as _ast
+
+    tree = _ast.parse(
+        (ROOT / "framework" / "domains" / "lint.py").read_text(encoding="utf-8")
+    )
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.Constant) and isinstance(node.value, str):
+            lowered = node.value.lower()
+            for word in ("busy", "rental", "bike", "energy"):
+                assert word not in lowered, (word, node.value)
+
+
+def test_f10_lint_cli_exits(capsys: Any) -> None:
+    from framework.domains.__main__ import main as domains_main
+
+    bikes = str(ROOT / "examples" / "domains" / "bikes" / "pack.json")
+    code = domains_main(["lint", "--pack", bikes, "--window", "2012-06-04"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "lint: 25 of 25 passed" in out
+    assert all(
+        line.startswith("ok ") for line in out.splitlines() if " of " not in line
+    )
+
+    code = domains_main(
+        ["lint", "--pack", str(MINI / "pack.json"), "--window", "2030-01-07"]
+    )
+    out = capsys.readouterr().out
+    assert code == 1
+    assert "FAIL fact busy_rule: L1B_UNVERIFIABLE_QUANTITY" in out.splitlines()
+    assert "FAIL fact source: L1B_NUMBER_WITHOUT_METRIC_REF" in out.splitlines()
+    assert "lint: 23 of 25 passed" in out
+
+    code = domains_main(
+        ["lint", "--pack", str(MINI / "pack.json"), "--window", "2030-01-08"]
+    )
+    assert code == 2
