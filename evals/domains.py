@@ -100,14 +100,32 @@ def _claim(
     }
 
 
-def _comparison_pair(entry: dict[str, Any]) -> tuple[str, str, int, int]:
+def _comparison_pairs(entry: dict[str, Any]) -> list[tuple[str, str, int, int]]:
+    """Every consecutive date pair whose totals differ, in window order."""
     dates = entry["dates"]
+    pairs: list[tuple[str, str, int, int]] = []
     for left, right in itertools.pairwise(dates):
         first = entry["days"][left]["cnt"]
         second = entry["days"][right]["cnt"]
         if first != second:
-            return left, right, first, second
-    raise ValueError("no differing consecutive dates for a comparison")
+            pairs.append((left, right, first, second))
+    if not pairs:
+        raise ValueError("no differing consecutive dates for a comparison")
+    return pairs
+
+
+def _comparison_pair(entry: dict[str, Any]) -> tuple[str, str, int, int]:
+    return _comparison_pairs(entry)[0]
+
+
+def _claim_key(
+    claim: dict[str, Any],
+) -> tuple[str, tuple[tuple[str, int], ...], tuple[str, ...]]:
+    refs = tuple(
+        (str(item["metric_id"]), int(item["value"])) for item in claim["metric_refs"]
+    )
+    facts = tuple(str(item) for item in claim.get("fact_ids", []))
+    return str(claim["text"]), refs, facts
 
 
 def _true_word(first: int, second: int, pair: tuple[str, str]) -> str:
@@ -254,7 +272,8 @@ def _planted_case(
         return claim, twin
     if kind == "wrong_direction":
         pair = DIRECTION_PAIRS[number % len(DIRECTION_PAIRS)]
-        left, right, first, second = _comparison_pair(entry)
+        pairs = _comparison_pairs(entry)
+        left, right, first, second = rng.choice(pairs)
         twin = _claim(
             f"Total rentals {_true_word(first, second, pair)} from {first:,} on {left} "
             f"to {second:,} on {right}.",
@@ -291,12 +310,21 @@ def _freeze_cases(
                 "claim": claim,
             }
         )
+    seen = {_claim_key(case["claim"]) for case in cases}
     rng = random.Random(seed)
     for kind in PLANTED_KINDS:
         for number in range(per_kind):
-            start = rng.choice(windows)
-            entry = expected[start]
-            claim, twin = _planted_case(kind, number, start, entry, windows, rng)
+            for _ in range(100):
+                start = rng.choice(windows)
+                entry = expected[start]
+                claim, twin = _planted_case(kind, number, start, entry, windows, rng)
+                if _claim_key(claim) not in seen:
+                    break
+            else:
+                raise ValueError(
+                    f"freeze cannot place a distinct {kind} claim after 100 draws"
+                )
+            seen.add(_claim_key(claim))
             cases.append(
                 {
                     "case_id": f"{kind}-{number:02d}-{start}",
@@ -332,8 +360,8 @@ def _cmd_freeze(args: Any) -> int:
         return 1
     try:
         cases = _freeze_cases(pack, expected, windows, per_kind, seed)
-    except (ValueError, KeyError):
-        return _fail("cases cannot be built from the expected file")
+    except (ValueError, KeyError) as exc:
+        return _fail(f"cases cannot be built from the expected file: {exc}")
     payload = {
         "pack_id": pack.get("pack_id"),
         "seed": seed,
@@ -435,6 +463,14 @@ def _cmd_score(args: Any) -> int:
     for kind in sorted({entry["kind"] for entry in planted}):
         group = [entry for entry in planted if entry["kind"] == kind]
         per_kind[kind] = _rate(group, lambda item: not item["passed"])
+    codes_by_kind: dict[str, dict[str, int]] = {}
+    for kind in sorted({entry["kind"] for entry in results}):
+        group = [entry for entry in results if entry["kind"] == kind]
+        counts: dict[str, int] = {}
+        for entry in group:
+            for code in {item["code"] for item in entry["codes"]}:
+                counts[code] = counts.get(code, 0) + 1
+        codes_by_kind[kind] = counts
     twins = [entry for entry in results if entry["twin_passed"] is not None]
     misses = [
         {
@@ -464,6 +500,7 @@ def _cmd_score(args: Any) -> int:
         "planted_total": len(planted),
         "planted_caught": _rate(planted, lambda item: not item["passed"]),
         "per_kind_caught": per_kind,
+        "codes_by_kind": codes_by_kind,
         "twins_total": len(twins),
         "twins_accepted": _rate(twins, lambda item: item["twin_passed"]),
         "misses": misses,
@@ -562,6 +599,9 @@ def _cmd_summary(args: Any) -> int:
     summary = score.get("summary")
     if not isinstance(summary, dict):
         return _fail("score file has no summary")
+    oracle = _read_json(str(args.expected))
+    if oracle is None or not isinstance(oracle, dict):
+        return _fail("expected file cannot be read")
     try:
         raw_lines = Path(str(args.wonder)).read_text(encoding="utf-8").splitlines()
     except OSError:
@@ -577,12 +617,51 @@ def _cmd_summary(args: Any) -> int:
                 lines.append(entry)
     total = len(lines)
 
+    def _wonder_attempts(entry: dict[str, Any]) -> list[Any]:
+        attempts = entry.get("attempts", [])
+        return list(attempts) if isinstance(attempts, list) else []
+
+    def _oracle_commitment(entry: dict[str, Any]) -> str | None:
+        record = oracle.get(str(entry.get("window_start")))
+        if not isinstance(record, dict):
+            return None
+        want = record.get("expected_commitment")
+        return str(want) if isinstance(want, str) else None
+
+    def _commitment_matches(entry: dict[str, Any], position: int) -> bool:
+        attempts = _wonder_attempts(entry)
+        if not attempts:
+            return False
+        want = _oracle_commitment(entry)
+        if want is None:
+            return False
+        first = attempts[position] if isinstance(attempts[position], dict) else {}
+        return first.get("commitment_id") == want
+
     def _wonder_rate(good: Any) -> str:
         return f"{sum(1 for entry in lines if good(entry))}/{total}"
 
     latencies = [int(entry.get("latency_ms_total", 0)) for entry in lines]
+    first_latencies: list[int] = []
+    for entry in lines:
+        attempts = _wonder_attempts(entry)
+        if attempts:
+            first = attempts[0] if isinstance(attempts[0], dict) else {}
+            first_latencies.append(int(first.get("latency_ms", 0)))
+    median_first_ms = statistics.median(first_latencies) if first_latencies else 0
     median_ms = statistics.median(latencies) if latencies else 0
     max_ms = max(latencies) if latencies else 0
+    code_counts: dict[str, int] = {}
+    for entry in lines:
+        attempts = _wonder_attempts(entry)
+        if attempts:
+            first = attempts[0] if isinstance(attempts[0], dict) else {}
+            codes = first.get("codes", [])
+            if isinstance(codes, list):
+                for item in codes:
+                    if isinstance(item, dict) and isinstance(item.get("code"), str):
+                        code = str(item["code"])
+                        code_counts[code] = code_counts.get(code, 0) + 1
 
     def _seconds(value: float) -> str:
         return f"{value / 1000:.1f}s"
@@ -608,16 +687,23 @@ def _cmd_summary(args: Any) -> int:
         f"{_wonder_rate(lambda e: not e.get('final_passed') and not e.get('transport_error'))} |"
     )
     print(f"| transport errors | {_wonder_rate(lambda e: e.get('transport_error'))} |")
-    matches = 0
-    for entry in lines:
-        attempts = entry.get("attempts", [])
-        if entry.get("final_passed") and attempts:
-            last = attempts[-1]
-            if last.get("commitment_id") == entry.get("expected_commitment"):
-                matches += 1
-    print(f"| commitment matches oracle | {matches}/{total} |")
-    print(f"| median latency | {_seconds(median_ms)} |")
-    print(f"| maximum latency | {_seconds(max_ms)} |")
+    print(
+        f"| first-attempt commitment matches oracle | {_wonder_rate(lambda e: _commitment_matches(e, 0))} |"
+    )
+    print(
+        f"| final-attempt commitment matches oracle | {_wonder_rate(lambda e: _commitment_matches(e, -1))} |"
+    )
+    print(f"| median first-attempt latency | {_seconds(median_first_ms)} |")
+    print(f"| median total latency | {_seconds(median_ms)} |")
+    print(f"| maximum total latency | {_seconds(max_ms)} |")
+    print()
+    print("| code | first attempts |")
+    print("| --- | --- |")
+    if code_counts:
+        for code in sorted(code_counts):
+            print(f"| {code} | {code_counts[code]} |")
+    else:
+        print("(no codes on first attempts)")
     return 0
 
 
@@ -649,6 +735,7 @@ def main(argv: list[str] | None = None, client_factory: Any | None = None) -> in
     summary = sub.add_parser("summary")
     summary.add_argument("--score", required=True)
     summary.add_argument("--wonder", required=True)
+    summary.add_argument("--expected", required=True)
     args = parser.parse_args(argv)
     command: str = args.command
     if command == "freeze":

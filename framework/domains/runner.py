@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 from framework.domains.csv_adapter import WindowReference
-from framework.domains.schema import DomainPack, Rule
+from framework.domains.schema import DomainPack, Rule, WindowMetric
 from framework.proposal.core import (
     MetaUnavailableError,
     OutboundBlocked,
@@ -23,7 +23,7 @@ from framework.proposal.core import (
 )
 from framework.verify.core import VerifyInputError
 from framework.verify.hardened import check_claims
-from framework.verify.repair import FailedValidation, repair_loop
+from framework.verify.repair import FailedValidation
 
 _RULE_WORDS = {
     ">=": "at least",
@@ -63,31 +63,51 @@ def expected_commitment(pack: DomainPack, ref: WindowReference) -> str:
 
 
 def _rule_words(rule: Rule) -> str:
-    return f"{_RULE_WORDS[rule.op]} {rule.value} on {rule.metric}"
+    return f"{_RULE_WORDS[rule.op]} {rule.value}"
+
+
+def _window_definition(metric: WindowMetric) -> str:
+    if metric.op == "sum":
+        return f"sum of {metric.of} over the window's dates"
+    if metric.op == "max":
+        return f"largest daily {metric.of}"
+    assert metric.above is not None
+    return f"number of dates whose {metric.of} is above {metric.above}"
 
 
 def build_prompt(
     pack: DomainPack, ref: WindowReference, feedback: str | None = None
 ) -> str:
     """Plain words: the decision, every metric, every fact, the writing rules."""
+    window_metrics = {metric.id: metric for metric in pack.window_metrics}
+    definitions = {
+        metric_id: _window_definition(metric)
+        for metric_id, metric in window_metrics.items()
+    }
     lines = [
         pack.note,
         f"Goal: {pack.goal.text}",
-        "Decision: choose exactly one commitment for the coming week.",
+        "Decision: choose exactly one commitment.",
         "Commitments (choose the one whose rule holds):",
     ]
     for item in pack.commitments:
         lines.append(
-            f"- {item.id}: {item.text} (applies when {item.when.metric} holds {_rule_words(item.when)})"
+            f"- {item.id}: {item.text} "
+            f"Choose it when {item.when.metric} is {_rule_words(item.when)}."
         )
-    lines.append(f"Window {ref.window_start}; every value below is already checked:")
+    period = pack.window.period_phrase.replace("{start}", ref.window_start)
+    lines.append(
+        f"Window: {period}, the {len(ref.dates)} dates "
+        f"from {ref.dates[0]} to {ref.dates[-1]}."
+    )
+    lines.append("Metrics, computed from the pinned source files:")
     for metric_id in ref.metrics:
         value = ref.metrics[metric_id]
         labels = " ".join(ref.labels[metric_id])
-        lines.append(
-            f"- {metric_id}: {value} [{labels}] "
-            f"(unit {ref.units[metric_id]}; {ref.periods[metric_id]})"
-        )
+        detail = f"unit {ref.units[metric_id]}; {ref.periods[metric_id]}"
+        if metric_id in definitions:
+            detail = f"{detail}; {definitions[metric_id]}"
+        lines.append(f"- {metric_id}: {value} [{labels}] ({detail})")
     lines.append("Facts (cite the fact id when a claim is about the fact):")
     for fact_id in pack.facts:
         lines.append(f"- {fact_id}: {pack.facts[fact_id]}")
@@ -100,7 +120,8 @@ def build_prompt(
             "- A claim that cites a metric writes all its label words and its period phrase as listed.",
             "- Cite one metric per claim, or two metrics from the same daily series when comparing two dates,",
             "  writing each value next to its own date.",
-            "- Never write the threshold number: a claim about the threshold cites the busy_rule fact and states no number.",
+            "- Never write a number that appears only in a metric definition, such as a threshold;",
+            "  a claim about a rule cites the matching fact and states no number.",
             "- No other numbers, no other units, no negations.",
         ]
     )
@@ -255,39 +276,28 @@ def validate_proposal(
         )
     commitment_id, claims = shaped
     first_claim = str(claims[0]["id"]) if claims else "-"
+    codes: list[tuple[str, str]] = []
+    messages: list[str] = []
     known = {item.id: item for item in pack.commitments}
     if commitment_id not in known:
-        message = _DOMAIN_MESSAGES["DOMAIN_UNKNOWN_COMMITMENT"]
-        return DomainValidation(
-            False,
-            (("DOMAIN_UNKNOWN_COMMITMENT", first_claim),),
-            commitment_id,
-            None,
-            (message,),
-        )
-    if not _rule_holds(known[commitment_id].when, ref.metrics):
-        message = _DOMAIN_MESSAGES["DOMAIN_COMMITMENT_RULE"]
-        return DomainValidation(
-            False,
-            (("DOMAIN_COMMITMENT_RULE", first_claim),),
-            commitment_id,
-            None,
-            (message,),
-        )
+        codes.append(("DOMAIN_UNKNOWN_COMMITMENT", first_claim))
+        messages.append(_DOMAIN_MESSAGES["DOMAIN_UNKNOWN_COMMITMENT"])
+    elif not _rule_holds(known[commitment_id].when, ref.metrics):
+        codes.append(("DOMAIN_COMMITMENT_RULE", first_claim))
+        messages.append(_DOMAIN_MESSAGES["DOMAIN_COMMITMENT_RULE"])
     try:
         report = check_claims(ref.check_input(claims))
     except VerifyInputError as exc:
-        message = f"{_DOMAIN_MESSAGES['DOMAIN_CHECK_INPUT']}: {exc}"
+        codes.append(("DOMAIN_CHECK_INPUT", first_claim))
+        messages.append(f"{_DOMAIN_MESSAGES['DOMAIN_CHECK_INPUT']}: {exc}")
         return DomainValidation(
-            False,
-            (("DOMAIN_CHECK_INPUT", first_claim),),
-            commitment_id,
-            None,
-            (message,),
+            False, tuple(codes), commitment_id, None, tuple(messages)
         )
-    codes = tuple((item.code, item.claim_id) for item in report.violations)
-    messages = tuple(item.message for item in report.violations)
-    return DomainValidation(not codes, codes, commitment_id, report.complete, messages)
+    codes.extend((item.code, item.claim_id) for item in report.violations)
+    messages.extend(item.message for item in report.violations)
+    return DomainValidation(
+        not codes, tuple(codes), commitment_id, report.complete, tuple(messages)
+    )
 
 
 @dataclass(frozen=True)
@@ -304,6 +314,10 @@ class AttemptRecord:
     commitment_id: str | None
     commitment_matches_expected: bool | None
     check_complete: bool | None
+    finish_reason: str | None = None
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    reasoning_tokens: int | None = None
 
     def to_json(self) -> dict[str, Any]:
         """Plain JSON for the run record."""
@@ -320,6 +334,10 @@ class AttemptRecord:
             "commitment_id": self.commitment_id,
             "commitment_matches_expected": self.commitment_matches_expected,
             "check_complete": self.check_complete,
+            "finish_reason": self.finish_reason,
+            "prompt_tokens": self.prompt_tokens,
+            "completion_tokens": self.completion_tokens,
+            "reasoning_tokens": self.reasoning_tokens,
         }
 
 
@@ -407,6 +425,10 @@ def _record_attempt(
         if commitment_id
         else None,
         check_complete=check_complete,
+        finish_reason=response.finish_reason,
+        prompt_tokens=response.prompt_tokens,
+        completion_tokens=response.completion_tokens,
+        reasoning_tokens=response.reasoning_tokens,
     )
 
 
@@ -424,8 +446,11 @@ def run_window(
     base_prompt = build_prompt(pack, ref)
     schema = response_schema(pack, ref)
     prompts: list[str] = []
-
-    def generate(feedback: str | None) -> Any:
+    finished: list[tuple[WonderResponse, DomainValidation | FailedValidation]] = []
+    transport_error: str | None = None
+    failed_latency = 0
+    feedback: str | None = None
+    for _ in range(max(1, 1 + max_retries)):
         prompt = (
             base_prompt
             if feedback is None
@@ -439,34 +464,32 @@ def run_window(
             response_schema=schema,
             schema_name="domain_proposal",
         )
-        return client.complete(request)
-
-    def validate(draft: Any) -> DomainValidation:
-        text = draft.text if isinstance(draft, WonderResponse) else str(draft)
-        return validate_proposal(pack, ref, text)
-
-    try:
-        result = repair_loop(generate, validate, max_retries=max_retries)
-    except (MetaUnavailableError, OutboundBlocked) as exc:
-        return WindowRun(
-            pack_id=pack.pack_id,
-            window_start=ref.window_start,
-            model=model,
-            effort=effort,
-            expected_commitment=expected,
-            attempts=(),
-            first_pass_accepted=False,
-            repaired=False,
-            final_passed=False,
-            transport_error=_transport_error(exc),
-            latency_ms_total=_error_latency(exc),
-        )
+        try:
+            response = client.complete(request)
+        except (MetaUnavailableError, OutboundBlocked) as exc:
+            transport_error = _transport_error(exc)
+            failed_latency = _error_latency(exc)
+            break
+        try:
+            report: DomainValidation | FailedValidation = validate_proposal(
+                pack, ref, response.text
+            )
+            ok = bool(report.passed)
+        except Exception:  # noqa: BLE001 - any validator failure is a failed attempt
+            report = FailedValidation()
+            ok = False
+        finished.append((response, report))
+        if ok:
+            break
+        feedback = report.feedback()
     attempts = tuple(
-        _record_attempt(number, prompts[number - 1], item.draft, item.report, expected)
-        for number, item in enumerate(result.attempts, start=1)
+        _record_attempt(number, prompts[number - 1], response, report, expected)
+        for number, (response, report) in enumerate(finished, start=1)
     )
     first_pass = attempts[0].passed if attempts else False
-    final_pass = attempts[-1].passed if attempts else False
+    final_pass = (attempts[-1].passed if attempts else False) and (
+        transport_error is None
+    )
     return WindowRun(
         pack_id=pack.pack_id,
         window_start=ref.window_start,
@@ -477,8 +500,8 @@ def run_window(
         first_pass_accepted=first_pass,
         repaired=len(attempts) >= 2 and not first_pass and final_pass,
         final_passed=final_pass,
-        transport_error=None,
-        latency_ms_total=sum(item.latency_ms for item in attempts),
+        transport_error=transport_error,
+        latency_ms_total=sum(item.latency_ms for item in attempts) + failed_latency,
     )
 
 

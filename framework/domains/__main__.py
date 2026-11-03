@@ -49,6 +49,14 @@ def _cmd_show(pack_path: str, window: str) -> int:
             f"{metric_id}: {ref.metrics[metric_id]} "
             f"[{labels}] ({ref.units[metric_id]}; {ref.periods[metric_id]})"
         )
+    for item in ref.identities:
+        if item.held:
+            print(
+                f"identity {item.kind}: held on "
+                f"{item.dates_checked} of {item.dates_checked} dates"
+            )
+        else:
+            print(f"identity {item.kind}: did not hold")
     held = sum(1 for item in ref.identities if item.held)
     print(f"identities: {held} of {len(ref.identities)} hold")
     return 0

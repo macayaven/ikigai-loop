@@ -1769,15 +1769,15 @@
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-12-12",
-            "value": 3310
+            "metric_id": "total_rentals.2011-12-17",
+            "value": 2739
           },
           {
-            "metric_id": "total_rentals.2011-12-13",
-            "value": 3523
+            "metric_id": "total_rentals.2011-12-18",
+            "value": 2431
           }
         ],
-        "text": "Total rentals fell from 3,310 on 2011-12-12 to 3,523 on 2011-12-13."
+        "text": "Total rentals rose from 2,739 on 2011-12-17 to 2,431 on 2011-12-18."
       },
       "expect": "fail",
       "kind": "wrong_direction",
@@ -1786,15 +1786,15 @@
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-12-12",
-            "value": 3310
+            "metric_id": "total_rentals.2011-12-17",
+            "value": 2739
           },
           {
-            "metric_id": "total_rentals.2011-12-13",
-            "value": 3523
+            "metric_id": "total_rentals.2011-12-18",
+            "value": 2431
           }
         ],
-        "text": "Total rentals rose from 3,310 on 2011-12-12 to 3,523 on 2011-12-13."
+        "text": "Total rentals fell from 2,739 on 2011-12-17 to 2,431 on 2011-12-18."
       },
       "window_start": "2011-12-12"
     },
@@ -1805,15 +1805,15 @@
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-12-12",
-            "value": 3310
-          },
-          {
             "metric_id": "total_rentals.2011-12-13",
             "value": 3523
+          },
+          {
+            "metric_id": "total_rentals.2011-12-14",
+            "value": 3740
           }
         ],
-        "text": "Total rentals decreased from 3,310 on 2011-12-12 to 3,523 on 2011-12-13."
+        "text": "Total rentals decreased from 3,523 on 2011-12-13 to 3,740 on 2011-12-14."
       },
       "expect": "fail",
       "kind": "wrong_direction",
@@ -1822,34 +1822,34 @@
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-12-12",
-            "value": 3310
-          },
-          {
             "metric_id": "total_rentals.2011-12-13",
             "value": 3523
+          },
+          {
+            "metric_id": "total_rentals.2011-12-14",
+            "value": 3740
           }
         ],
-        "text": "Total rentals increased from 3,310 on 2011-12-12 to 3,523 on 2011-12-13."
+        "text": "Total rentals increased from 3,523 on 2011-12-13 to 3,740 on 2011-12-14."
       },
       "window_start": "2011-12-12"
     },
     {
-      "case_id": "wrong_direction-02-2011-07-25",
+      "case_id": "wrong_direction-02-2011-01-03",
       "claim": {
         "fact_ids": [],
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-07-25",
-            "value": 3840
+            "metric_id": "total_rentals.2011-01-04",
+            "value": 1562
           },
           {
-            "metric_id": "total_rentals.2011-07-26",
-            "value": 4590
+            "metric_id": "total_rentals.2011-01-05",
+            "value": 1600
           }
         ],
-        "text": "Total rentals went down from 3,840 on 2011-07-25 to 4,590 on 2011-07-26."
+        "text": "Total rentals went down from 1,562 on 2011-01-04 to 1,600 on 2011-01-05."
       },
       "expect": "fail",
       "kind": "wrong_direction",
@@ -1858,92 +1858,20 @@
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-07-25",
-            "value": 3840
-          },
-          {
-            "metric_id": "total_rentals.2011-07-26",
-            "value": 4590
-          }
-        ],
-        "text": "Total rentals went up from 3,840 on 2011-07-25 to 4,590 on 2011-07-26."
-      },
-      "window_start": "2011-07-25"
-    },
-    {
-      "case_id": "wrong_direction-03-2011-01-03",
-      "claim": {
-        "fact_ids": [],
-        "id": "c1",
-        "metric_refs": [
-          {
-            "metric_id": "total_rentals.2011-01-03",
-            "value": 1349
-          },
-          {
             "metric_id": "total_rentals.2011-01-04",
             "value": 1562
-          }
-        ],
-        "text": "Total rentals fell from 1,349 on 2011-01-03 to 1,562 on 2011-01-04."
-      },
-      "expect": "fail",
-      "kind": "wrong_direction",
-      "twin": {
-        "fact_ids": [],
-        "id": "c1",
-        "metric_refs": [
-          {
-            "metric_id": "total_rentals.2011-01-03",
-            "value": 1349
           },
           {
-            "metric_id": "total_rentals.2011-01-04",
-            "value": 1562
+            "metric_id": "total_rentals.2011-01-05",
+            "value": 1600
           }
         ],
-        "text": "Total rentals rose from 1,349 on 2011-01-03 to 1,562 on 2011-01-04."
+        "text": "Total rentals went up from 1,562 on 2011-01-04 to 1,600 on 2011-01-05."
       },
       "window_start": "2011-01-03"
     },
     {
-      "case_id": "wrong_direction-04-2011-07-04",
-      "claim": {
-        "fact_ids": [],
-        "id": "c1",
-        "metric_refs": [
-          {
-            "metric_id": "total_rentals.2011-07-04",
-            "value": 6043
-          },
-          {
-            "metric_id": "total_rentals.2011-07-05",
-            "value": 4665
-          }
-        ],
-        "text": "Total rentals increased from 6,043 on 2011-07-04 to 4,665 on 2011-07-05."
-      },
-      "expect": "fail",
-      "kind": "wrong_direction",
-      "twin": {
-        "fact_ids": [],
-        "id": "c1",
-        "metric_refs": [
-          {
-            "metric_id": "total_rentals.2011-07-04",
-            "value": 6043
-          },
-          {
-            "metric_id": "total_rentals.2011-07-05",
-            "value": 4665
-          }
-        ],
-        "text": "Total rentals decreased from 6,043 on 2011-07-04 to 4,665 on 2011-07-05."
-      },
-      "window_start": "2011-07-04"
-    },
-    {
-      "case_id": "wrong_direction-05-2011-12-05",
+      "case_id": "wrong_direction-03-2011-12-05",
       "claim": {
         "fact_ids": [],
         "id": "c1",
@@ -1957,7 +1885,7 @@
             "value": 2594
           }
         ],
-        "text": "Total rentals went up from 3,811 on 2011-12-05 to 2,594 on 2011-12-06."
+        "text": "Total rentals rose from 3,811 on 2011-12-05 to 2,594 on 2011-12-06."
       },
       "expect": "fail",
       "kind": "wrong_direction",
@@ -1974,26 +1902,26 @@
             "value": 2594
           }
         ],
-        "text": "Total rentals went down from 3,811 on 2011-12-05 to 2,594 on 2011-12-06."
+        "text": "Total rentals fell from 3,811 on 2011-12-05 to 2,594 on 2011-12-06."
       },
       "window_start": "2011-12-05"
     },
     {
-      "case_id": "wrong_direction-06-2011-01-03",
+      "case_id": "wrong_direction-04-2011-01-17",
       "claim": {
         "fact_ids": [],
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-01-03",
-            "value": 1349
+            "metric_id": "total_rentals.2011-01-19",
+            "value": 1650
           },
           {
-            "metric_id": "total_rentals.2011-01-04",
-            "value": 1562
+            "metric_id": "total_rentals.2011-01-20",
+            "value": 1927
           }
         ],
-        "text": "Total rentals fell from 1,349 on 2011-01-03 to 1,562 on 2011-01-04."
+        "text": "Total rentals decreased from 1,650 on 2011-01-19 to 1,927 on 2011-01-20."
       },
       "expect": "fail",
       "kind": "wrong_direction",
@@ -2002,70 +1930,34 @@
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-01-03",
-            "value": 1349
+            "metric_id": "total_rentals.2011-01-19",
+            "value": 1650
           },
           {
-            "metric_id": "total_rentals.2011-01-04",
-            "value": 1562
+            "metric_id": "total_rentals.2011-01-20",
+            "value": 1927
           }
         ],
-        "text": "Total rentals rose from 1,349 on 2011-01-03 to 1,562 on 2011-01-04."
-      },
-      "window_start": "2011-01-03"
-    },
-    {
-      "case_id": "wrong_direction-07-2011-01-17",
-      "claim": {
-        "fact_ids": [],
-        "id": "c1",
-        "metric_refs": [
-          {
-            "metric_id": "total_rentals.2011-01-17",
-            "value": 1000
-          },
-          {
-            "metric_id": "total_rentals.2011-01-18",
-            "value": 683
-          }
-        ],
-        "text": "Total rentals increased from 1,000 on 2011-01-17 to 683 on 2011-01-18."
-      },
-      "expect": "fail",
-      "kind": "wrong_direction",
-      "twin": {
-        "fact_ids": [],
-        "id": "c1",
-        "metric_refs": [
-          {
-            "metric_id": "total_rentals.2011-01-17",
-            "value": 1000
-          },
-          {
-            "metric_id": "total_rentals.2011-01-18",
-            "value": 683
-          }
-        ],
-        "text": "Total rentals decreased from 1,000 on 2011-01-17 to 683 on 2011-01-18."
+        "text": "Total rentals increased from 1,650 on 2011-01-19 to 1,927 on 2011-01-20."
       },
       "window_start": "2011-01-17"
     },
     {
-      "case_id": "wrong_direction-08-2011-12-05",
+      "case_id": "wrong_direction-05-2012-08-06",
       "claim": {
         "fact_ids": [],
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-12-05",
-            "value": 3811
+            "metric_id": "total_rentals.2012-08-09",
+            "value": 7286
           },
           {
-            "metric_id": "total_rentals.2011-12-06",
-            "value": 2594
+            "metric_id": "total_rentals.2012-08-10",
+            "value": 5786
           }
         ],
-        "text": "Total rentals went up from 3,811 on 2011-12-05 to 2,594 on 2011-12-06."
+        "text": "Total rentals went up from 7,286 on 2012-08-09 to 5,786 on 2012-08-10."
       },
       "expect": "fail",
       "kind": "wrong_direction",
@@ -2074,53 +1966,161 @@
         "id": "c1",
         "metric_refs": [
           {
-            "metric_id": "total_rentals.2011-12-05",
-            "value": 3811
+            "metric_id": "total_rentals.2012-08-09",
+            "value": 7286
           },
           {
-            "metric_id": "total_rentals.2011-12-06",
-            "value": 2594
+            "metric_id": "total_rentals.2012-08-10",
+            "value": 5786
           }
         ],
-        "text": "Total rentals went down from 3,811 on 2011-12-05 to 2,594 on 2011-12-06."
-      },
-      "window_start": "2011-12-05"
-    },
-    {
-      "case_id": "wrong_direction-09-2012-08-06",
-      "claim": {
-        "fact_ids": [],
-        "id": "c1",
-        "metric_refs": [
-          {
-            "metric_id": "total_rentals.2012-08-06",
-            "value": 7013
-          },
-          {
-            "metric_id": "total_rentals.2012-08-07",
-            "value": 7273
-          }
-        ],
-        "text": "Total rentals fell from 7,013 on 2012-08-06 to 7,273 on 2012-08-07."
-      },
-      "expect": "fail",
-      "kind": "wrong_direction",
-      "twin": {
-        "fact_ids": [],
-        "id": "c1",
-        "metric_refs": [
-          {
-            "metric_id": "total_rentals.2012-08-06",
-            "value": 7013
-          },
-          {
-            "metric_id": "total_rentals.2012-08-07",
-            "value": 7273
-          }
-        ],
-        "text": "Total rentals rose from 7,013 on 2012-08-06 to 7,273 on 2012-08-07."
+        "text": "Total rentals went down from 7,286 on 2012-08-09 to 5,786 on 2012-08-10."
       },
       "window_start": "2012-08-06"
+    },
+    {
+      "case_id": "wrong_direction-06-2012-06-11",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-06-13",
+            "value": 7421
+          },
+          {
+            "metric_id": "total_rentals.2012-06-14",
+            "value": 7363
+          }
+        ],
+        "text": "Total rentals rose from 7,421 on 2012-06-13 to 7,363 on 2012-06-14."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-06-13",
+            "value": 7421
+          },
+          {
+            "metric_id": "total_rentals.2012-06-14",
+            "value": 7363
+          }
+        ],
+        "text": "Total rentals fell from 7,421 on 2012-06-13 to 7,363 on 2012-06-14."
+      },
+      "window_start": "2012-06-11"
+    },
+    {
+      "case_id": "wrong_direction-07-2012-07-09",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-07-10",
+            "value": 6290
+          },
+          {
+            "metric_id": "total_rentals.2012-07-11",
+            "value": 7264
+          }
+        ],
+        "text": "Total rentals decreased from 6,290 on 2012-07-10 to 7,264 on 2012-07-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-07-10",
+            "value": 6290
+          },
+          {
+            "metric_id": "total_rentals.2012-07-11",
+            "value": 7264
+          }
+        ],
+        "text": "Total rentals increased from 6,290 on 2012-07-10 to 7,264 on 2012-07-11."
+      },
+      "window_start": "2012-07-09"
+    },
+    {
+      "case_id": "wrong_direction-08-2011-03-07",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-03-10",
+            "value": 623
+          },
+          {
+            "metric_id": "total_rentals.2011-03-11",
+            "value": 1977
+          }
+        ],
+        "text": "Total rentals went down from 623 on 2011-03-10 to 1,977 on 2011-03-11."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2011-03-10",
+            "value": 623
+          },
+          {
+            "metric_id": "total_rentals.2011-03-11",
+            "value": 1977
+          }
+        ],
+        "text": "Total rentals went up from 623 on 2011-03-10 to 1,977 on 2011-03-11."
+      },
+      "window_start": "2011-03-07"
+    },
+    {
+      "case_id": "wrong_direction-09-2012-03-19",
+      "claim": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-03-21",
+            "value": 6230
+          },
+          {
+            "metric_id": "total_rentals.2012-03-22",
+            "value": 6871
+          }
+        ],
+        "text": "Total rentals fell from 6,230 on 2012-03-21 to 6,871 on 2012-03-22."
+      },
+      "expect": "fail",
+      "kind": "wrong_direction",
+      "twin": {
+        "fact_ids": [],
+        "id": "c1",
+        "metric_refs": [
+          {
+            "metric_id": "total_rentals.2012-03-21",
+            "value": 6230
+          },
+          {
+            "metric_id": "total_rentals.2012-03-22",
+            "value": 6871
+          }
+        ],
+        "text": "Total rentals rose from 6,230 on 2012-03-21 to 6,871 on 2012-03-22."
+      },
+      "window_start": "2012-03-19"
     }
   ],
   "pack_id": "bikes",
