@@ -858,6 +858,6 @@ def test_plain_pane_lists_every_gap_on_one_line() -> None:
     page = (ROOT / "docs" / "verify" / "index.html").read_text()
     assert "The plain form does not supply units or periods" not in page
     assert (
-        "It checked the number against your record. "
-        "It didn't check units, time periods or words like rose and fell."
+        "It checked the number against the card. "
+        "It didn't check units, time windows or words like rose and fell."
     ) in page

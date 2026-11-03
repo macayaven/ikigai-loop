@@ -16,14 +16,12 @@ PAGE = ROOT / "docs" / "verify" / "index.html"
 BUNDLE = ROOT / "docs" / "verify" / "bundle.json"
 EXAMPLES = ROOT / "docs" / "verify" / "examples"
 
-PINNED_HEADLINE = "Does your AI get your numbers right?"
-PINNED_PLAIN_SENTENCE = (
-    "Paste a sentence your AI wrote, add the real numbers, "
-    "and this page checks that they match."
-)
+PINNED_HEADLINE = "Catch the AI"
+PINNED_SUBHEAD = "Does your AI get your numbers right?"
+PINNED_TAGLINE = "Six sentences an AI wrote. Some hide a fib. Can you beat the checker?"
 PINNED_PLAIN_SCOPE = (
-    "It checked the number against your record. "
-    "It didn't check units, time periods or words like rose and fell."
+    "It checked the number against the card. "
+    "It didn't check units, time windows or words like rose and fell."
 )
 PINNED_PYODIDE = "0.27.7"
 PINNED_JSDELIVR = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"
@@ -146,7 +144,9 @@ def test_subprocess_unpack_gives_promised_verdicts(tmp_path: Path) -> None:
 def test_page_pins() -> None:
     page = PAGE.read_text()
     assert f"<h1>{PINNED_HEADLINE}</h1>" in page
-    assert PINNED_PLAIN_SENTENCE in page
+    assert PINNED_SUBHEAD in page
+    assert PINNED_TAGLINE in page
+    assert "Paste a sentence your AI wrote" not in page
     assert HARDENED_LIMITS_NOTE in page
     assert PINNED_PYODIDE in page
     assert PINNED_JSDELIVR in page
@@ -206,9 +206,11 @@ def test_adapter_prompt_byte_identical() -> None:
 
 
 PINNED_PRIVACY = "It runs on your device; nothing you type leaves it."
-PINNED_STEP_1 = "What did your AI say?"
-PINNED_STEP_2 = "What are the real numbers?"
-PINNED_STEP_3 = "Check it"
+PINNED_MAKE_HEADING = "Make your own round"
+PINNED_MAKE_SUB = (
+    "Give a card a few numbers, then write a sentence about them, "
+    "or paste one an AI told you. The checker tells you if it's a fib."
+)
 
 
 def test_privacy_line() -> None:
@@ -216,18 +218,31 @@ def test_privacy_line() -> None:
     assert PINNED_PRIVACY in page
 
 
+def test_make_your_own_round_heading_and_sub_are_pinned() -> None:
+    page = PAGE.read_text()
+    assert f'<h2 id="try-your-own">{PINNED_MAKE_HEADING}</h2>' in page
+    assert PINNED_MAKE_SUB in page
+
+
 def test_steps_label_the_plain_form_in_order() -> None:
     page = PAGE.read_text()
-    first = page.index(PINNED_STEP_1)
-    second = page.index(PINNED_STEP_2)
-    third = page.index(PINNED_STEP_3)
-    assert first < second < third
-    assert (
+    step_1 = (
         '<p class="step-label"><span class="step-num" aria-hidden="true">1</span>'
-        '<label for="agent-text"><strong>What did your AI say?</strong></label></p>'
-        in page
+        "<strong>The card</strong></p>"
     )
-    assert "<th" in page and "Name" in page and "Number" in page
+    step_2 = (
+        '<p class="step-label"><span class="step-num" aria-hidden="true">2</span>'
+        '<label for="agent-text"><strong>The sentence</strong></label></p>'
+    )
+    step_3 = (
+        '<p class="step-label"><span class="step-num" aria-hidden="true">3</span>'
+        "<strong>Check it</strong></p>"
+    )
+    assert step_1 in page
+    assert step_2 in page
+    assert step_3 in page
+    assert page.index(step_1) < page.index(step_2) < page.index(step_3)
+    assert "<th" in page and "What" in page and "How many" in page
 
 
 def test_page_links_records_and_recipe() -> None:
@@ -341,7 +356,7 @@ JARGON_BEFORE_TRY_YOUR_OWN = (
 
 def test_no_jargon_before_try_your_own() -> None:
     page = PAGE.read_text()
-    head = page.split(PINNED_STEP_1)[0]
+    head = page.split(PINNED_MAKE_HEADING)[0]
     head = re.sub(r"<script.*?</script>", "", head, flags=re.DOTALL)
     head = re.sub(r"<style.*?</style>", "", head, flags=re.DOTALL)
     head = re.sub(r"<[^>]+>", "", head)
@@ -494,9 +509,10 @@ def test_record_row_starts_filled_with_the_worked_record() -> None:
 
 def test_what_this_checks_plain_rules() -> None:
     page = PAGE.read_text()
-    assert "What this does not check" in page
+    assert "<summary>What the checker can't see</summary>" in page
     assert "What this checks" not in page
-    section = page.split("What this does not check")[1].split(
+    assert "What this does not check" not in page
+    section = page.split("What the checker can't see")[1].split(
         "For engineers: JSON input"
     )[0]
     assert "Every word of a row" in section
@@ -535,9 +551,9 @@ def test_limits_note_lives_in_json_details() -> None:
     assert PINNED_PAGE_LINK in page
     assert "page_render_hardened" in page
     assert "The plain form does not supply units or periods" not in page
-    before_form = page.split(PINNED_STEP_1)[0]
+    before_form = page.split(PINNED_MAKE_HEADING)[0]
     assert "cited sources" not in before_form
-    section = page.split("What this does not check")[1].split(
+    section = page.split("What the checker can't see")[1].split(
         "For engineers: JSON input"
     )[0]
     assert "cited sources" not in section
@@ -568,7 +584,7 @@ def test_try_empty_states_guide_next_step() -> None:
 
 def test_split_rule_has_example() -> None:
     page = PAGE.read_text()
-    section = page.split("What this does not check")[1].split(
+    section = page.split("What the checker can't see")[1].split(
         "For engineers: JSON input"
     )[0]
     assert "more than one record" in section
@@ -618,7 +634,7 @@ PINNED_WHY_PARAGRAPHS = (
 def test_why_section_carries_the_pinned_paragraphs() -> None:
     page = PAGE.read_text()
     assert "<h2>Why I built this</h2>" in page
-    why = page.split("Why I built this")[1].split("What this does not check")[0]
+    why = page.split("Why I built this")[1].split("What the checker can't see")[0]
     for paragraph in PINNED_WHY_PARAGRAPHS:
         expected = paragraph.replace(
             "is in TRUST.md.",
@@ -630,7 +646,7 @@ def test_why_section_carries_the_pinned_paragraphs() -> None:
 def test_trust_link_text_and_address_are_pinned() -> None:
     page = PAGE.read_text()
     assert f'<a href="{PINNED_TRUST_URL}">TRUST.md</a>' in page
-    why = page.split("Why I built this")[1].split("What this does not check")[0]
+    why = page.split("Why I built this")[1].split("What the checker can't see")[0]
     assert f'<a href="{PINNED_TRUST_URL}">TRUST.md</a>' in why
     assert "docs/TRUST.md" not in page.replace(PINNED_TRUST_URL, "")
 
@@ -652,7 +668,8 @@ def test_invitation_links_to_the_honest_list() -> None:
     page = PAGE.read_text()
     assert "<h2>Can you fool it?</h2>" in page
     assert "Try a sentence that sounds right but bends a number" in page
-    assert "See what this checker does not check" in page
+    assert "or a time window." in page
+    assert "See what the checker can't see" in page
     assert 'href="#limits"' in page
     assert 'id="limits"' in page
 
@@ -661,18 +678,19 @@ def test_first_screen_sections_appear_in_order() -> None:
     page = PAGE.read_text()
     marks = [
         f"<h1>{PINNED_HEADLINE}</h1>",
-        PINNED_PLAIN_SENTENCE,
+        PINNED_SUBHEAD,
+        PINNED_TAGLINE,
         PINNED_PRIVACY,
-        PINNED_STEP_1,
-        PINNED_STEP_2,
-        PINNED_STEP_3,
+        PINNED_MAKE_HEADING,
+        PINNED_MAKE_SUB,
         "Try one:",
         "Wrong number",
         "Matching numbers",
         'A sneaky "not"',
         "Can you fool it?",
+        "<summary>How this works</summary>",
         "Why I built this",
-        "What this does not check",
+        "<summary>What the checker can't see</summary>",
         "For engineers: JSON input",
     ]
     positions = [page.index(mark) for mark in marks]
@@ -700,9 +718,10 @@ def test_tap_targets_and_reduced_motion_are_pinned() -> None:
 
 def test_page_copy_has_no_em_dashes() -> None:
     page = PAGE.read_text()
-    assert "\u2014" not in page
-    assert "\u2013" not in page
-    assert "--" not in page
+    copy = re.sub(r"<style.*?</style>", "", page, flags=re.DOTALL)
+    assert "\u2014" not in copy
+    assert "\u2013" not in copy
+    assert "--" not in copy
 
 
 def test_finding_code_shows_in_small_print() -> None:

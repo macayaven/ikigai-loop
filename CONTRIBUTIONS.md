@@ -705,6 +705,11 @@ the page at `docs/verify/index.html` runs the worked example by itself on load, 
 
 Muse Code wrote the plan update, the code, the tests and these docs, powered by Meta Muse Spark, in one headless session Claude Code started, in Contributor mode, on this public repo and made-up data only. Claude Code reviewed the plan (its four rulings are recorded in the plan and the session note) and runs the gate checks and `make check` afterwards. I never opened the held-out sets or the hidden-criteria path.
 
+A follow-up in the same branch puts the Catch the AI game at the top of the page, built around six rounds Muse Wonder wrote in its own sessions from Claude Code's prose prompts: the mistakes in some sentences were asked for, and a design review by three outside models shaped the everyday-clutter theme. This session built the game around those rounds without touching them. Evidence in
+[docs/sessions/025-checker-page-for-everyone.md](docs/sessions/025-checker-page-for-everyone.md).
+
+Muse Code built the game, powered by Meta Muse Spark, in one headless session Claude Code started, in Contributor mode, on this public repo and made-up data only. I never opened the held-out sets or the hidden-criteria path.
+
 ## AI assistance outside the Muse family
 
 - **Claude Code (Anthropic)** was used as an advisor and reviewer. It co-drafted the

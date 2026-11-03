@@ -6,7 +6,25 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <title>Check your AI agent's numbers</title>
 <style>
-:root { color-scheme: light dark; }
+:root {
+  color-scheme: light dark;
+  --slip-bg: #f8f1de;
+  --slip-ink: #1c1a15;
+  --slip-pill: #fffdf6;
+  --slip-hit: #dcefe2;
+  --slip-miss: #f8dcd6;
+  --slip-blind: rgba(11, 87, 208, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --slip-bg: #2b3442;
+    --slip-ink: #f4f7fb;
+    --slip-pill: #1a2230;
+    --slip-hit: #1d3a24;
+    --slip-miss: #421b16;
+    --slip-blind: rgba(122, 162, 247, 0.22);
+  }
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   margin: 0 auto; max-width: 680px; padding: 0 20px 4rem; box-sizing: border-box;
@@ -84,6 +102,9 @@ button, input, summary { min-height: 44px; }
   .claim.card.catch { border-left-color: #ff7b72; }
   .result-head { color: #3fb950; }
   .claim.card.catch .result-head { color: #ff7b72; }
+  .game-stamp { color: #3fb950; }
+  .game-stamp.catch { color: #ff7b72; }
+  .game-season-catch { color: #ff7b72; }
 }
 .why-card {
   border-left: 6px solid #0b57d0; border-radius: 12px;
@@ -96,27 +117,118 @@ button, input, summary { min-height: 44px; }
 details { margin: 0.8rem 0; }
 summary { cursor: pointer; }
 .verdict { margin: 0.8rem 0; }
+.game-head { display: flex; flex-direction: column; gap: 0.4rem; }
+.game-sub { font-size: 1rem; opacity: 0.85; margin: 0.1rem 0 0.5rem; }
+.game-status-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.game-status-row .note { margin: 0; flex: 1; min-width: 0; }
+.game-skip { margin: 0; }
+#game-sound { min-height: 44px; min-width: 44px; }
+.game-progress { display: flex; align-items: center; gap: 0.4rem 0.8rem; flex-wrap: wrap; }
+.game-progress .game-dots { margin: 0; }
+.game-progress-text { margin: 0; }
+.game-slip { background: var(--slip-bg); color: var(--slip-ink); border-radius: 12px; padding: 12px; margin: 0.8rem 0; position: relative; overflow: hidden; }
+.game-label { font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; margin: 0.6rem 0 0.1rem; }
+.game-title { font-size: 1.05rem; margin: 0 0 0.4rem; }
+.game-table td { border-top: 1px solid currentColor; padding: 0.2rem 0.25rem; vertical-align: middle; }
+.game-table tr:first-child td { border-top: none; }
+.game-name { font-size: 1rem; }
+.game-value { text-align: right; }
+.game-pill { display: inline-block; font-size: 1rem; font-weight: bold; background: var(--slip-pill); color: var(--slip-ink); border: 1px solid currentColor; border-radius: 999px; padding: 0 0.7rem; }
+.game-sentence { font-size: 1.1rem; margin: 0.4rem 0; }
+.game-stamp { font-size: 1.4rem; font-weight: bold; margin: 0.5rem 0; color: #1a7f37; }
+.game-stamp.catch { color: #b42318; }
+.game-season-catch { color: #b42318; text-decoration: underline; font-weight: bold; }
+.game-table tr.game-hit-pass { font-weight: bold; }
+.game-table tr.game-hit-pass .game-pill { background: var(--slip-hit); }
+.game-table tr.game-hit-catch { font-weight: bold; }
+.game-table tr.game-hit-catch .game-pill { background: var(--slip-miss); }
+.game-num-pass { background: var(--slip-hit); border-radius: 0.3rem; padding: 0 0.25rem; font-weight: bold; }
+.game-num-catch { background: var(--slip-miss); border-radius: 0.3rem; padding: 0 0.25rem; font-weight: bold; }
+.game-choices { display: flex; gap: 0.6rem; margin: 0.6rem 0; }
+.game-choices button { flex: 1 1 0; min-width: 0; font-size: 1.05rem; font-weight: bold; padding: 0.7rem 0.5rem; min-height: 44px; }
+.game-choices button:disabled { opacity: 0.55; }
+.game-choices button.game-chosen { outline: 3px solid currentColor; outline-offset: 2px; opacity: 1; }
+.game-dots { list-style: none; display: flex; gap: 0.6rem; padding: 0; margin: 0.6rem 0; }
+.game-dots li { width: 1rem; height: 1rem; border-radius: 999px; border: 2px solid #bbb; }
+.game-dots li.game-dot-right { background: #1a7f37; border-color: #1a7f37; }
+.game-dots li.game-dot-miss { background: transparent; border-color: #b42318; }
+.game-dots li.game-dot-blind { box-shadow: 0 0 0 4px var(--slip-blind); }
+.game-reveal { animation: game-reveal 0.24s ease-out; }
+@keyframes game-reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.game-round-in { animation: game-round 0.15s ease-out; }
+@keyframes game-round { from { opacity: 0; } to { opacity: 1; } }
+.game-confetti-bit { position: absolute; width: 8px; height: 8px; pointer-events: none; animation: game-confetti 0.85s ease-in forwards; }
+@keyframes game-confetti { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(48px); } }
+.game-final { animation: game-score 0.5s ease-out; }
+@keyframes game-score { from { opacity: 0; } to { opacity: 1; } }
+.game-final-score { font-size: 1.4rem; font-weight: bold; }
+#game-next { font-size: 1.2rem; font-weight: bold; padding: 0.9rem 1.4rem; min-height: 48px; }
+.game-final-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.8rem 0; align-items: center; }
+@media (prefers-color-scheme: dark) {
+  .game-table td { border-top-color: currentColor; }
+  .game-dots li { border-color: #555; }
+  .game-dots li.game-dot-right { background: #3fb950; border-color: #3fb950; }
+  .game-dots li.game-dot-miss { background: transparent; border-color: #ff7b72; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-reveal, .game-confetti-bit, .game-final, .game-round-in { animation: none; }
+}
 </style>
 </head>
 <body data-state="loading">
-<h1>Does your AI get your numbers right?</h1>
-<p class="intro">Paste a sentence your AI wrote, add the real numbers, and this page checks that they match.</p>
-<p>It runs on your device; nothing you type leaves it.</p>
-<p id="status" class="note" aria-live="polite">Getting the checker ready. It loads once, about 8 MB. That takes about 3 seconds on a fast connection, or 15 to 30 on a slow phone. After that, everything runs on your device.</p>
+<h1>Catch the AI</h1>
+<p class="game-sub">Does your AI get your numbers right?</p>
+<p class="intro">Six sentences an AI wrote. Some hide a fib. Can you beat the checker?</p>
+<p class="note">Muse Wonder, Meta's AI, wrote these sentences, and we asked it to hide some fibs. <a href="#game-how" id="game-how-link">How this works</a><br>It runs on your device; nothing you type leaves it.</p>
+<section aria-label="Catch the AI game" id="game">
+<div class="game-head">
+<p class="note game-skip"><a id="game-skip-form" href="#try-your-own">Skip to make your own round</a></p>
+<div class="game-status-row">
+<p class="note" id="status" aria-live="polite">Getting the checker ready. It loads once, about 8 MB. That takes about 3 seconds on a fast connection, or 15 to 30 on a slow phone. After that, everything runs on your device.</p>
+<button id="game-sound" type="button" class="pill" aria-pressed="true">Sound: On</button>
+</div>
+</div>
+<p class="note" id="game-loading">Loading the six cards.</p>
+<div id="game-play" hidden>
+<div class="game-progress">
+<ol class="game-dots" id="game-dots" aria-label="Progress"></ol>
+<p class="note game-progress-text" id="game-progress">Round 1 of 6</p>
+<p class="note game-progress-text" id="game-score">You 0 · Checker 0</p>
+</div>
+<div class="game-slip" id="game-card">
+<p class="game-label">The card</p>
+<p class="game-title"><strong id="game-title"></strong></p>
+<table class="game-table" id="game-table" aria-label="Card rows"></table>
+<p class="game-label">What the AI wrote</p>
+<p class="game-sentence" id="game-sentence"></p>
+</div>
+<p id="game-question">Does the AI's sentence match the card?</p>
+<div class="game-choices">
+<button id="game-right" type="button" class="primary">It matches</button>
+<button id="game-wrong" type="button" class="primary">It doesn't</button>
+</div>
+<div id="game-reveal" aria-live="polite"></div>
+<p><button id="game-next" type="button" class="primary" hidden>Next round</button></p>
+</div>
+<div id="game-final" hidden></div>
+</section>
+<div id="try-wrap" hidden>
+<h2 id="try-your-own">Make your own round</h2>
+<p class="intro">Give a card a few numbers, then write a sentence about them, or paste one an AI told you. The checker tells you if it's a fib.</p>
 <section class="steps-card" aria-label="Check a sentence in three steps">
 <div class="step">
-<p class="step-label"><span class="step-num" aria-hidden="true">1</span><label for="agent-text"><strong>What did your AI say?</strong></label></p>
-<textarea id="agent-text" spellcheck="true">Deploys reached 12 in November.</textarea>
-</div>
-<div class="step">
-<p class="step-label"><span class="step-num" aria-hidden="true">2</span><strong>What are the real numbers?</strong></p>
+<p class="step-label"><span class="step-num" aria-hidden="true">1</span><strong>The card</strong></p>
 <table id="records-table">
-<thead><tr><th scope="col">Name</th><th scope="col">Number</th></tr></thead>
+<thead><tr><th scope="col">What</th><th scope="col">How many</th></tr></thead>
 <tbody>
 <tr><td><input type="text" name="name" value="November deploys" aria-label="Record name"></td><td><input type="text" name="number" value="7" aria-label="Record number" inputmode="decimal"></td></tr>
 </tbody>
 </table>
 <p><button id="row-add" type="button" disabled>Add a row</button></p>
+</div>
+<div class="step">
+<p class="step-label"><span class="step-num" aria-hidden="true">2</span><label for="agent-text"><strong>The sentence</strong></label></p>
+<textarea id="agent-text" spellcheck="true">Deploys reached 12 in November.</textarea>
 </div>
 <div class="step">
 <p class="step-label"><span class="step-num" aria-hidden="true">3</span><strong>Check it</strong></p>
@@ -131,7 +243,17 @@ summary { cursor: pointer; }
 <button id="try-ex3" class="pill" type="button" disabled>A sneaky "not"</button>
 </div>
 <h2>Can you fool it?</h2>
-<p>Try a sentence that sounds right but bends a number, a word or a period. <a href="#limits">See what this checker does not check</a>.</p>
+<p>Try a sentence that sounds right but bends a number, a word or a time window. <a href="#limits" id="limits-link">See what the checker can't see</a>.</p>
+</div>
+<details id="game-how">
+<summary>How this works</summary>
+<p>Muse Wonder wrote the cards and sentences. Your browser checks their numbers.</p>
+<p>The rounds are exactly what Muse Wonder wrote, unedited: <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/verify/game/rounds.json">rounds.json</a>. The brief it got is saved <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/sessions/025-checker-page-for-everyone.md#the-brief-muse-wonder-got-for-the-rounds">here</a>.</p>
+<p>Muse Wonder, a Meta model, wrote these sentences from each card. We asked it to slip mistakes into some. Six fixed, made-up examples, not an accuracy test.</p>
+<p>The checker reads names and numbers. It doesn't read seasons, units or words like rose and fell.</p>
+<p>A pass does not make a sentence true. The checker compares numbers with the card, and some checks do not run on this page.</p>
+<p>The code is at <a href="https://github.com/macayaven/ikigai-loop">github.com/macayaven/ikigai-loop</a>.</p>
+</details>
 <section class="why-card" aria-label="Why this page exists">
 <h2>Why I built this</h2>
 <p>Assistants that read your data and answer in numbers get some of them wrong. They sound just as sure either way, and nobody checks every number by hand.</p>
@@ -139,7 +261,8 @@ summary { cursor: pointer; }
 <p>It still let some through. On Nov 2 a card said "Prs rose by 3 in the last period": the right number, from the wrong window. Five more sentences that day made the same mistake. A test that fails on that sentence came first, then the rule that stops it. Every miss so far is in <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/TRUST.md">TRUST.md</a>.</p>
 <p>When it works, a wrong number is stopped before anyone acts on it. That's why you can try it here, for free, on any sentence an AI wrote for you.</p>
 </section>
-<h2 id="limits">What this does not check</h2>
+<details id="limits">
+<summary>What the checker can't see</summary>
 <p>Every word of a row's name must appear in the sentence, in any letter case, so deploy doesn't match deploys and synonyms don't count.</p>
 <p>Numbers are read as written: 1,200, 3.5 and twelve work. Dates and clock times aren't read as numbers. In the plain form, a percent sign is ignored.</p>
 <p>The number must equal the record. 3.5 and 3.50 are equal.</p>
@@ -149,6 +272,7 @@ summary { cursor: pointer; }
 <p>A sentence with a negation word fails, and a quantity word in place of digits fails: about, over, nearly, half, a couple, twice.</p>
 <p>It can't tell whether a sentence is true, only whether its numbers match what you typed.</p>
 <p>To see for yourself that nothing is sent: open your browser's network panel, then use the page. After loading, the page makes no more requests.</p>
+</details>
 <details>
 <summary>For engineers: JSON input</summary>
 <div>
@@ -300,7 +424,11 @@ summary { cursor: pointer; }
 "use strict";
 const statusEl = document.getElementById("status");
 const LOADING_SENTENCE = "Getting the checker ready. It loads once, about 8 MB. That takes about 3 seconds on a fast connection, or 15 to 30 on a slow phone. After that, everything runs on your device.";
-const PLAIN_SCOPE_LINE = "It checked the number against your record. It didn't check units, time periods or words like rose and fell.";
+const PLAIN_SCOPE_LINE = "It checked the number against the card. It didn't check units, time windows or words like rose and fell.";
+function plainCardText(text) {
+  return String(text).split("your records").join("the card").split("your record").join("the card").split("Your records").join("The card").split("Your record").join("The card");
+}
+const ANSWERS_FORM_URL = "";
 let checker = null;
 function pe(tag, text) {
   const node = document.createElement(tag);
@@ -374,7 +502,7 @@ function showVerdict(root, inputText, renderRaw, notesById, extraLines, plain) {
       const head = document.createElement("p");
       head.setAttribute("class", "result-head");
       head.append(badge(claim.passed));
-      head.append(document.createTextNode(" " + explained.overall));
+      head.append(document.createTextNode(" " + (claim.passed ? "Matches the card." : "Caught a fib.")));
       block.append(head);
       let locator = claim.id;
       if (claim.text === null || claim.text === undefined) {
@@ -388,7 +516,7 @@ function showVerdict(root, inputText, renderRaw, notesById, extraLines, plain) {
       quote.setAttribute("class", "result-quote");
       block.append(quote);
       for (const finding of claim.findings) {
-        block.append(pe("p", finding.sentence));
+        block.append(pe("p", plainCardText(finding.sentence)));
         const codeLine = pe("p", "Code: " + finding.code);
         codeLine.setAttribute("class", "note");
         block.append(codeLine);
@@ -626,9 +754,633 @@ async function boot() {
       buttons[i].removeAttribute("disabled");
     }
     runTryCheck();
+    gameCheckerReady();
   } catch (err) {
     document.body.dataset.state = "failed";
     statusEl.textContent = "The checker could not load. Nothing was sent anywhere. Check your connection, then reload the page.";
+    gameCheckerFailed();
+  }
+}
+let gameRounds = [];
+let gameIndex = 0;
+let gamePlayer = 0;
+let gameCheckerDone = 0;
+let gameCheckerMarks = [];
+let gameGuesses = [];
+let gameWaiting = null;
+let gameSoundOn = true;
+let gameAudio = null;
+function gameEnsureAudio() {
+  if (!gameAudio) {
+    try {
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      gameAudio = new Ctor();
+    } catch (err) {
+      gameAudio = null;
+    }
+  }
+  if (gameAudio && gameAudio.state === "suspended") {
+    gameAudio.resume();
+  }
+}
+function gameTone(freq, start, dur, type, filterFreq) {
+  if (!gameSoundOn || !gameAudio) {
+    return;
+  }
+  const t = gameAudio.currentTime + start;
+  const osc = gameAudio.createOscillator();
+  const gain = gameAudio.createGain();
+  osc.type = type || "sine";
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.linearRampToValueAtTime(0.08, t + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  let tail = gain;
+  if (filterFreq) {
+    const filter = gameAudio.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = filterFreq;
+    gain.connect(filter);
+    tail = filter;
+  }
+  osc.connect(gain);
+  tail.connect(gameAudio.destination);
+  osc.start(t);
+  osc.stop(t + dur + 0.05);
+}
+function gameMarimba(freq, start, dur) {
+  gameTone(freq, start, dur, "sine");
+  gameTone(freq * 4, start, dur * 0.5, "sine");
+}
+function gameClick() {
+  gameTone(620, 0, 0.05);
+}
+function gameChime() {
+  gameMarimba(523.25, 0, 0.12);
+  gameMarimba(659.25, 0.09, 0.14);
+}
+function gameMissTone() {
+  gameTone(190, 0, 0.08, "triangle", 700);
+  gameTone(170, 0.08, 0.09, "triangle", 700);
+}
+function gameTriad() {
+  gameTone(523.25, 0, 0.14);
+  gameTone(659.25, 0.1, 0.14);
+  gameTone(783.99, 0.2, 0.18);
+}
+function gameFanfare() {
+  gameTone(523.25, 0, 0.16);
+  gameTone(659.25, 0.14, 0.16);
+  gameTone(783.99, 0.28, 0.24);
+}
+function gameScoreLine() {
+  document.getElementById("game-score").textContent = "You " + gamePlayer + " · Checker " + gameCheckerDone;
+}
+function gameBuildDots() {
+  const dots = document.getElementById("game-dots");
+  while (dots.firstChild) {
+    dots.removeChild(dots.firstChild);
+  }
+  for (let i = 0; i < 6; i++) {
+    const dot = document.createElement("li");
+    dot.setAttribute("aria-label", "Round " + (i + 1) + " of 6: not played");
+    dots.append(dot);
+  }
+}
+function gameHitRow(round) {
+  const lower = round.sentence.toLowerCase();
+  let found = -1;
+  let count = 0;
+  for (let i = 0; i < round.rows.length; i++) {
+    const words = round.rows[i].name.toLowerCase().split(" ");
+    let all = true;
+    for (let w = 0; w < words.length; w++) {
+      if (lower.indexOf(words[w]) === -1) {
+        all = false;
+        break;
+      }
+    }
+    if (all) {
+      found = i;
+      count += 1;
+    }
+  }
+  return count === 1 ? found : -1;
+}
+function gameNumberSpan(sentence, rowName) {
+  const firstWord = rowName.toLowerCase().split(" ")[0] || "";
+  const anchor = firstWord ? sentence.toLowerCase().indexOf(firstWord) : -1;
+  const re = /\d[\d,]*(?:\.\d+)?/g;
+  let best = null;
+  let match = re.exec(sentence);
+  while (match !== null) {
+    const mid = match.index + match[0].length / 2;
+    const dist = anchor === -1 ? 0 : Math.abs(mid - anchor);
+    if (best === null || dist < best.dist) {
+      best = {start: match.index, end: match.index + match[0].length, dist: dist};
+    }
+    match = re.exec(sentence);
+  }
+  return best;
+}
+function gameRenderSentence(sentence, numStart, numEnd, cls) {
+  const root = document.getElementById("game-sentence");
+  while (root.firstChild) {
+    root.removeChild(root.firstChild);
+  }
+  root.append(document.createTextNode("“"));
+  if (numStart < 0) {
+    root.append(document.createTextNode(sentence));
+  } else {
+    root.append(document.createTextNode(sentence.slice(0, numStart)));
+    const hit = document.createElement("span");
+    hit.setAttribute("class", cls);
+    hit.textContent = sentence.slice(numStart, numEnd);
+    root.append(hit);
+    root.append(document.createTextNode(sentence.slice(numEnd)));
+  }
+  root.append(document.createTextNode("”"));
+}
+function gameRenderRound() {
+  const round = gameRounds[gameIndex];
+  const play = document.getElementById("game-play");
+  play.classList.remove("game-round-in");
+  void play.offsetWidth;
+  play.classList.add("game-round-in");
+  document.getElementById("game-progress").textContent = "Round " + (gameIndex + 1) + " of 6";
+  document.getElementById("game-title").textContent = round.title;
+  const table = document.getElementById("game-table");
+  while (table.firstChild) {
+    table.removeChild(table.firstChild);
+  }
+  for (let i = 0; i < round.rows.length; i++) {
+    const tr = document.createElement("tr");
+    const name = document.createElement("td");
+    name.setAttribute("class", "game-name");
+    name.textContent = round.rows[i].name;
+    const value = document.createElement("td");
+    value.setAttribute("class", "game-value");
+    const pill = document.createElement("span");
+    pill.setAttribute("class", "game-pill");
+    pill.textContent = String(round.rows[i].value);
+    value.append(pill);
+    tr.append(name);
+    tr.append(value);
+    table.append(tr);
+  }
+  gameRenderSentence(round.sentence, -1, -1, "");
+  const reveal = document.getElementById("game-reveal");
+  while (reveal.firstChild) {
+    reveal.removeChild(reveal.firstChild);
+  }
+  reveal.removeAttribute("class");
+  document.getElementById("game-next").setAttribute("hidden", "");
+  document.getElementById("game-right").disabled = false;
+  document.getElementById("game-wrong").disabled = false;
+  document.getElementById("game-right").classList.remove("game-chosen");
+  document.getElementById("game-wrong").classList.remove("game-chosen");
+}
+function gameRowMatches(round, hit, span) {
+  if (hit === -1 || span === null) {
+    return !round.checker_sees_it || round.answer === "right";
+  }
+  const said = parseFloat(round.sentence.slice(span.start, span.end).replace(/,/g, ""));
+  return said === round.rows[hit].value;
+}
+function gameUnderlinePhrase(root, phrase) {
+  const kids = Array.prototype.slice.call(root.childNodes);
+  for (let i = 0; i < kids.length; i++) {
+    const node = kids[i];
+    if (node.nodeType !== 3) {
+      continue;
+    }
+    const at = node.nodeValue.toLowerCase().indexOf(phrase);
+    if (at === -1) {
+      continue;
+    }
+    const before = document.createTextNode(node.nodeValue.slice(0, at));
+    const hit = document.createElement("span");
+    hit.setAttribute("class", "game-season-catch");
+    hit.textContent = node.nodeValue.slice(at, at + phrase.length);
+    const after = document.createTextNode(node.nodeValue.slice(at + phrase.length));
+    root.replaceChild(after, node);
+    root.insertBefore(hit, after);
+    root.insertBefore(before, hit);
+    return;
+  }
+}
+function gameMarkSeasons(round) {
+  if (round.checker_sees_it) {
+    return;
+  }
+  gameUnderlinePhrase(document.getElementById("game-title"), "this season");
+  gameUnderlinePhrase(document.getElementById("game-sentence"), "last season");
+}
+function gameCheckerVerdict(round) {
+  const rowsJson = JSON.stringify(round.rows.map(function (row) {
+    return {name: row.name, number: String(row.value)};
+  }));
+  const built = JSON.parse(checker.buildInput(round.sentence, rowsJson));
+  const rendered = JSON.parse(checker.render(built.input));
+  const pass = rendered.exit_code === 0;
+  if (pass) {
+    if (!round.checker_sees_it) {
+      return {pass: true, line: "PASS. It only reads numbers, so this one slipped past it."};
+    }
+    return {pass: true, line: "PASS. The number matches the card."};
+  }
+  if (/\bnot\b/i.test(round.sentence)) {
+    return {pass: false, line: "FAIL. It caught the \"not\"."};
+  }
+  let cited = null;
+  let record = null;
+  try {
+    const input = JSON.parse(built.input);
+    const ref = input.claims[0].metric_refs[0];
+    cited = ref.value;
+    record = input.metrics[ref.metric_id];
+  } catch (err) {
+    cited = null;
+    record = null;
+  }
+  if (cited !== null && record !== null && cited !== undefined && record !== undefined) {
+    return {pass: false, line: "FAIL. The sentence says " + cited + "; the card says " + record + "."};
+  }
+  const explained = JSON.parse(checker.explain(built.input));
+  const claim = explained.claims[0];
+  let line = explained.overall;
+  if (claim && claim.findings && claim.findings.length) {
+    line = claim.findings.map(function (finding) {
+      return plainCardText(finding.sentence);
+    }).join(" ");
+  } else {
+    line = plainCardText(line);
+  }
+  return {pass: false, line: "FAIL. " + line};
+}
+function gameNoteChecker(pass, round, index) {
+  const agree = (pass && round.answer === "right") || (!pass && round.answer === "wrong");
+  gameCheckerMarks[index] = agree;
+  if (agree) {
+    gameCheckerDone += 1;
+    gameScoreLine();
+  }
+}
+function gameConfetti() {
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
+  const card = document.getElementById("game-card");
+  const colors = ["#0b57d0", "#1a7f37", "#b42318"];
+  for (let i = 0; i < 24; i++) {
+    const bit = document.createElement("span");
+    bit.setAttribute("class", "game-confetti-bit");
+    bit.style.left = (8 + Math.random() * 84) + "%";
+    bit.style.top = "12%";
+    bit.style.background = colors[i % 3];
+    card.append(bit);
+    setTimeout((function (el) {
+      return function () {
+        el.remove();
+      };
+    })(bit), 900);
+  }
+}
+function gameGuess(guess) {
+  if (!gameRounds.length) {
+    return;
+  }
+  gameEnsureAudio();
+  gameClick();
+  const round = gameRounds[gameIndex];
+  const right = guess === round.answer;
+  gameGuesses.push(guess);
+  if (right) {
+    gamePlayer += 1;
+  }
+  gameScoreLine();
+  document.getElementById("game-right").disabled = true;
+  document.getElementById("game-wrong").disabled = true;
+  document.getElementById(guess === "right" ? "game-right" : "game-wrong").classList.add("game-chosen");
+  const dot = document.getElementById("game-dots").children[gameIndex];
+  dot.setAttribute("class", right ? "game-dot-right" : "game-dot-miss");
+  dot.setAttribute("aria-label", "Round " + (gameIndex + 1) + " of 6: " + (right ? "you were right" : "you were wrong"));
+  const hit = gameHitRow(round);
+  const span = hit === -1 ? null : gameNumberSpan(round.sentence, round.rows[hit].name);
+  const match = gameRowMatches(round, hit, span);
+  const cls = match ? "game-num-pass" : "game-num-catch";
+  if (hit !== -1) {
+    const tr = document.getElementById("game-table").querySelectorAll("tr")[hit];
+    if (tr) {
+      tr.setAttribute("class", match ? "game-hit-pass" : "game-hit-catch");
+    }
+  }
+  if (span !== null) {
+    gameRenderSentence(round.sentence, span.start, span.end, cls);
+  }
+  gameMarkSeasons(round);
+  const reveal = document.getElementById("game-reveal");
+  while (reveal.firstChild) {
+    reveal.removeChild(reveal.firstChild);
+  }
+  reveal.setAttribute("class", "game-reveal");
+  let stampText = right ? (guess === "right" ? "Good call" : "Caught it") : "Slipped";
+  if (!round.checker_sees_it) {
+    stampText = guess === "wrong" ? "You caught what the checker missed." : "You both missed it.";
+  }
+  const stamp = pe("p", stampText);
+  stamp.setAttribute("class", "game-stamp" + (right ? "" : " catch"));
+  reveal.append(stamp);
+  reveal.append(pe("p", "You said: " + (guess === "right" ? "It matches" : "It doesn't")));
+  if (!round.checker_sees_it) {
+    reveal.append(pe("p", "The number matches. The season doesn't."));
+  }
+  reveal.append(pe("p", (round.answer === "right" ? "It matches the card." : "It's a fib.") + " " + round.why));
+  const seen = document.createElement("p");
+  const seenHead = document.createElement("strong");
+  seenHead.textContent = "The checker says: ";
+  seen.append(seenHead);
+  if (checker) {
+    let result = null;
+    try {
+      result = gameCheckerVerdict(round);
+    } catch (err) {
+      result = null;
+    }
+    if (result) {
+      seen.append(document.createTextNode(result.line));
+      reveal.append(seen);
+      gameNoteChecker(result.pass, round, gameIndex);
+    } else {
+      seen.append(pe("span", "The checker failed; nothing was sent."));
+      reveal.append(seen);
+    }
+  } else {
+    const wait = pe("span", "Waiting for the checker...");
+    wait.setAttribute("id", "game-waiting");
+    seen.append(wait);
+    reveal.append(seen);
+    gameWaiting = {round: round, index: gameIndex};
+  }
+  if (right) {
+    gameConfetti();
+    if (!round.checker_sees_it) {
+      gameTriad();
+    } else {
+      gameChime();
+    }
+  } else {
+    gameMissTone();
+  }
+  const next = document.getElementById("game-next");
+  next.removeAttribute("hidden");
+  next.focus();
+  next.scrollIntoView({block: "nearest"});
+}
+function gameCheckerReady() {
+  if (!gameWaiting) {
+    return;
+  }
+  const waiting = gameWaiting;
+  gameWaiting = null;
+  let result = null;
+  try {
+    result = gameCheckerVerdict(waiting.round);
+  } catch (err) {
+    result = null;
+  }
+  const line = document.getElementById("game-waiting");
+  if (line) {
+    while (line.firstChild) {
+      line.removeChild(line.firstChild);
+    }
+    if (result) {
+      line.textContent = result.line;
+    } else {
+      line.textContent = "The checker failed; nothing was sent.";
+    }
+  }
+  if (result) {
+    gameNoteChecker(result.pass, waiting.round, waiting.index);
+  }
+}
+function gameCheckerFailed() {
+  gameWaiting = null;
+  const line = document.getElementById("game-waiting");
+  if (line) {
+    line.textContent = "The checker could not load.";
+  }
+}
+function gameCopy(text, btn) {
+  gameEnsureAudio();
+  gameClick();
+  function done() {
+    btn.textContent = "Copied.";
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, function () {
+      gameCopyByHand(text);
+    });
+  } else {
+    gameCopyByHand(text);
+  }
+}
+function gameCopyByHand(text) {
+  const root = document.getElementById("game-final");
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.setAttribute("aria-label", "Your score text to copy by hand");
+  root.append(area);
+  area.select();
+}
+function gameReset() {
+  gameIndex = 0;
+  gamePlayer = 0;
+  gameCheckerDone = 0;
+  gameCheckerMarks = [];
+  gameGuesses = [];
+  gameWaiting = null;
+  document.getElementById("game-final").setAttribute("hidden", "");
+  document.getElementById("game-play").removeAttribute("hidden");
+  gameBuildDots();
+  gameScoreLine();
+  gameRenderRound();
+}
+function gameBlindIndex() {
+  for (let i = 0; i < gameRounds.length; i++) {
+    if (!gameRounds[i].checker_sees_it) {
+      return i;
+    }
+  }
+  return -1;
+}
+function gameMarksRow(root, label, marks, blind) {
+  const wrap = document.createElement("div");
+  wrap.append(pe("p", label));
+  const ol = document.createElement("ol");
+  ol.setAttribute("class", "game-dots");
+  ol.setAttribute("aria-label", label + " results, one mark per round");
+  for (let i = 0; i < 6; i++) {
+    const hit = marks[i] === true;
+    const dot = document.createElement("li");
+    let cls = hit ? "game-dot-right" : "game-dot-miss";
+    if (i === blind) {
+      cls = cls + " game-dot-blind";
+    }
+    dot.setAttribute("class", cls);
+    dot.setAttribute("aria-label", label + " round " + (i + 1) + " of 6: " + (hit ? "hit" : "miss"));
+    ol.append(dot);
+  }
+  wrap.append(ol);
+  root.append(wrap);
+}
+function gameFinal() {
+  const play = document.getElementById("game-play");
+  play.setAttribute("hidden", "");
+  const wrap = document.getElementById("try-wrap");
+  if (wrap) {
+    wrap.removeAttribute("hidden");
+  }
+  const root = document.getElementById("game-final");
+  while (root.firstChild) {
+    root.removeChild(root.firstChild);
+  }
+  root.removeAttribute("hidden");
+  root.setAttribute("class", "game-slip game-final");
+  const n = gamePlayer;
+  const m = gameCheckerMarks.filter(function (mark) {
+    return mark === true;
+  }).length;
+  const blind = gameBlindIndex();
+  const youMarks = [];
+  for (let i = 0; i < gameRounds.length; i++) {
+    youMarks.push(gameGuesses[i] === gameRounds[i].answer);
+  }
+  const checkerMarks = [];
+  for (let i = 0; i < gameRounds.length; i++) {
+    checkerMarks.push(gameCheckerMarks[i] === true);
+  }
+  const lead = pe("p", "You: " + n + "/6 · Checker: " + m + "/6");
+  lead.setAttribute("class", "game-final-score");
+  root.append(lead);
+  if (blind !== -1 && gameGuesses[blind] !== gameRounds[blind].answer) {
+    root.append(pe("p", "One claim fooled you both."));
+  } else {
+    let line = "The checker wins this round.";
+    if (n === 6) {
+      line = "You caught every fib.";
+    } else if (n > m) {
+      line = "You beat the checker.";
+    } else if (n === m) {
+      line = "You tied the checker.";
+    }
+    root.append(pe("p", line));
+  }
+  gameMarksRow(root, "You", youMarks, blind);
+  gameMarksRow(root, "Checker", checkerMarks, blind);
+  if (blind !== -1 && gameGuesses[blind] === "wrong") {
+    root.append(pe("p", "You caught the one the checker can't see."));
+  }
+  root.append(pe("p", "The checker reads names and numbers, not seasons."));
+  const actions = document.createElement("div");
+  actions.setAttribute("class", "game-final-actions");
+  const marksEmojis = function (marks) {
+    return marks.map(function (hit) {
+      return hit ? "✅" : "❌";
+    }).join("");
+  };
+  const shareText = "I scored " + n + "/6 against the number checker. Can you beat us?\nMe " + marksEmojis(youMarks) + " · Checker " + marksEmojis(checkerMarks) + "\nhttps://carloscrespomacaya.com/ikigai-loop/verify/";
+  const share = document.createElement("button");
+  share.setAttribute("type", "button");
+  share.setAttribute("class", "pill");
+  share.textContent = "Share challenge";
+  share.addEventListener("click", function () {
+    gameEnsureAudio();
+    gameClick();
+    if (navigator.share) {
+      navigator.share({text: shareText, url: "https://carloscrespomacaya.com/ikigai-loop/verify/"}).catch(function () {});
+    } else {
+      gameCopy(shareText, share);
+    }
+  });
+  actions.append(share);
+  const replay = document.createElement("button");
+  replay.setAttribute("type", "button");
+  replay.setAttribute("class", "pill");
+  replay.textContent = "Play again";
+  replay.addEventListener("click", function () {
+    gameEnsureAudio();
+    gameClick();
+    gameReset();
+    document.getElementById("game").scrollIntoView({block: "nearest"});
+  });
+  actions.append(replay);
+  const tricky = document.createElement("button");
+  tricky.setAttribute("type", "button");
+  tricky.setAttribute("class", "pill");
+  tricky.textContent = "Try the tricky one yourself";
+  tricky.addEventListener("click", gameTryTricky);
+  actions.append(tricky);
+  const anchor = document.createElement("a");
+  anchor.setAttribute("href", "#try-your-own");
+  anchor.textContent = "Make your own round";
+  anchor.addEventListener("click", function () {
+    const box = document.getElementById("agent-text");
+    if (box) {
+      box.focus();
+    }
+  });
+  actions.append(anchor);
+  root.append(actions);
+  if (ANSWERS_FORM_URL) {
+    const send = document.createElement("a");
+    send.setAttribute("href", ANSWERS_FORM_URL + "?guesses=" + gameGuesses.join(",") + "&score=" + n);
+    send.setAttribute("target", "_blank");
+    send.setAttribute("rel", "noopener");
+    send.textContent = "Send my answers (anonymous)";
+    root.append(send);
+    root.append(pe("p", "This sends only your six guesses and your score, and only if you tap it."));
+  }
+  if (n >= 5) {
+    gameFanfare();
+  }
+}
+function gameTryTricky() {
+  const blind = gameBlindIndex();
+  if (blind === -1) {
+    return;
+  }
+  gameEnsureAudio();
+  gameClick();
+  const round = gameRounds[blind];
+  document.getElementById("agent-text").value = round.sentence;
+  const tbody = document.querySelector("#records-table tbody");
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
+  for (let i = 0; i < round.rows.length; i++) {
+    addRow(round.rows[i].name, String(round.rows[i].value));
+  }
+  runTryCheck();
+  document.getElementById("try-your-own").scrollIntoView({block: "nearest"});
+  document.getElementById("agent-text").focus({preventScroll: true});
+}
+async function loadGame() {
+  try {
+    const res = await fetch("game/rounds.json");
+    if (!res.ok) {
+      throw new Error("rounds fetch failed");
+    }
+    const data = await res.json();
+    gameRounds = data.rounds;
+    document.getElementById("game-loading").setAttribute("hidden", "");
+    document.getElementById("game-play").removeAttribute("hidden");
+    gameBuildDots();
+    gameScoreLine();
+    gameRenderRound();
+  } catch (err) {
+    document.getElementById("game-loading").textContent = "The game could not load. Make your own round below.";
   }
 }
 document.getElementById("try-check").addEventListener("click", runTryCheck);
@@ -640,7 +1392,43 @@ document.getElementById("run").addEventListener("click", runCheck);
 document.getElementById("ex1").addEventListener("click", () => { fillPretty("ex-pass"); runCheck(); });
 document.getElementById("ex2").addEventListener("click", () => { fillPretty("ex-false-number"); runCheck(); });
 document.getElementById("ex3").addEventListener("click", () => { fillPretty("ex-leaked-term"); runCheck(); });
+document.getElementById("game-right").addEventListener("click", () => { gameGuess("right"); });
+document.getElementById("game-wrong").addEventListener("click", () => { gameGuess("wrong"); });
+document.getElementById("game-next").addEventListener("click", () => {
+  gameEnsureAudio();
+  gameClick();
+  gameIndex += 1;
+  if (gameIndex >= gameRounds.length) {
+    gameFinal();
+  } else {
+    gameRenderRound();
+    document.getElementById("game-card").scrollIntoView({block: "nearest"});
+  }
+});
+document.getElementById("game-sound").addEventListener("click", () => {
+  gameSoundOn = !gameSoundOn;
+  const btn = document.getElementById("game-sound");
+  btn.textContent = gameSoundOn ? "Sound: On" : "Sound: Off";
+  btn.setAttribute("aria-pressed", gameSoundOn ? "true" : "false");
+  if (gameSoundOn) {
+    gameEnsureAudio();
+    gameClick();
+  }
+});
+document.getElementById("game-how-link").addEventListener("click", () => {
+  document.getElementById("game-how").setAttribute("open", "");
+});
+document.getElementById("game-skip-form").addEventListener("click", () => {
+  const wrap = document.getElementById("try-wrap");
+  if (wrap) {
+    wrap.removeAttribute("hidden");
+  }
+});
+document.getElementById("limits-link").addEventListener("click", () => {
+  document.getElementById("limits").setAttribute("open", "");
+});
 boot();
+loadGame();
 </script>
 </body>
 </html>

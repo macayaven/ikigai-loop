@@ -147,3 +147,135 @@ Implementation ran on Muse Code, powered by Meta Muse Spark, headless, in
 one session (model version and effort are not surfaced in-session).
 Plan: same session, written first per the session prompt. No model calls
 beyond this session's own work.
+
+## Catch the AI game (follow-up, same branch, 2026-11-03)
+
+The six rounds in `docs/verify/game/rounds.json` were written by Muse
+Wonder in its own sessions from Claude Code's prose prompts, with the
+mistakes asked for, and a design review by three outside models shaped
+the everyday-clutter theme. This session built the game around those
+rounds and never edited them, their README, or anything under
+`framework/`, `docs/verify/bundle.json` or `docs/verify/examples/`.
+
+Through the plain pipeline (`build_checker_input` and `check_claims`),
+rounds 1 and 3 pass with no violations, round 2 fails with
+`L1B_METRIC_VALUE_MISMATCH` only, round 4 (the blind spot) passes, round
+5 fails with `L1B_NEGATED_CLAIM` only, and round 6 fails with
+`L1B_METRIC_VALUE_MISMATCH` only. The checker agrees with the answer on
+five of the six, so M is 5. New tests in `tests/test_verify_game.py` pin
+all of this, the disclosure word for word, and every game string the
+ticket names (tagline, question, advantage line, reveal lines, score
+lines, copy text, send-link line, sound toggle, `ANSWERS_FORM_URL`
+empty).
+
+The game sits right under the heading with no start screen, ahead of a
+new "Try your own" heading above the unchanged form and sections. Each
+round shows dots, "Round N of 6", a running "You P · Checker C" score,
+the card as a small table, the sentence in quotes, the question, and the
+Right/Wrong buttons. The reveal keeps the ticket's order, highlights the
+named row and its number in the pass or catch colour, runs the checker's
+verdict live through the page's own Python, and moves focus to Next
+round. A tap before the checker loads shows the player's part with
+"Waiting for the checker..." and fills the badge in when `boot()`
+finishes. Sound is Web Audio only (click, chime, miss tone, ding,
+fanfare at 5 or 6, gain 0.08), context on first tap, toggle at the top
+right, no storage. Motion is a 0.32 s reveal, 24-square confetti under a
+second, and a score fade, all off under reduced motion.
+
+Size note: the browser-game skill sized this as a Standard build inside
+the existing page (inline markup, no new fetched files beyond
+`game/rounds.json`, no images per the brief), so no art director ran and
+no critic round ran. Verification instead: `node --check` on the page's
+inline script, plus a headless Node playthrough against the shipped
+bytes with a small DOM stub (`/tmp/game-harness.mjs`, kept out of the
+repo). It plays all six rounds, the late-checker path with badge
+fill-in, the 5/6 tie final with blind-spot credit, the exact copy text,
+the no-send-link default, replay reset, and the sound toggle, and it
+prints GAME PLAYTHROUGH OK. No browser exists on this machine
+(`command -v chromium` is empty), so widths, themes, motion and the live
+Pyodide path are covered by static pins only, not a real browser.
+
+Acceptance results for the game: the three verify files pass together
+(`tests/test_verify_game.py`, `tests/test_verify_page.py`,
+`tests/test_verify_page_plain.py`), `ruff check` and `ruff format`
+clean on the new test file, `pyright` 0 errors on it. The full suite
+gives 4648 passed with 36 failures, all in
+`tests/test_proposal_local_retry.py`, `tests/test_ingest.py` (live
+loopback) and `tests/test_cycle_orchestrator.py`; every one of them
+fails identically on the untouched base tree (checked via stash), so
+they are pre-existing and environmental, not from this change.
+`make check` itself could not run
+here: neither `uv` nor `gitleaks` is on PATH, so the venv's pytest, ruff
+and pyright ran directly. I never opened anything under `evals/heldout/`
+at all, and I never read the path in `HIDDEN_CRITERIA_DIR`.
+
+## Second review pass: first screen, quick checker lines, share (2026-11-03, headless)
+
+Claude Code played the game in a real browser at 390 px, and an outside
+playtester sent notes. This pass answers both. The page now opens on
+"Catch the AI", with the old heading as a small line under it, then the
+six-sentence line, the Muse Wonder credit with its "How this works" link,
+and the game at once. The checker status lives inside the game next to
+the sound toggle. The card is tighter and both buttons sit side by side
+from 340 px up, so the sentence and both buttons show without scrolling
+at 390 by 844. "Make your own round" stays hidden until the score card
+shows, with a skip link at the top of the game that reveals it. Taps dim
+both buttons and mark the chosen one, highlights follow the card, and
+the trick round underlines its season words. The reveal speaks in short
+lines built from the checker's own numbers. The score card leads with
+"You: N/6 · Checker: M/6" and shares through the Web Share API with a
+copy fallback. The verdict logic, the bundle, the examples, the rounds
+and everything under `framework/` are untouched, and every verdict pin
+stays.
+
+## The brief Muse Wonder got for the rounds
+
+You are running headless. Nobody can answer questions during this session, so do not ask any: decide, and write down every assumption you make in your final reply.
+
+You are rewriting the content for a small game on the public checker page, docs/verify/. An earlier session of yours wrote docs/verify/game/rounds.json and README.md; a design review found the cards correct but flat. Rewrite both files in your own words and nothing else, then commit them. Don't change any other file.
+
+## The game: Catch the AI
+
+A visitor who has never heard of this project sees a card with a few everyday numbers, then a sentence an AI wrote about that card. They tap Right or Wrong. Then the page reveals the right answer, and separately what the page's checker saw. Six rounds, then a score. Some sentences are right, some are wrong on purpose, and the page says so: "Muse Wonder, a Meta model, wrote these sentences from each card. We asked it to slip mistakes into some." You are that model: you write the sentences.
+
+Read docs/verify/verify_page.py and the "What this does not check" list in docs/verify/index.html first, so you know exactly what the page's plain checker does: every word of a row's name must appear in the sentence (any letter case); the number in the sentence must equal that row's number; a sentence with a negation word fails; a quantity word instead of digits fails; it does not check time periods, units, or words like rose and fell.
+
+## The six rounds, in this order
+
+1. A right sentence. The checker passes it.
+2. A wrong number: one number in the sentence differs from the card. The checker catches it.
+3. A right sentence on a different card. The checker passes it.
+4. The right number from the wrong time window. The card's title names its period (for example "This season") and its row name has no period word, so the checker matches the number and passes it, but the sentence puts it in another period (for example "last season"). This is the round the checker can't catch, and the page says so in advance. It's the same kind of mistake a real assistant made on 2 November: the right number, from the wrong window.
+5. A sentence that uses "not" against the card (for example the card says 12 croissants and the sentence says it did not sell 12). The answer is wrong, and the checker catches the "not".
+6. A wrong number again, on a different card, with the wrong number close to the right one so it's easy to miss.
+
+Theme, new: a "tiny chaos audit" of everyday clutter almost everyone recognises and smiles at: browser tabs, screenshots, mystery cables, unfinished hobby projects, untitled files, recording retakes, odd socks, a busy group chat. Each card gets a short, playful title (for example the feeling of "I'll close these tabs eventually"), with plain row names. Write your own titles, rows and sentences; don't reuse these examples word for word. Never health, fitness, food intake, money, prices, salaries, politics, religion, real people, real companies or real places. Each card has two or three rows; each row is a short name and a whole number; row names are plain words that appear in the sentence exactly as written on the card. For round 4, the card's title names the period, for example "... this season", and the sentence says "last season".
+
+## File 1: docs/verify/game/rounds.json
+
+UTF-8 JSON, two-space indent, this shape and nothing more:
+- "version": 1
+- "written_by": "muse-wonder-1.0"
+- "disclosure": "Muse Wonder, a Meta model, wrote these sentences from each card. We asked it to slip mistakes into some. Six fixed, made-up examples, not an accuracy test."
+- "rounds": a list of six objects, each with:
+  - "id": "r1" to "r6"
+  - "title": the card's title, a few words, including the period where the round needs one
+  - "rows": a list of objects with "name" (string) and "value" (whole number)
+  - "sentence": the AI's sentence, under 15 words, one sentence, one number from the card or the slipped one
+  - "answer": "right" or "wrong"
+  - "why": one plain sentence under 20 words a non-engineer understands, saying why the answer is what it is, with the numbers (for example "The card says 12 croissants; the sentence says 15.")
+  - "checker_sees_it": true when the checker's verdict agrees with the answer, false for round 4
+  - "checker_note": only for round 4 and round 5, one plain sentence: round 4 says the checker only compares numbers here and can't see time windows; round 5 says the checker catches the "not" because it can't prove a "did not" sentence from the card
+
+## File 2: docs/verify/game/README.md
+
+Short and plain: say that a design review on Nov 3 asked for funnier, more relatable cards and suggested the everyday-clutter theme, and that you wrote every final title, row and sentence; say who wrote the rounds (Muse Wonder, in a headless Muse Code session that Claude Code started from a prose prompt), that the mistakes were asked for, which round the checker can't catch and why, and that tests pin the checker's verdict for each round.
+
+## Checks before you commit
+
+- For every round, run its sentence and rows through the page's plain pipeline exactly as the page does (read how index.html and verify_page.py build the checker input from the plain form; use build_checker_input and check_claims from docs/verify/verify_page.py, with the repository's Python), and report each round's checker result and codes. Rounds 1 and 3 must pass; rounds 2, 5 and 6 must fail; round 4 must pass. If any round doesn't behave this way, rewrite that round until it does, and say so.
+- Every sentence and "why" is under the word limits above; no em dashes; none of the words leverage, delve, robust, seamless, thrilled, excited, game-changer, revolutionary, magic.
+
+Then, with this prefix on every uv and git command, from the repository root: PRE_COMMIT_HOME="$PWD/.git/pre-commit-home" UV_CACHE_DIR="$PWD/.git/uv-cache", stage only those two files and make one commit with the message "Ticket 25: the game's rounds, rewritten by Muse Wonder on an everyday-clutter theme", with no trailers of any kind. Don't push, fetch, rebase, merge or reset. Do not open anything under evals/heldout/ except evals/heldout/README.md, and never read the directory HIDDEN_CRITERIA_DIR points to.
+
+Reply with: the six rounds as written (title, rows, sentence, answer); each round's checker result and codes; the commit hash; and every assumption you made.
