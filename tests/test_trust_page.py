@@ -350,17 +350,13 @@ def test_replay_rows() -> None:
 def test_scope_sentence_and_links() -> None:
     assert SCOPE in _page()
     lines = (_root() / "README.md").read_text(encoding="utf-8").splitlines()
-    pitch = next(i for i, line in enumerate(lines) if "can't back" in line)
-    index = pitch + 1
-    while index < len(lines) and not lines[index].strip():
-        index += 1
-    paragraph: list[str] = []
-    while index < len(lines) and lines[index].strip():
-        paragraph.append(lines[index])
-        index += 1
-    para = "\n".join(paragraph)
-    assert SCOPE in para
-    assert "[Misses so far: see TRUST.md](docs/TRUST.md)" in para
+    pitch = next(
+        i
+        for i, line in enumerate(lines)
+        if "It can't check that a sentence is true" in line
+    )
+    assert "Code checks the numbers I can measure" in lines[pitch]
+    assert "[Misses so far: see TRUST.md](docs/TRUST.md)" in lines[pitch]
     agents = (_root() / "AGENTS.md").read_text(encoding="utf-8")
     assert SCOPE in agents
     assert '"' + SCOPE + '"' in agents

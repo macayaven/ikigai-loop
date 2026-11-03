@@ -30,10 +30,10 @@ PINNED_QUESTION = "Does the AI's sentence match the card?"
 PINNED_RUNNING_SCORE = '"You " + gamePlayer + " · Checker " + gameCheckerDone'
 PINNED_PROGRESS = '"Round " + (gameIndex + 1) + " of 6"'
 PINNED_FINAL_LEAD = '"You: " + n + "/6 · Checker: " + m + "/6"'
-PINNED_TAGLINE = "Six sentences an AI wrote. Some hide a fib. Can you beat the checker?"
-PINNED_BYLINE = (
-    "Muse Wonder, Meta's AI, wrote these sentences, and we asked it to hide some fibs."
+PINNED_TAGLINE = (
+    "Six sentences an AI wrote. Some hide a trap. Can you beat the checker?"
 )
+PINNED_BYLINE = "Muse Wonder, Meta's AI, wrote these sentences, and we asked it to set traps in some."
 PINNED_HOW_LINE = (
     "Muse Wonder wrote the cards and sentences. Your browser checks their numbers."
 )
@@ -158,7 +158,7 @@ def test_checker_score_M_is_pinned() -> None:
 def test_game_comes_first_with_no_start_screen() -> None:
     page = PAGE.read_text()
     assert "<h1>Catch the AI</h1>" in page
-    assert "Does your AI get your numbers right?" in page
+    assert '"Strawberry" has three r\'s. AI once said two.' in page
     assert PINNED_TAGLINE in page
     assert PINNED_BYLINE in page
     assert "Paste a sentence your AI wrote" not in page
@@ -267,7 +267,7 @@ def test_reveal_lines_are_pinned() -> None:
         "You both missed it.",
         '"You said: " + (guess === "right" ? "It matches" : "It doesn\'t")',
         "It matches the card.",
-        "It's a fib.",
+        "It's a trap.",
         "The number matches. The season doesn't.",
         "The checker says:",
         "PASS. The number matches the card.",
@@ -307,7 +307,7 @@ def test_score_card_lines_are_pinned() -> None:
     for line in (
         PINNED_FINAL_LEAD,
         "One claim fooled you both.",
-        "You caught every fib.",
+        "You caught every trap.",
         "You tied the checker.",
         "You beat the checker.",
         "The checker wins this round.",

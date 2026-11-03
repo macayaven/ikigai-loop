@@ -177,9 +177,9 @@ summary { cursor: pointer; }
 </head>
 <body data-state="loading">
 <h1>Catch the AI</h1>
-<p class="game-sub">Does your AI get your numbers right?</p>
-<p class="intro">Six sentences an AI wrote. Some hide a fib. Can you beat the checker?</p>
-<p class="note">Muse Wonder, Meta's AI, wrote these sentences, and we asked it to hide some fibs. <a href="#game-how" id="game-how-link">How this works</a><br>It runs on your device; nothing you type leaves it.</p>
+<p class="game-sub">"Strawberry" has three r's. AI once said two.</p>
+<p class="intro">Six sentences an AI wrote. Some hide a trap. Can you beat the checker?</p>
+<p class="note">Muse Wonder, Meta's AI, wrote these sentences, and we asked it to set traps in some. <a href="#game-how" id="game-how-link">How this works</a><br>It runs in your browser; nothing you type leaves your device.</p>
 <section aria-label="Catch the AI game" id="game">
 <div class="game-head">
 <p class="note game-skip"><a id="game-skip-form" href="#try-your-own">Skip to make your own round</a></p>
@@ -214,7 +214,7 @@ summary { cursor: pointer; }
 </section>
 <div id="try-wrap" hidden>
 <h2 id="try-your-own">Make your own round</h2>
-<p class="intro">Give a card a few numbers, then write a sentence about them, or paste one an AI told you. The checker tells you if it's a fib.</p>
+<p class="intro">Give a card a few numbers, then write a sentence about them, or paste one an AI told you. The checker tells you if the sentence gets your numbers wrong.</p>
 <section class="steps-card" aria-label="Check a sentence in three steps">
 <div class="step">
 <p class="step-label"><span class="step-num" aria-hidden="true">1</span><strong>The card</strong></p>
@@ -502,7 +502,7 @@ function showVerdict(root, inputText, renderRaw, notesById, extraLines, plain) {
       const head = document.createElement("p");
       head.setAttribute("class", "result-head");
       head.append(badge(claim.passed));
-      head.append(document.createTextNode(" " + (claim.passed ? "Matches the card." : "Caught a fib.")));
+      head.append(document.createTextNode(" " + (claim.passed ? "Matches the card." : "Caught a mistake.")));
       block.append(head);
       let locator = claim.id;
       if (claim.text === null || claim.text === undefined) {
@@ -1095,7 +1095,7 @@ function gameGuess(guess) {
   if (!round.checker_sees_it) {
     reveal.append(pe("p", "The number matches. The season doesn't."));
   }
-  reveal.append(pe("p", (round.answer === "right" ? "It matches the card." : "It's a fib.") + " " + round.why));
+  reveal.append(pe("p", (round.answer === "right" ? "It matches the card." : "It's a trap.") + " " + round.why));
   const seen = document.createElement("p");
   const seenHead = document.createElement("strong");
   seenHead.textContent = "The checker says: ";
@@ -1269,7 +1269,7 @@ function gameFinal() {
   } else {
     let line = "The checker wins this round.";
     if (n === 6) {
-      line = "You caught every fib.";
+      line = "You caught every trap.";
     } else if (n > m) {
       line = "You beat the checker.";
     } else if (n === m) {
