@@ -15,7 +15,9 @@ All Muse Code sessions ran headless in Contributor mode, on this public repo and
 | Review fixes | muse-spark-1.3, medium | 23:56 to 00:08 | `d303c74` | eight fixes from Claude Code's review, refreeze before any score | 7,745,287 (7,393,263) | 92,188 | 56,882 |
 | Fact wording | muse-spark-1.3, medium | 00:11 to 00:14, Nov 4 | `ffdd615` | facts that survive quoting, `lint`, fence tests | 2,594,045 (2,287,784) | 36,997 | 23,206 |
 | Energy pack | muse-spark-1.3, medium | 00:25 to 00:27 | `9685756` | second pack, its oracle, generic freeze path, frozen cases | 2,588,017 (2,350,647) | 43,326 | 24,073 |
-| Docs | muse-spark-1.3, low | this session | this commit | this note, docs/domains.md, results files, CONTRIBUTIONS.md, one README sentence | not counted here | | |
+| Docs | muse-spark-1.3, low | 00:38 to 00:39 | `5ff848d` | this note, docs/domains.md, results files, CONTRIBUTIONS.md, one README sentence | 1,134,979 (904,585) | 13,234 | 6,160 |
+| Cold-review fixes | muse-spark-1.3, medium | 00:47 to 00:51 | `efd73f2` | one-day windows, summary and resume refuse mixed records, `git_dirty`, text corrections | 4,308,421 (4,039,744) | 40,599 | 20,052 |
+| Table update | muse-spark-1.3, low | this session | this commit | this table row and the CONTRIBUTIONS entry's session count | not counted here | | |
 
 ## Acceptance tests
 
