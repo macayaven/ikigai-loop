@@ -5,6 +5,7 @@ I drew the parts here so I can find them when I need them.
 ## Components
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
 flowchart TD
     cycle["the cycle:<br/>one card per slot"]
     collectors["collectors: screen time,<br/>calendars, GitHub"]

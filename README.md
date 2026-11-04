@@ -29,6 +29,7 @@ It looks at what I actually did, from my screen time, calendar and GitHub, picks
 ### One card, end to end
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
 flowchart TD
     subgraph Mine["On my machine"]
         Records["My records:<br/>screen time, calendars,<br/>GitHub activity"]
@@ -63,6 +64,7 @@ Follow the arrows: the gate sits between every draft and my phone, and Muse Wond
 ### What the number check does
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
 flowchart TD
     Split["A draft sentence is<br/>split into claims"]
     Pull["Each number is pulled<br/>out of its claim"]
