@@ -218,7 +218,7 @@ summary { cursor: pointer; }
 <p class="intro">Give a card a few numbers, then write a sentence about them, or paste one an AI told you. The checker tells you if the sentence gets your numbers wrong.</p>
 <section class="steps-card" aria-label="Check a sentence in three steps">
 <div class="step">
-<p class="step-label"><span class="step-num" aria-hidden="true">1</span><strong>The card</strong></p>
+<p class="step-label"><span class="step-num" aria-hidden="true">1</span><strong>The card: your record, the truth</strong></p>
 <table id="records-table">
 <thead><tr><th scope="col">What</th><th scope="col">How many</th></tr></thead>
 <tbody>
@@ -228,7 +228,7 @@ summary { cursor: pointer; }
 <p><button id="row-add" type="button" disabled>Add a row</button></p>
 </div>
 <div class="step">
-<p class="step-label"><span class="step-num" aria-hidden="true">2</span><label for="agent-text"><strong>The sentence</strong></label></p>
+<p class="step-label"><span class="step-num" aria-hidden="true">2</span><label for="agent-text"><strong>The sentence: what the AI wrote, checked against the card</strong></label></p>
 <textarea id="agent-text" spellcheck="true">Deploys reached 12 in November.</textarea>
 </div>
 <div class="step">
@@ -259,7 +259,7 @@ summary { cursor: pointer; }
 <section class="why-card" aria-label="Why this page exists">
 <h2>Why I built this</h2>
 <p>Assistants that read your data and answer in numbers get some of them wrong. They sound just as sure either way, and nobody checks every number by hand.</p>
-<p>I built an assistant that offers each free hour of my day to promises I wrote down. Before a card reaches my phone, this check compares every number on it with my records.</p>
+<p>I built an assistant that offers each free hour of my day to promises I wrote down. Before a card reaches my phone, this check compares the numbers on it with my records.</p>
 <p>It still let some through. On Nov 2 a card said "Prs rose by 3 in the last period": the right number, from the wrong window. Five more sentences that day made the same mistake. A test that fails on that sentence came first, then the rule that stops it. Every miss so far is in <a href="https://github.com/macayaven/ikigai-loop/blob/main/docs/TRUST.md">TRUST.md</a>.</p>
 <p>When it works, a wrong number is stopped before anyone acts on it. That's why you can try it here, for free, on any sentence an AI wrote for you.</p>
 </section>
@@ -426,7 +426,7 @@ summary { cursor: pointer; }
 "use strict";
 const statusEl = document.getElementById("status");
 const LOADING_SENTENCE = "Getting the checker ready. It loads once, about 8 MB. That takes about 3 seconds on a fast connection, or 15 to 30 on a slow phone. After that, everything runs on your device.";
-const PLAIN_SCOPE_LINE = "It checked the number against the card. It didn't check units, time windows or words like rose and fell.";
+const PLAIN_LIMIT_LINE = "It only compares numbers with the card's names, so it doesn't check units, time windows or words like rose and fell.";
 function plainCardText(text) {
   return String(text).split("your records").join("the card").split("your record").join("the card").split("Your records").join("The card").split("Your record").join("The card");
 }
@@ -525,7 +525,10 @@ function showVerdict(root, inputText, renderRaw, notesById, extraLines, plain) {
         codeLine.setAttribute("class", "note");
         block.append(codeLine);
       }
-      block.append(pe("p", PLAIN_SCOPE_LINE));
+      if (claim.checked) {
+        block.append(pe("p", plainCardText(claim.checked)));
+      }
+      block.append(pe("p", plainCardText(claim.limit || PLAIN_LIMIT_LINE)));
       root.append(block);
     }
     if (extraLines) {
