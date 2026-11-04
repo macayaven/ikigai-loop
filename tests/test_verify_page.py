@@ -781,13 +781,9 @@ WORKER_ORIGIN = "https://ikigai-tries.macayaven.workers.dev"
 
 
 def _csp_directive(page: str, name: str) -> str:
-    meta = next(
-        line for line in page.splitlines() if "Content-Security-Policy" in line
-    )
+    meta = next(line for line in page.splitlines() if "Content-Security-Policy" in line)
     content = meta.split('content="', 1)[1].rsplit('"', 1)[0]
-    parts = dict(
-        item.split(" ", 1) for item in content.split("; ") if item.strip()
-    )
+    parts = dict(item.split(" ", 1) for item in content.split("; ") if item.strip())
     return parts[name]
 
 
