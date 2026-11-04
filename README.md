@@ -31,21 +31,21 @@ It looks at what I actually did, from my screen time, calendar and GitHub, picks
 ```mermaid
 flowchart TD
     subgraph Mine["On my machine"]
-        Records["My records: screen time, calendars, GitHub activity"]
-        Counted["Plain code counts signals into code facts"]
-        Glimmer["Muse Glimmer (open weights, on my own GB10) turns counted signals into facts that cite their events"]
-        Gate["The gate checks every number, source and time window"]
-        Fallback["A labelled fallback with no checked facts"]
+        Records["My records:<br/>screen time, calendars,<br/>GitHub activity"]
+        Counted["Plain code counts signals<br/>into code facts"]
+        Glimmer["Muse Glimmer, open weights<br/>on my own GB10, turns<br/>counted signals into facts<br/>that cite their events"]
+        Gate["The gate checks every<br/>number, source and<br/>time window"]
+        Fallback["A labelled fallback<br/>with no checked facts"]
         Card["The card is built"]
-        Learn["The learner updates from what I pick"]
-        Audit["An after-card audit recounts the GitHub figures and writes the public log"]
+        Learn["The learner updates<br/>from what I pick"]
+        Audit["An after-card audit<br/>recounts the GitHub figures<br/>and writes the public log"]
     end
     subgraph Meta["On Meta servers"]
-        Wonder["Muse Wonder writes one option per promise, from the facts and my promises only"]
-        Hear["Transcription hears my voice note"]
-        Compile["Muse Spark compiles it into one typed edit to my list"]
+        Wonder["Muse Wonder writes one<br/>option per promise, from<br/>the facts and my promises only"]
+        Hear["Transcription hears<br/>my voice note"]
+        Compile["Muse Spark compiles it<br/>into one typed edit<br/>to my list"]
     end
-    Phone["My phone on Telegram: I tap, or I send a voice note"]
+    Phone["My phone on Telegram:<br/>I tap, or I send<br/>a voice note"]
     Records --> Counted --> Glimmer --> Wonder
     Counted --> Wonder
     Wonder --> Gate
@@ -64,13 +64,13 @@ Follow the arrows: the gate sits between every draft and my phone, and Muse Wond
 
 ```mermaid
 flowchart TD
-    Split["A draft sentence is split into claims"]
-    Pull["Each number is pulled out of its claim"]
-    Match["Each number is matched to the fact it cites, by metric, time window, unit and direction"]
-    Pass["The sentence passes and the card can go out"]
-    Fail["The draft fails with a named code, such as L1B_METRIC_VALUE_MISMATCH (a cited number reads wrong) or L1B_CLAIM_WITHOUT_EVIDENCE (a claim cites nothing)"]
-    Once["Muse Wonder gets the draft back once"]
-    Fallback["The card goes out as a labelled fallback with no checked facts"]
+    Split["A draft sentence is<br/>split into claims"]
+    Pull["Each number is pulled<br/>out of its claim"]
+    Match["Each number is matched<br/>to the fact it cites, by<br/>metric, time window,<br/>unit and direction"]
+    Pass["The sentence passes<br/>and the card can go out"]
+    Fail["The draft fails with a<br/>named code, such as<br/>L1B_METRIC_VALUE_MISMATCH:<br/>a cited number reads wrong<br/>L1B_CLAIM_WITHOUT_EVIDENCE:<br/>a claim cites nothing"]
+    Once["Muse Wonder gets<br/>the draft back once"]
+    Fallback["The card goes out as<br/>a labelled fallback<br/>with no checked facts"]
     Split --> Pull --> Match
     Match -- "every number matches" --> Pass
     Match -- "a number doesn't match" --> Fail
@@ -93,14 +93,14 @@ sequenceDiagram
     participant Wonder as Muse Wonder on Meta's servers
     participant Gate as the gate
     participant Voice as Meta's transcription and Muse Spark
-    Note over Cycle: 25 minutes before the slot, the cycle reads my records and counts signals
+    Note over Cycle: 25 minutes before the slot,<br/>the cycle reads my records<br/>and counts signals
     Cycle->>Glimmer: counted signals
     Glimmer-->>Cycle: facts that cite their events
     Cycle->>Wonder: facts and my promises
     Wonder-->>Cycle: one option per promise
     Cycle->>Gate: the draft
     Gate-->>Cycle: a pass, or a fail with a code
-    Note over Cycle: one retry after a fail, then a labelled fallback
+    Note over Cycle: one retry after a fail,<br/>then a labelled fallback
     Cycle->>Phone: the card, at the slot
     Phone-->>Cycle: my tap, which is recorded
     Phone->>Voice: a voice note, if I send one

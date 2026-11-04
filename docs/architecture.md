@@ -6,20 +6,20 @@ I drew the parts here so I can find them when I need them.
 
 ```mermaid
 flowchart TD
-    cycle["the cycle: one card per slot"]
-    collectors["collectors: screen time, calendars, GitHub"]
-    glimmer["glimmer: facts from counted signals, on my GB10"]
-    proposal["proposal: Muse Wonder's options"]
+    cycle["the cycle:<br/>one card per slot"]
+    collectors["collectors: screen time,<br/>calendars, GitHub"]
+    glimmer["glimmer: facts from<br/>counted signals, on my GB10"]
+    proposal["proposal:<br/>Muse Wonder's options"]
     briefing["briefing: the gate"]
-    telegram["telegram: the card and my taps"]
-    voice["voice: a note becomes one typed edit"]
+    telegram["telegram:<br/>the card and my taps"]
+    voice["voice: a note becomes<br/>one typed edit"]
     learner["learner: what I pick"]
-    metrics["metrics: the run in numbers"]
-    store["store: rows, facts and attempts"]
-    provenance["provenance: the public per-slot log"]
+    metrics["metrics:<br/>the run in numbers"]
+    store["store: rows,<br/>facts and attempts"]
+    provenance["provenance: the public<br/>per-slot log"]
     verify["verify: the checker's core"]
-    checker["the checker page, in the browser"]
-    audit["source_audit: the independent recount"]
+    checker["the checker page,<br/>in the browser"]
+    audit["source_audit: the<br/>independent recount"]
     cycle --> collectors
     cycle --> glimmer
     cycle --> proposal
