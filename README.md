@@ -20,7 +20,7 @@ Why check numbers separately: the assistant writes friendly sentences, and a fri
 
 I've used it myself for the past few days. The first real card reached my phone on Nov 2 at 13:30, on time, and I chose with a tap. An independent recount of its pull-request figure, straight from GitHub's own records rather than from my store, matched. The whole live run in numbers, misses included: [docs/live-run.md](docs/live-run.md).
 
-As an extra, I built a public version of the check, so anyone can try the idea without setting up the system: [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/) opens on a game, Catch the AI. Muse Wonder wrote six sentences and set traps in some. Can you beat the checker? It runs in your browser.
+As an extra, I built a public version of the check, so anyone can try the idea without setting up the system: [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/) opens on a game, Catch the AI. Muse Wonder wrote six sentences and set traps in some. Can you beat the checker? It runs in your browser, and nothing you type is sent unless you choose to save your tries ([what's saved](docs/tries-privacy.md)).
 
 ## How it works
 
@@ -239,5 +239,3 @@ It gives no medical advice by design: it only schedules commitments I wrote, and
 ## License
 
 The code is under the Apache License 2.0; see [LICENSE](LICENSE).
-
-Saving your tries is opt-in: nothing is sent unless you choose to save them, and what is saved is described in [docs/tries-privacy.md](docs/tries-privacy.md), stored by [macayaven/ikigai-tries](https://github.com/macayaven/ikigai-tries).
