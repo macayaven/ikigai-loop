@@ -829,3 +829,15 @@ I said why this exists, showed how it works in two diagrams, and said what the r
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code wrote the "Why it exists" paragraph and the specification for the diagrams and the table and started this session from a prose prompt, and Muse Code (muse-spark-1.3, medium effort) wrote the diagrams and the table and checked them against the code.
+
+## Docs 12 (2026-11-04)
+
+I cut the README down to a landing page and moved the long sections to pages under docs/. Docs only: no behaviour, schema, fixture or test change.
+
+- `docs/status.md`: new page with the moved Status section (all of it except the Nov 2 Glimmer paragraph) and What the real loop needs, with link targets fixed for use from docs/.
+- `docs/architecture.md`: new page with the moved The pieces and Code off the card path sections, plus a Components flowchart of the framework packages with each arrow read from the import lines.
+- `docs/glossary.md`: new page with the moved Words I use below (renamed Words I use) and About the Venn diagram sections.
+- `README.md`: I added the three stills (the Nov 3 20:30 card, the Nov 2 15:30 check, one Catch the AI round), a third diagram of one card in time checked against the orchestrator, a Results section holding the Nov 2 Glimmer paragraph and a six-row table of measured results, and a Documentation table of the pages under docs/.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code made the three stills from the demo video's frames, which had passed its frame-by-frame privacy check, wrote this specification and started this session from a prose prompt, and Muse Code (muse-spark-1.3, medium effort) moved the sections, wrote the new sections and diagrams and checked them against the code.
