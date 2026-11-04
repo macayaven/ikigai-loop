@@ -906,3 +906,13 @@ I reported a second outside try of the checker in the README. Docs only: no beha
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
+
+## Docs 10d
+
+I made two sentences true now that saving tries is opt-in. Docs and page text only: no code or test logic change.
+
+- `docs/TRUST.md`: the last line now says saving tries is opt-in and links the privacy notice.
+- `docs/verify/index.html`: the network-panel sentence now says the page makes no more requests until I choose to save my tries, and then one per try.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
