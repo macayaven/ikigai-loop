@@ -85,6 +85,6 @@ The command `uv run python -m evals.replay_sentence` replays sentences at HEAD; 
 | "Prs rose by 3 through the last period." | passed | Containment gap; repeats 15:30 |
 | "Prs in the last period increased by 3 since the last card." | stopped: L1B_SINCE_LAST_WORDING | True but stopped |
 
-I check this page with [tests/test_trust_page.py](../tests/test_trust_page.py) and run `uv run pytest tests/test_trust_page.py -q`. That test checks the phone table against the cases and the gate at HEAD, the counts sentence, the scheduled count, the replay results, and that every cited file exists; for PRs it checks that a cited PR number matches a merged commit on main, or is one of the open PRs the test names; it doesn't check the store's totals, the blind scores, or the live-move facts.
+I check this page with [tests/test_trust_page.py](../tests/test_trust_page.py) and run `uv run pytest tests/test_trust_page.py -q`. That test checks the phone table against the cases and the gate at HEAD, the counts sentence, the scheduled count, the replay results, and that every cited file exists; for PRs it checks that a cited PR number matches a merged commit on main, or is one of the open PRs the test names; it doesn't check store totals, blind scores, or live-move facts.
 
-Saving tries is opt-in; what is saved is described in the privacy notice and stored by [macayaven/ikigai-tries](https://github.com/macayaven/ikigai-tries).
+Opt-in; what's saved: tries-privacy.md; [macayaven/ikigai-tries](https://github.com/macayaven/ikigai-tries).
