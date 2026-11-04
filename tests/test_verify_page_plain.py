@@ -858,6 +858,68 @@ def test_plain_pane_lists_every_gap_on_one_line() -> None:
     page = (ROOT / "docs" / "verify" / "index.html").read_text()
     assert "The plain form does not supply units or periods" not in page
     assert (
-        "It checked the number against the card. "
-        "It didn't check units, time windows or words like rose and fell."
+        "It only compares numbers with the card's names, "
+        "so it doesn't check units, time windows or words like rose and fell."
     ) in page
+    explained_limit = explained["claims"][0]["limit"]
+    assert explained_limit == (
+        "It only compares numbers with the card's names, "
+        "so it doesn't check units, time windows or words like rose and fell."
+    )
+
+
+def test_first_time_user_sentence_names_no_row() -> None:
+    built = _job1("Students who did not attend were 15", [("Students absent", "9")])
+    assert built["problems"] == []
+    assert isinstance(built["input"], str)
+    assert check_claims(built["input"]).passed is False
+    explained = _job2(built["input"])
+    assert explained["passed"] is False
+    claim = explained["claims"][0]
+    assert "L1B_CLAIM_WITHOUT_EVIDENCE" in [
+        finding["code"] for finding in claim["findings"]
+    ]
+    assert any(
+        "Students absent, 9" in finding["sentence"] for finding in claim["findings"]
+    )
+    assert claim["checked"] == (
+        "What it checked: nothing, because the sentence uses none of the card's names."
+    )
+    assert claim["limit"] == (
+        "It only compares numbers with the card's names, "
+        "so it doesn't check units, time windows or words like rose and fell."
+    )
+
+
+def test_wrong_number_checked_line() -> None:
+    built = _job1("Deploys reached 12 in November.", [("November deploys", "7")])
+    assert built["problems"] == []
+    assert isinstance(built["input"], str)
+    assert check_claims(built["input"]).passed is False
+    explained = _job2(built["input"])
+    assert explained["passed"] is False
+    claim = explained["claims"][0]
+    assert claim["checked"] == (
+        "What it checked: 12 against the card's November deploys (7)."
+    )
+    assert claim["limit"] == (
+        "It only compares numbers with the card's names, "
+        "so it doesn't check units, time windows or words like rose and fell."
+    )
+
+
+def test_matching_number_checked_line() -> None:
+    built = _job1("Deploys reached 7 in November.", [("November deploys", "7")])
+    assert built["problems"] == []
+    assert isinstance(built["input"], str)
+    assert check_claims(built["input"]).passed is True
+    explained = _job2(built["input"])
+    assert explained["passed"] is True
+    claim = explained["claims"][0]
+    assert claim["checked"] == (
+        "What it checked: 7 against the card's November deploys (7)."
+    )
+    assert claim["limit"] == (
+        "It only compares numbers with the card's names, "
+        "so it doesn't check units, time windows or words like rose and fell."
+    )

@@ -851,3 +851,13 @@ I committed the final live-run page and the provenance log. Docs only: no behavi
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code generated both files with read-only scripts and started this session from a prose prompt, and Muse Code (muse-spark-1.3, low effort) committed them unedited.
+
+## Checker clarity (2026-11-04)
+
+I made the checker page say which side is the truth and what each sentence was checked against. No checker rule changed: the page still runs the same check in the browser.
+
+- `docs/verify/index.html`: step 1 now reads "The card: your record, the truth" and step 2 reads "The sentence: what the AI wrote, checked against the card", with the same step numbers, strong text and input label as before.
+- `docs/verify/verify_page.py` and `docs/verify/index.html`: each plain-form claim now shows "What it checked" built from the pairs the checker made for that claim, with the number as written and the card row name and number as typed, then the fixed limit line; when a claim names no card row, its finding also lists the card rows as typed, and the code line under it is unchanged.
+- `tests/test_verify_page.py` and `tests/test_verify_page_plain.py`: I updated the old scope line pins to the new wording and added the first-time user case, the wrong number case, the matching number case and the step label pins.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, medium effort) made the edit.

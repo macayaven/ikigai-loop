@@ -43,6 +43,14 @@ type MetricNumber = int | float
 
 _NO_NUMBER_REASON = "It has no number in it."
 
+_CHECKED_NONE = (
+    "What it checked: nothing, because the sentence uses none of the card's names."
+)
+_CHECKED_LIMIT = (
+    "It only compares numbers with the card's names, "
+    "so it doesn't check units, time windows or words like rose and fell."
+)
+
 _MARKER_RE = re.compile(r"^\s*(?:[-*\u2022]|\d+[.)])\s+")
 _SPLIT_RE = re.compile(r"(?<=[.?!]) +")
 
@@ -355,6 +363,51 @@ def _backs(value: MetricNumber, token: NumberToken) -> bool:
         return False
 
 
+def _card_has_line(metrics: dict[str, Any]) -> str:
+    """Card rows by typed names and numbers, for a sentence that matched none."""
+    parts = [f"{name}, {value}" for name, value in metrics.items()]
+    return "The card has: " + "; ".join(parts) + "."
+
+
+def _checked_line(
+    text: Any,
+    refs: list[dict[str, Any]],
+    metrics: dict[str, Any],
+) -> str:
+    """What the checker compared for one claim, from the pairs it actually made.
+
+    Values come from the input only: the number raw text from the sentence
+    and the row name and number as typed. Checker messages are never read.
+    """
+    if not refs:
+        return _CHECKED_NONE
+    tokens = extract_number_tokens(text) if isinstance(text, str) else []
+    used = [False] * len(tokens)
+    clauses: list[str] = []
+    for ref in refs:
+        try:
+            want = Decimal(str(ref["value"]))
+        except Exception:  # noqa: BLE001 - an unreadable ref falls back to str
+            want = None
+        raw: str | None = None
+        if want is not None:
+            for index, token in enumerate(tokens):
+                if used[index]:
+                    continue
+                try:
+                    if token.value == want or abs(token.value) == abs(want):
+                        raw = token.raw
+                        used[index] = True
+                        break
+                except Exception:  # noqa: BLE001, S112 - a bad token never matches
+                    continue
+        if raw is None:
+            raw = str(ref["value"])
+        card_value = metrics.get(ref["metric_id"], ref["value"])
+        clauses.append(f"{raw} against the card's {ref['metric_id']} ({card_value})")
+    return "What it checked: " + "; ".join(clauses) + "."
+
+
 def _finding_sentence(
     code: str,
     message: str,
@@ -386,7 +439,10 @@ def _finding_sentence(
             else "It says a number and none of your records backs that number."
         )
     if code == "L1B_CLAIM_WITHOUT_EVIDENCE":
-        return "Nothing from your records was checked against it."
+        base = "Nothing from your records was checked against it."
+        if metrics:
+            return base + " " + _card_has_line(metrics)
+        return base
     if code == "L1B_UNKNOWN_METRIC":
         missing = [
             f"It names {ref['metric_id']}, which is not in your records table."
@@ -529,6 +585,8 @@ def _explain_report(checker_input: str) -> str:
                 "hidden": hidden,
                 "findings": plain,
                 "gaps": gaps_by_claim.get(claim.id),
+                "checked": _checked_line(claim.text, refs, metrics),
+                "limit": _CHECKED_LIMIT,
             }
         )
     return json.dumps({"overall": overall, "passed": passed, "claims": out_claims})

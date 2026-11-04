@@ -21,9 +21,12 @@ PINNED_SUBHEAD = '"Strawberry" has three r\'s. AI once said two.'
 PINNED_TAGLINE = (
     "Six sentences an AI wrote. Some hide a trap. Can you beat the checker?"
 )
-PINNED_PLAIN_SCOPE = (
-    "It checked the number against the card. "
-    "It didn't check units, time windows or words like rose and fell."
+PINNED_PLAIN_LIMIT = (
+    "It only compares numbers with the card's names, "
+    "so it doesn't check units, time windows or words like rose and fell."
+)
+PINNED_CHECKED_NONE = (
+    "What it checked: nothing, because the sentence uses none of the card's names."
 )
 PINNED_PYODIDE = "0.27.7"
 PINNED_JSDELIVR = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"
@@ -230,11 +233,12 @@ def test_steps_label_the_plain_form_in_order() -> None:
     page = PAGE.read_text()
     step_1 = (
         '<p class="step-label"><span class="step-num" aria-hidden="true">1</span>'
-        "<strong>The card</strong></p>"
+        "<strong>The card: your record, the truth</strong></p>"
     )
     step_2 = (
         '<p class="step-label"><span class="step-num" aria-hidden="true">2</span>'
-        '<label for="agent-text"><strong>The sentence</strong></label></p>'
+        '<label for="agent-text"><strong>The sentence: what the AI wrote, '
+        "checked against the card</strong></label></p>"
     )
     step_3 = (
         '<p class="step-label"><span class="step-num" aria-hidden="true">3</span>'
@@ -245,6 +249,13 @@ def test_steps_label_the_plain_form_in_order() -> None:
     assert step_3 in page
     assert page.index(step_1) < page.index(step_2) < page.index(step_3)
     assert "<th" in page and "What" in page and "How many" in page
+
+
+def test_step_labels_name_the_card_as_truth() -> None:
+    page = PAGE.read_text()
+    assert "The card: your record, the truth" in page
+    assert "The sentence: what the AI wrote, checked against the card" in page
+    assert '<label for="agent-text">' in page
 
 
 def test_page_links_records_and_recipe() -> None:
@@ -734,14 +745,15 @@ def test_finding_code_shows_in_small_print() -> None:
 
 def test_plain_card_scope_line_is_pinned() -> None:
     page = PAGE.read_text()
-    assert PINNED_PLAIN_SCOPE in page
+    assert PINNED_PLAIN_LIMIT in page
+    assert "It checked the number against the card." not in page
     assert "The plain form does not supply units or periods" not in page
     show_body = page.split("function showVerdict")[1].split("function fillPretty")[0]
-    assert "PLAIN_SCOPE_LINE" in show_body
-    assert show_body.index('"Code: " + finding.code') < show_body.index(
-        "PLAIN_SCOPE_LINE"
-    )
-    assert show_body.index("PLAIN_SCOPE_LINE") < show_body.index("Technical details")
+    assert "PLAIN_LIMIT_LINE" in show_body
+    assert "claim.checked" in show_body
+    assert "claim.limit" in show_body
+    assert show_body.index('"Code: " + finding.code') < show_body.index("claim.checked")
+    assert show_body.index("claim.checked") < show_body.index("Technical details")
 
 
 def test_plain_card_orders_badge_headline_quote_and_code() -> None:
@@ -753,9 +765,10 @@ def test_plain_card_orders_badge_headline_quote_and_code() -> None:
     head_at = plain_branch.index("result-head")
     quote_at = plain_branch.index("result-quote")
     code_at = plain_branch.index('"Code: " + finding.code')
-    scope_at = plain_branch.index("PLAIN_SCOPE_LINE")
+    checked_at = plain_branch.index("claim.checked")
+    limit_at = plain_branch.index("claim.limit")
     details_at = plain_branch.index("Technical details")
-    assert head_at < quote_at < code_at < scope_at < details_at
+    assert head_at < quote_at < code_at < checked_at < limit_at < details_at
     assert "notesById" in plain_branch
     assert plain_branch.index("notesById") > details_at
     assert "const overall = document.createElement" not in plain_branch
