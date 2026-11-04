@@ -2,7 +2,7 @@
 const CONSENT_KEY = "ikigai-tries-consent";
 const VISITOR_KEY = "ikigai-tries-visitor";
 const DELETE_KEY = "ikigai-tries-delete-key";
-const ENDPOINT = "https://ikigai-tries.workers.dev";
+const ENDPOINT = "https://ikigai-tries.macayaven.workers.dev";
 const PAGE_VERSION = "verify@e0a1fd7";
 
 function readConsent() {
