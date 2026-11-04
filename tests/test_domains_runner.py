@@ -15,7 +15,6 @@ from framework.domains.runner import (
     validate_proposal,
 )
 from framework.domains.schema import load_pack
-
 from framework.proposal.core import (
     MetaUnavailableError,
     WonderRequest,

@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from framework.domains.__main__ import main
 
+from framework.domains.__main__ import main
 from framework.proposal.core import WonderRequest, WonderResponse
 
 ROOT = Path(__file__).resolve().parents[1]

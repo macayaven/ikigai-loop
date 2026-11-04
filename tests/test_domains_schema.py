@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+
 from framework.domains.schema import PackError, load_pack
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+
 from framework.domains.csv_adapter import (
     IdentityError,
     SourceHashMismatch,
@@ -16,7 +17,6 @@ from framework.domains.csv_adapter import (
     window_starts,
 )
 from framework.domains.schema import load_pack
-
 from framework.verify.hardened import check_claims
 
 ROOT = Path(__file__).resolve().parents[1]
