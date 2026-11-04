@@ -863,3 +863,15 @@ I made the checker page say which side is the truth and what each sentence was c
 - One sentence on the page now says the check compares the numbers on a card, not every number.
 
 Claude Code started these sessions from prose prompts and Muse Code made the edits: muse-spark-1.3 at medium effort for the page and tests, then at low effort for the one-sentence fix and a neutral test example.
+
+## Docs 10 (2026-11-04)
+
+I aligned the README with the demo story and reported the finished live run. Docs only: no behaviour, schema, fixture or test change.
+
+- `README.md`: I rewrote the opening around what ikigai means and goals that stop competing, and I closed the first screen by introducing the checker as an extra anyone can try without setting up the system.
+- `README.md`: the Results section now gives the registered run's results from docs/live-run.md, R7 and R8 included, the two that went against me.
+- `README.md`: two wording fixes now that the run has ended, in How it works and in What works today and what doesn't, plus the closing paragraph on balance over time.
+- `docs/r9-audio.md`: it now states that Chatterbox and Whisper were evaluation tools only, never called by the product, and that every model the product calls at runtime is a Meta model.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
