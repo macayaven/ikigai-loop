@@ -818,3 +818,14 @@ I regenerated the live-run page from the committed command output. Docs only: no
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code generated the page with read-only scripts and started this session from a prose prompt; Muse Code (muse-spark-1.3, low effort) committed it unedited.
+
+## Docs 11 (2026-11-04)
+
+I said why this exists, showed how it works in two diagrams, and said what the research changed. Docs only: no behaviour, schema, fixture or test change.
+
+- `README.md`: I added the Why it exists paragraph after the first paragraph, with the Webb and Sheeran, Emmons and King, and Liu, Zhang and Liang quotes checked against docs/LITERATURE.md.
+- `README.md`: I drew two mermaid flowcharts in How it works, one card end to end and what the number check does, with each step checked against the code.
+- `README.md`: I added the What the research changed section with eight rows from docs/LITERATURE.md.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code wrote the "Why it exists" paragraph and the specification for the diagrams and the table and started this session from a prose prompt, and Muse Code (muse-spark-1.3, medium effort) wrote the diagrams and the table and checked them against the code.

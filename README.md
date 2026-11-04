@@ -2,6 +2,8 @@
 
 I made myself two promises: do my work, and spend time with my family away from screens. Most hours can only go to one of them. Ikigai Loop is the assistant I built to help me choose, and I'm its first user: I set my goals, made my promises and set up its signals.
 
+**Why it exists.** Wanting something and doing it are far apart: in a meta-analysis, "a medium-to-large change in intention (d = 0.66) leads to a small-to-medium change in behavior (d = 0.36)" (Webb & Sheeran 2006), and in Emmons & King (1988), "Subjects were less likely to act on conflictful and ambivalent strivings", like my two promises. An assistant that offers the next free hour at the moment of choice could help, but only if I can trust what it says about my own life. Models write fluent sentences that quote the wrong number: across four generative search engines, "a mere 51.5% of generated sentences are fully supported by citations" (Liu, Zhang & Liang 2023). So no card reaches my phone until plain code has checked every number in it against my records, and the same check can test the numbers in any sentence an AI writes about a record.
+
 Four Meta models do the work: Muse Wonder writes the two options, Muse Glimmer (open weights, on my own GB10) turns my records into facts, Muse Spark turns a voice note into one edit to my list, and Muse Code wrote the code. Plain code checks every number.
 
 That check works on your own numbers too, on [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/): give it a card and a sentence, and it flags a sentence that says 12 deploys when the card says 7. An engineer outside the project tried it on an example from their own work: it passed the matching figure and flagged the mismatch once they changed the record. It also runs on public data with known answers: on UCI bike-share and home-energy records it stopped 120 of 120 planted errors and passed 38 of 38 true claims ([docs/domains.md](docs/domains.md)).
@@ -21,6 +23,60 @@ You can try the same check with nothing to install: [the checker page](https://c
 ## How it works
 
 It looks at what I actually did, from my screen time, calendar and GitHub, picks two options from a list of promises I wrote down myself, and sends them to my phone as a Telegram card. Before the card goes out, plain code checks every figure in it, say "you coded 4.7 hours yesterday", against those records, and a wrong one is sent back. I choose with a tap, or correct it with a voice note, and later cards learn from what I pick.
+
+### One card, end to end
+
+```mermaid
+flowchart TD
+    subgraph Mine["On my machine"]
+        Records["My records: screen time, calendars, GitHub activity"]
+        Counted["Plain code counts signals into code facts"]
+        Glimmer["Muse Glimmer (open weights, on my own GB10) turns counted signals into facts that cite their events"]
+        Gate["The gate checks every number, source and time window"]
+        Fallback["A labelled fallback with no checked facts"]
+        Card["The card is built"]
+        Learn["The learner updates from what I pick"]
+        Audit["An after-card audit recounts the GitHub figures and writes the public log"]
+    end
+    subgraph Meta["On Meta servers"]
+        Wonder["Muse Wonder writes one option per promise, from the facts and my promises only"]
+        Hear["Transcription hears my voice note"]
+        Compile["Muse Spark compiles it into one typed edit to my list"]
+    end
+    Phone["My phone on Telegram: I tap, or I send a voice note"]
+    Records --> Counted --> Glimmer --> Wonder
+    Counted --> Wonder
+    Wonder --> Gate
+    Gate -- "passes" --> Card --> Phone
+    Gate -- "fails: one retry" --> Wonder
+    Gate -- "fails again" --> Fallback --> Card
+    Phone --> Hear --> Compile
+    Compile -- "a corrected card is drafted" --> Wonder
+    Phone -- "my pick" --> Learn
+    Card --> Audit
+```
+
+Follow the arrows: the gate sits between every draft and my phone, and Muse Wonder sees facts and promises, never my raw records.
+
+### What the number check does
+
+```mermaid
+flowchart TD
+    Split["A draft sentence is split into claims"]
+    Pull["Each number is pulled out of its claim"]
+    Match["Each number is matched to the fact it cites, by metric, time window, unit and direction"]
+    Pass["The sentence passes and the card can go out"]
+    Fail["The draft fails with a named code, such as L1B_METRIC_VALUE_MISMATCH (a cited number reads wrong) or L1B_CLAIM_WITHOUT_EVIDENCE (a claim cites nothing)"]
+    Once["Muse Wonder gets the draft back once"]
+    Fallback["The card goes out as a labelled fallback with no checked facts"]
+    Split --> Pull --> Match
+    Match -- "every number matches" --> Pass
+    Match -- "a number doesn't match" --> Fail
+    Fail -- "first time" --> Once -- "checked again" --> Split
+    Fail -- "second time" --> Fallback
+```
+
+A draft with a wrong number gets one retry; if it fails again, the card goes out as a labelled fallback with no checked facts, never with the wrong number.
 
 ## Try it
 
@@ -61,6 +117,23 @@ Disclosed limit: a unit word that agrees with one cited metric can still fail ag
 Start from [examples/verify/README.md](examples/verify/README.md) for the
 full worked case, and [docs/ADAPTER.md](docs/ADAPTER.md) to map your own
 agent's output shape to this input.
+
+## What the research changed
+
+Eight of the papers in docs/LITERATURE.md each changed a specific part of this repo:
+
+| Idea and source | Where it lives | What it changed |
+|---|---|---|
+| If-then plans, Gollwitzer and Sheeran 2006 | [profiles/commitments.example.json](profiles/commitments.example.json) | I give each commitment a set time, so it reads like an action plan. |
+| Feedback on behaviour, Harkin et al. 2016 | [framework/cycle/slot_ledger.py](framework/cycle/slot_ledger.py) | I record what happens in my ledger. |
+| Self-determination, Ryan and Deci 2000 | [framework/briefing/commitments.py](framework/briefing/commitments.py) | I keep the commitments mine, and I can always refuse. |
+| Unsupported cited sentences, Liu, Zhang and Liang 2023 | [framework/briefing/gate.py](framework/briefing/gate.py) | I make plain code reconcile every number against its cited source. |
+| Atomic facts, Min et al. 2023 | [framework/rater/split.py](framework/rater/split.py) | I rate atomic claims in R1, apart from my gate parser matching a number. |
+| Invariance and directional tests, Ribeiro et al. 2020 | [evals/r3.py](evals/r3.py) | I built R3 on these, with my own thresholds and my own expected picks. |
+| Unfaithful model explanations, Turpin et al. 2023 | [evals/r4.py](evals/r4.py) | I perturb cited facts in R4 instead of trusting a stated reason. |
+| Pre-registration, Nosek et al. 2018 | [docs/PREREG.md](docs/PREREG.md) | I register first, then I log deviations by date. |
+
+These papers ground my choices and methods, but they do not show that my product works; [docs/LITERATURE.md](docs/LITERATURE.md) holds the full table.
 
 ## What works today, and what doesn't
 
