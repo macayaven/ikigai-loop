@@ -86,31 +86,33 @@ A draft with a wrong number gets one retry; if it fails again, the card goes out
 
 ```mermaid
 sequenceDiagram
-    participant Me as "me"
-    participant Phone as "my phone on Telegram"
-    participant Cycle as "the cycle on my machine"
-    participant Glimmer as "Muse Glimmer on my GB10"
-    participant Wonder as "Muse Wonder on Meta's servers"
-    participant Gate as "the gate"
-    participant Voice as "Meta's transcription and Muse Spark"
-    Note over Cycle: "25 minutes before the slot, the cycle reads my records and counts signals"
-    Cycle->>Glimmer: "counted signals"
-    Glimmer-->>Cycle: "facts that cite their events"
-    Cycle->>Wonder: "facts and my promises"
-    Wonder-->>Cycle: "one option per promise"
-    Cycle->>Gate: "the draft"
-    Gate-->>Cycle: "a pass, or a fail with a code"
-    Note over Cycle: "one retry after a fail, then a labelled fallback"
-    Cycle->>Phone: "the card, at the slot"
-    Phone-->>Cycle: "my tap, which is recorded"
-    Phone->>Voice: "a voice note, if I send one"
-    Voice-->>Cycle: "one typed edit"
-    Cycle->>Gate: "a corrected draft"
-    Gate-->>Cycle: "a pass, or a fail with a code"
-    Cycle->>Phone: "a corrected card"
+    participant Me as me
+    participant Phone as my phone on Telegram
+    participant Cycle as the cycle on my machine
+    participant Glimmer as Muse Glimmer on my GB10
+    participant Wonder as Muse Wonder on Meta's servers
+    participant Gate as the gate
+    participant Voice as Meta's transcription and Muse Spark
+    Note over Cycle: 25 minutes before the slot, the cycle reads my records and counts signals
+    Cycle->>Glimmer: counted signals
+    Glimmer-->>Cycle: facts that cite their events
+    Cycle->>Wonder: facts and my promises
+    Wonder-->>Cycle: one option per promise
+    Cycle->>Gate: the draft
+    Gate-->>Cycle: a pass, or a fail with a code
+    Note over Cycle: one retry after a fail, then a labelled fallback
+    Cycle->>Phone: the card, at the slot
+    Phone-->>Cycle: my tap, which is recorded
+    Phone->>Voice: a voice note, if I send one
+    Voice-->>Cycle: one typed edit
+    Cycle->>Wonder: a new draft, when the offer changed
+    Wonder-->>Cycle: a corrected option
+    Cycle->>Gate: a corrected draft
+    Gate-->>Cycle: a pass, or a fail with a code
+    Cycle->>Phone: a corrected card
 ```
 
-I read the draft path in the orchestrator, and each arrow here is a step it takes.
+Read it top to bottom: one card from my records to my phone, then a voice note that corrects it.
 
 ## Try it
 
@@ -216,7 +218,7 @@ It gives no medical advice by design: it only schedules commitments I wrote, and
 | [docs/PREREG.md](docs/PREREG.md) | The plan I registered before the first card. |
 | [docs/LITERATURE.md](docs/LITERATURE.md) | The papers behind my choices. |
 | [docs/domains.md](docs/domains.md) | The checker on public records from two other domains. |
-| [docs/r9-audio.md](docs/r9-audio.md) | Voice correction through real speech. |
+| [docs/r9-audio.md](docs/r9-audio.md) | Voice correction through spoken audio, in my cloned voice. |
 | [docs/glimmer-evidence.md](docs/glimmer-evidence.md) | Proof that Glimmer runs on my own hardware. |
 | [docs/ADAPTER.md](docs/ADAPTER.md) | How to map your own agent to the checker. |
 | [CONTRIBUTIONS.md](CONTRIBUTIONS.md) | Who built what, and with which models. |

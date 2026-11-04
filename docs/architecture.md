@@ -6,81 +6,37 @@ I drew the parts here so I can find them when I need them.
 
 ```mermaid
 flowchart TD
-    Cycle["the cycle: runs each slot from facts to card"]
-    Collectors["collectors: store my signals"]
-    Store["store: my rows, facts and attempts"]
-    Glimmer["Glimmer: local facts from counted signals"]
-    Proposal["proposal: one Wonder option per goal"]
-    Briefing["briefing: the gate and its checks"]
-    Telegram["Telegram: the card and my taps"]
-    Voice["voice: my voice notes as typed edits"]
-    Learner["learner: what I pick"]
-    Verify["verify: the public checker"]
-    Provenance["provenance: the public per-slot record"]
-    Metrics["metrics: the run in numbers"]
-    Schemas["schemas: the shapes everything shares"]
-    Audit["source_audit: my independent recount"]
-    Checker["the checker page: try it in your browser"]
-    Collectors --> Schemas
-    Collectors --> Store
-    Cycle --> Briefing
-    Cycle --> Schemas
-    Cycle --> Collectors
-    Cycle --> Glimmer
-    Cycle --> Learner
-    Cycle --> Proposal
-    Cycle --> Store
-    Cycle --> Telegram
-    Cycle --> Voice
-    Glimmer --> Briefing
-    Glimmer --> Collectors
-    Glimmer --> Schemas
-    Glimmer --> Store
-    Schemas --> Briefing
-    Schemas --> Glimmer
-    Schemas --> Learner
-    Schemas --> Proposal
-    Metrics --> Briefing
-    Metrics --> Cycle
-    Metrics --> Glimmer
-    Metrics --> Learner
-    Metrics --> Schemas
-    Metrics --> Store
-    Metrics --> Telegram
-    Metrics --> Voice
-    Proposal --> Briefing
-    Proposal --> Glimmer
-    Proposal --> Schemas
-    Proposal --> Verify
-    Provenance --> Briefing
-    Provenance --> Cycle
-    Provenance --> Glimmer
-    Provenance --> Schemas
-    Store --> Briefing
-    Store --> Glimmer
-    Store --> Proposal
-    Telegram --> Collectors
-    Telegram --> Proposal
-    Telegram --> Schemas
-    Telegram --> Store
-    Telegram --> Voice
-    Verify --> Briefing
-    Verify --> Schemas
-    Voice --> Briefing
-    Voice --> Collectors
-    Voice --> Cycle
-    Voice --> Glimmer
-    Voice --> Proposal
-    Voice --> Schemas
-    Voice --> Store
-    Voice --> Telegram
-    Learner --> Schemas
-    Checker --> Briefing
-    Checker --> Verify
-    Briefing --> Schemas
+    cycle["the cycle: one card per slot"]
+    collectors["collectors: screen time, calendars, GitHub"]
+    glimmer["glimmer: facts from counted signals, on my GB10"]
+    proposal["proposal: Muse Wonder's options"]
+    briefing["briefing: the gate"]
+    telegram["telegram: the card and my taps"]
+    voice["voice: a note becomes one typed edit"]
+    learner["learner: what I pick"]
+    metrics["metrics: the run in numbers"]
+    store["store: rows, facts and attempts"]
+    provenance["provenance: the public per-slot log"]
+    verify["verify: the checker's core"]
+    checker["the checker page, in the browser"]
+    audit["source_audit: the independent recount"]
+    cycle --> collectors
+    cycle --> glimmer
+    cycle --> proposal
+    cycle --> briefing
+    cycle --> telegram
+    cycle --> voice
+    cycle --> learner
+    glimmer --> collectors
+    proposal --> briefing
+    voice --> proposal
+    verify --> briefing
+    checker --> verify
+    metrics --> store
+    provenance --> cycle
 ```
 
-I read the import lines, and each arrow is a package importing from another. I left blocks, tryit, domains and rater out so the picture fits, and source_audit stands alone because it shares no code with the product.
+Arrows show the main imports between packages; schemas, which every package uses, and small helper imports are left out. source_audit imports nothing from framework/, so the GitHub recount shares no code with what it checks.
 
 ## The pieces
 
