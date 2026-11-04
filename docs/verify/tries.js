@@ -51,6 +51,9 @@ function maskText(value) {
   out = out.replace(/https?:\/\/\S+/gi, "[url]");
   out = out.replace(/www\.\S+/gi, "[url]");
   out = out.replace(/\d{9,}/g, "[digits]");
+  out = out.replace(/\+?[\d(][\d\s.\-()]*\d/g, function (m) {
+    return m.replace(/\D/g, "").length >= 7 ? "[phone]" : m;
+  });
   return out;
 }
 
@@ -119,12 +122,15 @@ async function saveTry(payload) {
   const visitor = getVisitor();
   const deleteKey = getDeleteKey();
   const deleteHash = await sha256hex(deleteKey);
+  const codes = Array.isArray(payload.codes) ? payload.codes : [];
+  const privateHit = codes.indexOf("L1_PII") !== -1 || codes.indexOf("L1_SECRET") !== -1 || codes.indexOf("L1_PRIVATE_TERM") !== -1;
   const sentence = String(payload.sentence == null ? "" : payload.sentence);
-  const maskedSentence = maskText(sentence);
   const checked = String(payload.checked == null ? "" : payload.checked);
-  const maskedChecked = maskText(checked);
-  const card = maskCard(payload.card == null ? [] : payload.card);
-  const redacted = !!payload.redacted || maskedSentence !== sentence || maskedChecked !== checked;
+  const rawCard = payload.card == null ? [] : payload.card;
+  const maskedSentence = privateHit ? "" : maskText(sentence);
+  const maskedChecked = privateHit ? "" : maskText(checked);
+  const card = maskCard(rawCard);
+  const redacted = !!payload.redacted || privateHit || maskedSentence !== sentence || maskedChecked !== checked || JSON.stringify(card) !== JSON.stringify(rawCard);
   const row = {
     visitor: visitor,
     page_version: payload.pageVersion || PAGE_VERSION,
