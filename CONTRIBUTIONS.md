@@ -875,3 +875,12 @@ I aligned the README with the demo story and reported the finished live run. Doc
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
+
+## Docs 10b (2026-11-04)
+
+I linked the demo video from the README. Docs only: no behaviour, schema, fixture or test change.
+
+- `README.md`: I added one sentence at the end of the first paragraph linking the three minute demo video on YouTube.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
