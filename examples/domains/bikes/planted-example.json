@@ -1,0 +1,8 @@
+[
+  {
+    "id": "c1",
+    "text": "Casual rentals were 1,025 on 2012-06-11.",
+    "metric_refs": [{"metric_id": "casual_rentals.2012-06-11", "value": 1025}],
+    "fact_ids": []
+  }
+]

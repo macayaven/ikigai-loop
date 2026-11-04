@@ -1,0 +1,14 @@
+[
+  {
+    "id": "c1",
+    "text": "Total rentals were 7,001 on 2012-06-05.",
+    "metric_refs": [{"metric_id": "total_rentals.2012-06-05", "value": 7001}],
+    "fact_ids": []
+  },
+  {
+    "id": "c2",
+    "text": "Total rentals were 7,010 on 2012-06-05.",
+    "metric_refs": [{"metric_id": "total_rentals.2012-06-05", "value": 7010}],
+    "fact_ids": []
+  }
+]
