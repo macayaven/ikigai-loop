@@ -87,4 +87,4 @@ The command `uv run python -m evals.replay_sentence` replays sentences at HEAD; 
 
 I check this page with [tests/test_trust_page.py](../tests/test_trust_page.py) and run `uv run pytest tests/test_trust_page.py -q`. That test checks the phone table against the cases and the gate at HEAD, the counts sentence, the scheduled count, the replay results, and that every cited file exists; for PRs it checks that a cited PR number matches a merged commit on main, or is one of the open PRs the test names; it doesn't check store totals, blind scores, or live-move facts.
 
-Opt-in; what's saved: tries-privacy.md; [macayaven/ikigai-tries](https://github.com/macayaven/ikigai-tries).
+Saving tries is [opt-in](tries-privacy.md).
