@@ -884,3 +884,6 @@ I linked the demo video from the README. Docs only: no behaviour, schema, fixtur
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
+## Tries: consented saving of checker tries
+
+Author: Beam. Added the consent panel, footer line, tries.js, privacy notice, and the service-side integration points in the checker page. Muse Code's rules and game rounds are unchanged.

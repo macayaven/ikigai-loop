@@ -210,7 +210,7 @@ def test_adapter_prompt_byte_identical() -> None:
     assert prompt in doc
 
 
-PINNED_PRIVACY = "It runs in your browser; nothing you type leaves your device."
+PINNED_PRIVACY = "It runs in your browser. Nothing you type leaves your device unless you choose to save your tries."
 PINNED_MAKE_HEADING = "Make your own round"
 PINNED_MAKE_SUB = (
     "Give a card a few numbers, then write a sentence about them, "

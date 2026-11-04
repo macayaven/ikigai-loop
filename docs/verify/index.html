@@ -179,7 +179,15 @@ summary { cursor: pointer; }
 <h1>Catch the AI</h1>
 <p class="game-sub">"Strawberry" has three r's. AI once said two.</p>
 <p class="intro">Six sentences an AI wrote. Some hide a trap. Can you beat the checker?</p>
-<p class="note">Muse Wonder, Meta's AI, wrote these sentences, and I asked it to set traps in some. <a href="#game-how" id="game-how-link">How this works</a><br>It runs in your browser; nothing you type leaves your device.</p>
+<p class="note">Muse Wonder, Meta's AI, wrote these sentences, and I asked it to set traps in some. <a href="#game-how" id="game-how-link">How this works</a><br>It runs in your browser. Nothing you type leaves your device unless you choose to save your tries.</p>
+<section id="tries-consent" aria-label="Help improve the checker" hidden>
+<p>Help me improve the checker? If you say yes, each card and sentence you check here, and what the checker said, is saved without your name, email or IP address. I read them to find where the checker gets things wrong, and I may quote anonymous examples when I write about the project. Please don't type names or private details. Say no and nothing leaves your device.</p>
+<div class="controls">
+<button id="tries-yes" type="button">Yes, save my tries</button>
+<button id="tries-no" type="button">No thanks</button>
+<a id="tries-whats-saved" href="https://github.com/macayaven/ikigai-loop/blob/main/docs/tries-privacy.md">What's saved</a>
+</div>
+</section>
 <section aria-label="Catch the AI game" id="game">
 <div class="game-head">
 <p class="note game-skip"><a id="game-skip-form" href="#try-your-own">Skip to make your own round</a></p>
@@ -254,7 +262,7 @@ summary { cursor: pointer; }
 <p>The checker reads names and numbers. It doesn't read seasons, units or words like rose and fell.</p>
 <p>A pass does not make a sentence true. The checker compares numbers with the card, and some checks do not run on this page.</p>
 <p>The code is at <a href="https://github.com/macayaven/ikigai-loop">github.com/macayaven/ikigai-loop</a>.</p>
-<p>A paid study uses a separate version of this page, with consent; ordinary players send nothing.</p>
+<p>A paid study uses a separate version of this page, with its own consent. Other visitors send nothing unless they choose to save their tries.</p>
 </details>
 <section class="why-card" aria-label="Why this page exists">
 <h2>Why I built this</h2>
@@ -691,6 +699,26 @@ function runTryCheck() {
       area.append(verdict);
       showVerdict(verdict, built.input, checker.render(built.input), notesById, uncheckedLines, true);
       document.getElementById("try-json").textContent = built.input;
+      try {
+        const explained = JSON.parse(checker.explain(built.input));
+        const codes = [];
+        for (const claim of (explained.claims || [])) {
+          for (const f of (claim.findings || [])) codes.push(f.code);
+        }
+        const verdict = explained.passed ? "PASS" : "FAIL";
+        const checked = (explained.claims && explained.claims.length) ? explained.claims[0].checked : "";
+        if (window.ikigaiTriesReady && window.ikigaiTries) {
+          window.ikigaiTries.saveTry({
+            mode: "form",
+            verdict: verdict,
+            card: JSON.parse(collectRows()),
+            sentence: agentText,
+            codes: codes,
+            checked: checked || "",
+            redacted: false
+          });
+        }
+      } catch (err) {}
     }
   }
 }
@@ -725,6 +753,7 @@ function addRow(name, number) {
   tr.append(numberCell);
   tbody.append(tr);
 }
+window.ikigaiTriesReady = false;
 async function boot() {
   document.body.dataset.state = "loading";
   try {
@@ -762,10 +791,12 @@ async function boot() {
     }
     runTryCheck();
     gameCheckerReady();
+    window.ikigaiTriesReady = true;
   } catch (err) {
     document.body.dataset.state = "failed";
     statusEl.textContent = "The checker could not load. Nothing was sent anywhere. Check your connection, then reload the page.";
     gameCheckerFailed();
+    window.ikigaiTriesReady = true;
   }
 }
 let gameRounds = [];
@@ -1118,6 +1149,31 @@ function gameGuess(guess) {
       seen.append(document.createTextNode(result.line));
       reveal.append(seen);
       gameNoteChecker(result.pass, round, gameIndex);
+      try {
+        const rowsJson = JSON.stringify(round.rows.map(function (row) {
+          return { name: row.name, number: String(row.value) };
+        }));
+        const built = JSON.parse(checker.buildInput(round.sentence, rowsJson));
+        const explained = JSON.parse(checker.explain(built.input));
+        const codes = [];
+        for (const claim of (explained.claims || [])) {
+          for (const f of (claim.findings || [])) codes.push(f.code);
+        }
+        const checked = (explained.claims && explained.claims.length) ? explained.claims[0].checked : "";
+        if (window.ikigaiTriesReady && window.ikigaiTries) {
+          window.ikigaiTries.saveTry({
+            mode: "game",
+            verdict: result.pass ? "PASS" : "FAIL",
+            card: [{ round: String(gameIndex + 1) }],
+            sentence: round.sentence,
+            codes: codes,
+            checked: checked || "",
+            answer: guess === "right" ? "It matches" : "It doesn't",
+            beat_checker: (guess === "right") !== result.pass,
+            redacted: false
+          });
+        }
+      } catch (err) {}
     } else {
       seen.append(pe("span", "The checker failed; nothing was sent."));
       reveal.append(seen);
@@ -1690,5 +1746,7 @@ studyBoot();
 boot();
 loadGame();
 </script>
+<p id="tries-status" class="note"></p>
+<script src="tries.js"></script>
 </body>
 </html>
