@@ -841,3 +841,13 @@ I cut the README down to a landing page and moved the long sections to pages und
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code made the three stills from the demo video's frames, which had passed its frame-by-frame privacy check, wrote this specification and started this session from a prose prompt, and Muse Code (muse-spark-1.3, medium effort) moved the sections, wrote the new sections and diagrams and checked them against the code.
+
+## Docs 8c (2026-11-04)
+
+I committed the final live-run page and the provenance log. Docs only: no behaviour, schema, fixture or test change.
+
+- `docs/live-run.md` holds the final numbers of the live run, frozen at the 18:30 cut and regenerated from `make metrics` with every number naming its report key.
+- `docs/provenance.jsonl` now has a line for every card of the run, written by the export command and committed unedited.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code generated both files with read-only scripts and started this session from a prose prompt, and Muse Code (muse-spark-1.3, low effort) committed them unedited.
