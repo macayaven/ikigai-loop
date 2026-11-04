@@ -450,8 +450,8 @@ def test_first_person_how_this_works_is_pinned() -> None:
         "word for word in the brief." in page
     )
     assert (
-        "A paid study uses a separate version of this page, with consent; "
-        "ordinary players send nothing." in page
+        "A paid study uses a separate version of this page, with its own consent. "
+        "Other visitors send nothing unless they choose to save their tries." in page
     )
     assert "The rounds are exactly what Muse Wonder wrote, unedited:" not in page
     assert "and we asked it to set traps in some." not in page

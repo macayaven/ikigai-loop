@@ -239,3 +239,5 @@ It gives no medical advice by design: it only schedules commitments I wrote, and
 ## License
 
 The code is under the Apache License 2.0; see [LICENSE](LICENSE).
+
+Saving your tries is opt-in: nothing is sent unless you choose to save them, and what is saved is described in [docs/tries-privacy.md](docs/tries-privacy.md), stored by [macayaven/ikigai-tries](https://github.com/macayaven/ikigai-tries).
