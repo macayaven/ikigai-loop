@@ -4,7 +4,7 @@ I ran my R9 voice correction set through sound, not text. A Claude Code agent ra
 
 ## What I measured
 
-R9 is my frozen set of 60 voice edits. I had each one spoken once in my own cloned voice, with Chatterbox (MIT), run locally from my recording, with my consent. I transcribed each take with Meta speech-to-text through the product's own transcriber (`framework/voice/transcribe.py`). I then compiled each transcript with R9's own runner and the default arm (muse-spark-1.3, minimal effort). I also ran the text arm in the same session as the baseline, on the frozen transcripts as written.
+R9 is my frozen set of 60 voice edits. I had each one spoken once in my own cloned voice, with Chatterbox (MIT), run locally from my recording, with my consent. I transcribed each take with Meta speech-to-text through the product's own transcriber (`framework/voice/transcribe.py`). I then compiled each transcript with R9's own runner and the default arm (muse-spark-1.3, minimal effort). I also ran the text arm in the same session as the baseline, on the frozen transcripts as written. Chatterbox and Whisper were evaluation tools only: the product never calls either of them, and every model it calls at runtime is a Meta model.
 
 ## Result
 

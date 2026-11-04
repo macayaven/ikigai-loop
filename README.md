@@ -1,6 +1,6 @@
 # Ikigai Loop
 
-I made myself two promises: do my work, and spend time with my family away from screens. Most hours can only go to one of them. Ikigai Loop is the assistant I built to help me choose, and I'm its first user: I set my goals, made my promises and set up its signals.
+**Two goals. One free hour.** My work and my family compete for the same time and attention. In Japanese, ikigai is a reason for being, often drawn as the place where what you love, what you're good at, what the world needs and what you can be paid for meet. I built Ikigai Loop so my goals stop competing and I stop overthinking: one small step, one hour at a time. Five times a day it brings me two next steps from my own commitments, with reasons from my records and numbers checked by code, and I tap or correct it by voice. I'm its first user: I set my goals, made my promises and set up its signals.
 
 **Why it exists.** Wanting something and doing it are far apart: in a meta-analysis, "a medium-to-large change in intention (d = 0.66) leads to a small-to-medium change in behavior (d = 0.36)" (Webb & Sheeran 2006), and in Emmons & King (1988), "Subjects were less likely to act on conflictful and ambivalent strivings", like my two promises. An assistant that offers the next free hour at the moment of choice could help, but only if I can trust what it says about my own life. Models write fluent sentences that quote the wrong number: across four generative search engines, "a mere 51.5% of generated sentences are fully supported by citations" (Liu, Zhang & Liang 2023). So no card reaches my phone until plain code has checked the numbers it cites against my records, and the same check can test the numbers in any sentence an AI writes about a record.
 
@@ -20,11 +20,11 @@ Why check numbers separately: the assistant writes friendly sentences, and a fri
 
 I've used it myself for the past few days. The first real card reached my phone on Nov 2 at 13:30, on time, and I chose with a tap. An independent recount of its pull-request figure, straight from GitHub's own records rather than from my store, matched. The whole live run in numbers, misses included: [docs/live-run.md](docs/live-run.md).
 
-You can try the same check with nothing to install: [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/) opens on a game, Catch the AI. Muse Wonder wrote six sentences and set traps in some. Can you beat the checker? It runs in your browser.
+As an extra, I built a public version of the check, so anyone can try the idea without setting up the system: [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/) opens on a game, Catch the AI. Muse Wonder wrote six sentences and set traps in some. Can you beat the checker? It runs in your browser.
 
 ## How it works
 
-It looks at what I actually did, from my screen time, calendar and GitHub, picks two options from a list of promises I wrote down myself, and sends them to my phone as a Telegram card. Before the card goes out, plain code checks every figure in it, say "you coded 4.7 hours yesterday", against those records, and a wrong one is sent back. I choose with a tap, or correct it with a voice note, and later cards learn from what I pick.
+It looks at what I actually did, from my screen time, calendar and GitHub, picks two options from a list of promises I wrote down myself, and sends them to my phone as a Telegram card. Before the card goes out, plain code checks the figures in it, say "you coded 4.7 hours yesterday", against those records, and a wrong one is sent back. I choose with a tap, or correct it with a voice note, and later cards use what I pick (in the live run its predictions of my picks scored worse than two simple baselines; see [docs/live-run.md](docs/live-run.md)).
 
 ### One card, end to end
 
@@ -132,7 +132,7 @@ From a clone, `make try` runs the same replay.
 
 If your agent says it shipped 12 deploys and your records say 7, the checker catches it.
 
-![A round of Catch the AI on the checker page: the sentence says 52, the card says 58, and the checker says FAIL.](docs/img/catch-the-ai.png)
+![Two made-up rounds of Catch the AI: a sentence that matches its card, then a trap the checker catches.](docs/img/catch-the-ai.gif)
 
 The number, source, label, direction, negation, quantity-form, unit and period checks in my gate also run on your agent's output, against records you supply. You need `uv` for the command below; the browser page needs nothing, and takes the sentence and your records in plain words, with no JSON. Grab the worked input and run the checker:
 
@@ -160,7 +160,7 @@ agent's output shape to this input.
 
 ## Results
 
-On Nov 2, Muse Glimmer ran on my own hardware for every scheduled live card: all 5 slots, two passes each, and 3 of those 5 cards cite at least one of its facts (docs/provenance.jsonl). Muse Glimmer has generated facts through this code in a seeded run on synthetic data. Muse Wonder has written proposals through this code on synthetic data, on Muse Code headless on my subscription, with the numbers in [docs/sessions/011-wonder-proposal.md](docs/sessions/011-wonder-proposal.md). A full synthetic slot ran through this code on my local model and Muse Wonder, with a scratch database and a fake Bot API, as [docs/sessions/013-orchestrator.md](docs/sessions/013-orchestrator.md) records. The first real card went out on Nov 2 at 13:30, on time, as the public line in `docs/provenance.jsonl` records. I tapped my choice. An independent recount of its pull-request figure from GitHub's own records matched at every stage, as [docs/sessions/020-source-audit.md](docs/sessions/020-source-audit.md) records under "The first real card". The registered run continues to Nov 4 and I claim no results before it ends.
+On Nov 2, Muse Glimmer ran on my own hardware for every scheduled live card: all 5 slots, two passes each, and 3 of those 5 cards cite at least one of its facts (docs/provenance.jsonl). Muse Glimmer has generated facts through this code in a seeded run on synthetic data. Muse Wonder has written proposals through this code on synthetic data, on Muse Code headless on my subscription, with the numbers in [docs/sessions/011-wonder-proposal.md](docs/sessions/011-wonder-proposal.md). A full synthetic slot ran through this code on my local model and Muse Wonder, with a scratch database and a fake Bot API, as [docs/sessions/013-orchestrator.md](docs/sessions/013-orchestrator.md) records. The first real card went out on Nov 2 at 13:30, on time, as the public line in `docs/provenance.jsonl` records. I tapped my choice. An independent recount of its pull-request figure from GitHub's own records matched at every stage, as [docs/sessions/020-source-audit.md](docs/sessions/020-source-audit.md) records under "The first real card". The registered run ended on Nov 4, and the last three rows of the table below give its results, misses included.
 
 | What I measured | The result |
 |---|---|
@@ -170,6 +170,9 @@ On Nov 2, Muse Glimmer ran on my own hardware for every scheduled live card: all
 | Voice correction on 60 fixed notes | The default arm got 58 of 60 ([status](docs/status.md)) |
 | Calendar labels on 80 invented titles | Model correct 77/80 ([status](docs/status.md)) |
 | The first real card | Out on time on Nov 2 at 13:30, and the recount of its pull-request figure matched ([live run](docs/live-run.md)) |
+| The registered live run, Nov 2 to Nov 4 | Telegram accepted all 13 scheduled cards within 5 minutes of their slot; 1 of 25 first drafts failed the gate, its retry passed, and no card went out as a fallback ([live run](docs/live-run.md)) |
+| Did I do what I accepted? (R7, registered before the run) | 1 of the 7 checkable promises I accepted reads as completed: 1 of 2 GitHub pushes, 0 of 5 hours with screens off, 1 of them unknown ([live run](docs/live-run.md)) |
+| Did the learner predict my picks? (R8, registered before the run) | No: over 6 predictions its mean Brier score was 0.259, worse than always-half at 0.250 and my pooled rate at 0.209 ([live run](docs/live-run.md)) |
 
 Every benchmark, its tests and its limits: [docs/status.md](docs/status.md). The live run in numbers, misses included: [docs/live-run.md](docs/live-run.md).
 
@@ -194,9 +197,11 @@ These papers ground my choices and methods, but they do not show that my product
 
 Works: cards reach my phone five times a day on a schedule, and the first real one went out on time. The figures on a card are checked against my records by plain code with no model before it is sent, and a recount of the first card's pull-request figure from GitHub matched. A voice note can correct a card, and that code is built. Anyone can run the checker on their own agent, on the command line or in the browser.
 
-Doesn't, yet: this is set up for one person, me, with no installer and no ready-made timer files in the repo. The run I registered before the first card continues to Nov 4 and I will report its numbers then. There is no viewer for past cards.
+Doesn't, yet: this is set up for one person, me, with no installer and no ready-made timer files in the repo. The run I registered before the first card ended on Nov 4; its numbers, misses included, are in [docs/live-run.md](docs/live-run.md). There is no viewer for past cards.
 
 This is for me first, and the checker is for anyone whose agent cites numbers.
+
+The aim is balance over time: less overthinking, one next step. The card records my choice, not proof I kept it; I still have to do it.
 
 ## Built during the hackathon
 
