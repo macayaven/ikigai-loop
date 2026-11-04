@@ -2,17 +2,17 @@
 
 I made myself two promises: do my work, and spend time with my family away from screens. Most hours can only go to one of them. Ikigai Loop is the assistant I built to help me choose, and I'm its first user: I set my goals, made my promises and set up its signals.
 
-**Why it exists.** Wanting something and doing it are far apart: in a meta-analysis, "a medium-to-large change in intention (d = 0.66) leads to a small-to-medium change in behavior (d = 0.36)" (Webb & Sheeran 2006), and in Emmons & King (1988), "Subjects were less likely to act on conflictful and ambivalent strivings", like my two promises. An assistant that offers the next free hour at the moment of choice could help, but only if I can trust what it says about my own life. Models write fluent sentences that quote the wrong number: across four generative search engines, "a mere 51.5% of generated sentences are fully supported by citations" (Liu, Zhang & Liang 2023). So no card reaches my phone until plain code has checked every number in it against my records, and the same check can test the numbers in any sentence an AI writes about a record.
+**Why it exists.** Wanting something and doing it are far apart: in a meta-analysis, "a medium-to-large change in intention (d = 0.66) leads to a small-to-medium change in behavior (d = 0.36)" (Webb & Sheeran 2006), and in Emmons & King (1988), "Subjects were less likely to act on conflictful and ambivalent strivings", like my two promises. An assistant that offers the next free hour at the moment of choice could help, but only if I can trust what it says about my own life. Models write fluent sentences that quote the wrong number: across four generative search engines, "a mere 51.5% of generated sentences are fully supported by citations" (Liu, Zhang & Liang 2023). So no card reaches my phone until plain code has checked the numbers it cites against my records, and the same check can test the numbers in any sentence an AI writes about a record.
 
 ![A real card on my phone: the Nov 3 20:30 card, one option for each promise, with the buttons I tap. Screen-time values are hidden.](docs/img/card-2030.png)
 
-Four Meta models do the work: Muse Wonder writes the two options, Muse Glimmer (open weights, on my own GB10) turns my records into facts, Muse Spark turns a voice note into one edit to my list, and Muse Code wrote the code. Plain code checks every number.
+Three Meta models do the work: Muse Wonder writes the two options, Muse Glimmer (open weights, on my own GB10) turns my records into facts, and Muse Spark turns a transcribed voice note into one edit to my list. Muse Code, Meta's coding agent, wrote the code. Plain code checks the numbers.
 
 That check works on your own numbers too, on [the checker page](https://carloscrespomacaya.com/ikigai-loop/verify/): give it a card and a sentence, and it flags a sentence that says 12 deploys when the card says 7. An engineer outside the project tried it on an example from their own work: it passed the matching figure and flagged the mismatch once they changed the record. It also runs on public data with known answers: on UCI bike-share and home-energy records it stopped 120 of 120 planted errors and passed 38 of 38 true claims ([docs/domains.md](docs/domains.md)).
 
 Five times a day it reads my calendar and offers my next free hour to those two promises, one option for each, and I choose with a tap. Each card shows what changed since the last one, the free hour and both options; one tap on Why? shows the numbers behind each option, like "Prs rose by 11 since the last card" (PRs are pull requests on GitHub).
 
-Before a card reaches my phone, it checks every number on it against my records. Afterwards, it checks the option I pick against the traces it should have left, such as pushes to GitHub for work. Where nothing can be measured, it rests on my word: I'm doing this to fix something for myself, so I have no reason to cheat.
+Before a card reaches my phone, it checks the numbers on it against my records. Afterwards, it checks the option I pick against the traces it should have left, such as pushes to GitHub for work. Where nothing can be measured, it rests on my word: I'm doing this to fix something for myself, so I have no reason to cheat.
 
 Code checks the numbers I can measure, such as my pull requests on GitHub. It can't check that a sentence is true, or the parts that rest on my word. [Misses so far: see TRUST.md](docs/TRUST.md)
 
@@ -35,11 +35,11 @@ flowchart TD
         Records["My records:<br/>screen time, calendars,<br/>GitHub activity"]
         Counted["Plain code counts signals<br/>into code facts"]
         Glimmer["Muse Glimmer, open weights<br/>on my own GB10, turns<br/>counted signals into facts<br/>that cite their events"]
-        Gate["The gate checks every<br/>number, source and<br/>time window"]
+        Gate["The gate checks the<br/>cited numbers, sources<br/>and time windows"]
         Fallback["A labelled fallback<br/>with no checked facts"]
         Card["The card is built"]
         Learn["The learner updates<br/>from what I pick"]
-        Audit["An after-card audit<br/>recounts the GitHub figures<br/>and writes the public log"]
+        Audit["After the card, an audit<br/>I start myself recounts<br/>the GitHub figures and<br/>writes the public log"]
     end
     subgraph Meta["On Meta servers"]
         Wonder["Muse Wonder writes one<br/>option per promise,<br/>from the facts and<br/>my promises only"]
@@ -56,7 +56,7 @@ flowchart TD
     Phone --> Hear --> Compile
     Compile -- "a corrected card is drafted" --> Wonder
     Phone -- "my pick" --> Learn
-    Card --> Audit
+    Card -.-> Audit
 ```
 
 Follow the arrows: the gate sits between every draft and my phone, and Muse Wonder sees facts and promises, never my raw records.
@@ -66,7 +66,7 @@ Follow the arrows: the gate sits between every draft and my phone, and Muse Wond
 ```mermaid
 %%{init: {"flowchart": {"htmlLabels": false}}}%%
 flowchart TD
-    Split["A draft sentence is<br/>split into claims"]
+    Split["The draft's claims,<br/>one at a time"]
     Pull["Each number is pulled<br/>out of its claim"]
     Match["Each number is matched<br/>to the fact it cites, by<br/>metric, time window,<br/>unit and direction"]
     Pass["The sentence passes<br/>and the card can go out"]
@@ -80,7 +80,7 @@ flowchart TD
     Fail -- "second time" --> Fallback
 ```
 
-A draft with a wrong number gets one retry; if it fails again, the card goes out as a labelled fallback with no checked facts, never with the wrong number.
+A draft with a wrong number gets one retry; if it fails again, the card goes out as a labelled fallback with no checked facts, never with the number the gate stopped.
 
 ![The check on the Nov 2 15:30 card: the numbers in the card next to the same numbers in my records, and the card went out.](docs/img/check-1530.png)
 
@@ -192,7 +192,7 @@ These papers ground my choices and methods, but they do not show that my product
 
 ## What works today, and what doesn't
 
-Works: cards reach my phone five times a day on a schedule, and the first real one went out on time. Every figure on a card is checked against my records by plain code with no model before it is sent, and a recount of the first card's pull-request figure from GitHub matched. A voice note can correct a card, and that code is built. Anyone can run the checker on their own agent, on the command line or in the browser.
+Works: cards reach my phone five times a day on a schedule, and the first real one went out on time. The figures on a card are checked against my records by plain code with no model before it is sent, and a recount of the first card's pull-request figure from GitHub matched. A voice note can correct a card, and that code is built. Anyone can run the checker on their own agent, on the command line or in the browser.
 
 Doesn't, yet: this is set up for one person, me, with no installer and no ready-made timer files in the repo. The run I registered before the first card continues to Nov 4 and I will report its numbers then. There is no viewer for past cards.
 
