@@ -31,8 +31,9 @@ PINNED_CHECKED_NONE = (
 PINNED_PYODIDE = "0.27.7"
 PINNED_JSDELIVR = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"
 PINNED_CSP = (
-    "default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval' "
-    "https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net; "
+    "default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' "
+    "https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net "
+    "https://ikigai-tries.macayaven.workers.dev; "
     "style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"
 )
 PINNED_UVX = (
@@ -178,6 +179,7 @@ def test_page_pins() -> None:
                 "https://cdn.jsdelivr.net/pyodide/v0.27.7/",
                 "https://github.com/macayaven/",
                 "https://carloscrespomacaya.com/ikigai-loop/verify/",
+                "https://ikigai-tries.macayaven.workers.dev",
             )
         ), clean
 
@@ -772,3 +774,71 @@ def test_plain_card_orders_badge_headline_quote_and_code() -> None:
     assert "notesById" in plain_branch
     assert plain_branch.index("notesById") > details_at
     assert "const overall = document.createElement" not in plain_branch
+
+
+TRIES_JS = ROOT / "docs" / "verify" / "tries.js"
+WORKER_ORIGIN = "https://ikigai-tries.macayaven.workers.dev"
+
+
+def _csp_directive(page: str, name: str) -> str:
+    meta = next(
+        line for line in page.splitlines() if "Content-Security-Policy" in line
+    )
+    content = meta.split('content="', 1)[1].rsplit('"', 1)[0]
+    parts = dict(
+        item.split(" ", 1) for item in content.split("; ") if item.strip()
+    )
+    return parts[name]
+
+
+def test_policy_lets_saving_load_and_reach_worker() -> None:
+    page = PAGE.read_text()
+    script_src = _csp_directive(page, "script-src")
+    assert script_src.split(" ")[0] == "'self'", script_src
+    assert "'self'" in script_src
+    connect_src = _csp_directive(page, "connect-src")
+    assert WORKER_ORIGIN in connect_src
+    assert connect_src.index("https://cdn.jsdelivr.net") < connect_src.index(
+        WORKER_ORIGIN
+    )
+
+
+def test_saving_only_sends_from_send_and_delete_paths() -> None:
+    source = TRIES_JS.read_text()
+    calls = [match.start() for match in re.finditer(r"\bfetch\(", source)]
+    assert len(calls) >= 2
+    send_at = source.index("async function sendRow")
+    save_at = source.index("async function saveTry")
+    delete_at = source.index("async function deleteTries")
+    send_end = save_at
+    save_end = source.index("function updateFooter")
+    for pos in calls:
+        in_send = send_at < pos < send_end
+        in_delete = delete_at < pos
+        assert in_send or in_delete, pos
+        assert not (save_at < pos < save_end), pos
+    body = source[save_at:save_end]
+    assert body.index("readConsent()") < body.index("isStudyMode()")
+    assert 'choice !== "yes"' in body
+    assert "isStudyMode()" in body
+    assert "await sendRow(row)" in body
+
+
+def test_private_text_never_leaves_the_browser() -> None:
+    source = TRIES_JS.read_text()
+    save_at = source.index("async function saveTry")
+    save_end = source.index("function updateFooter")
+    body = source[save_at:save_end]
+    row_at = body.index("const row = {")
+    for code in ("L1_PII", "L1_SECRET", "L1_PRIVATE_TERM"):
+        assert code in body[:row_at], code
+    assert "maskedSentence" in body[:row_at] and '""' in body[:row_at]
+    assert "redacted" in body[:row_at]
+    mask_at = source.index("function maskText")
+    mask_end = source.index("function maskCard")
+    mask_body = source[mask_at:mask_end]
+    assert "[email]" in mask_body
+    assert "[url]" in mask_body
+    assert "[digits]" in mask_body
+    assert "[phone]" in mask_body
+    assert "7" in mask_body

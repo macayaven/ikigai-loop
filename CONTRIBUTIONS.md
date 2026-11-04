@@ -887,3 +887,13 @@ Claude Code started this session from a prose prompt and Muse Code (muse-spark-1
 ## Tries: consented saving of checker tries
 
 Author: Beam. Added the consent panel, footer line, tries.js, privacy notice, and the service-side integration points in the checker page. Muse Code's rules and game rounds are unchanged.
+
+## Saving, made to work
+
+I added 'self' to the page policy script-src so the page can load its own tries.js, and I added the Worker origin to connect-src so a save can reach it.
+
+I kept private text out of every save: a hit on L1_PII, L1_SECRET or L1_PRIVATE_TERM sends empty text with redacted set, phone-like runs of 7 or more digits now mask to [phone], and redacted also marks card masking.
+
+I added tests that pin the policy, that fetch runs only in the send and delete paths with saveTry gated on yes and not in study mode, and that pin the private-text guard and the phone pattern.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
