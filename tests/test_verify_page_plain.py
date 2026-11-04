@@ -869,7 +869,7 @@ def test_plain_pane_lists_every_gap_on_one_line() -> None:
 
 
 def test_first_time_user_sentence_names_no_row() -> None:
-    built = _job1("Students who did not attend were 15", [("Students absent", "9")])
+    built = _job1("Orders that went out were 15", [("Orders shipped", "9")])
     assert built["problems"] == []
     assert isinstance(built["input"], str)
     assert check_claims(built["input"]).passed is False
@@ -880,7 +880,7 @@ def test_first_time_user_sentence_names_no_row() -> None:
         finding["code"] for finding in claim["findings"]
     ]
     assert any(
-        "Students absent, 9" in finding["sentence"] for finding in claim["findings"]
+        "Orders shipped, 9" in finding["sentence"] for finding in claim["findings"]
     )
     assert claim["checked"] == (
         "What it checked: nothing, because the sentence uses none of the card's names."
