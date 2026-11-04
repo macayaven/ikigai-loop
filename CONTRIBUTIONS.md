@@ -897,3 +897,12 @@ I kept private text out of every save: a hit on L1_PII, L1_SECRET or L1_PRIVATE_
 I added tests that pin the policy, that fetch runs only in the send and delete paths with saveTry gated on yes and not in study mode, and that pin the private-text guard and the phone pattern.
 
 Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
+
+## Docs 10c
+
+I reported a second outside try of the checker in the README. Docs only: no behaviour, schema, fixture or test change.
+
+- `README.md`: it now reports a second try of the checker page by someone outside the project, anonymised and with their permission.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
