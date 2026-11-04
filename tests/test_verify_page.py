@@ -627,7 +627,7 @@ PINNED_WHY_PARAGRAPHS = (
     ),
     (
         "I built an assistant that offers each free hour of my day to promises I wrote down. "
-        "Before a card reaches my phone, this check compares every number on it with my records."
+        "Before a card reaches my phone, this check compares the numbers on it with my records."
     ),
     (
         "It still let some through. On Nov 2 a card said "

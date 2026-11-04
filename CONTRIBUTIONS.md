@@ -861,3 +861,4 @@ I made the checker page say which side is the truth and what each sentence was c
 - `tests/test_verify_page.py` and `tests/test_verify_page_plain.py`: I updated the old scope line pins to the new wording and added the first-time user case, the wrong number case, the matching number case and the step label pins.
 
 Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, medium effort) made the edit.
+- One sentence on the page now says the check compares the numbers on a card, not every number.
