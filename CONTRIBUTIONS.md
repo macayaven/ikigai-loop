@@ -916,3 +916,12 @@ I made two sentences true now that saving tries is opt-in. Docs and page text on
 - `CONTRIBUTIONS.md`: this entry.
 
 Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
+
+## Docs 10e
+
+I moved the README sentence on opt-in saving out of the License section and into the paragraph that introduces the checker. Docs only: no behaviour, schema, fixture or test change.
+
+- `README.md`: the opt-in saving sentence now closes the checker intro paragraph with a link to the privacy notice, and the License section holds only the license line.
+- `CONTRIBUTIONS.md`: this entry.
+
+Claude Code started this session from a prose prompt and Muse Code (muse-spark-1.3, low effort) made the edit.
