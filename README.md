@@ -41,7 +41,7 @@ flowchart TD
         Audit["An after-card audit<br/>recounts the GitHub figures<br/>and writes the public log"]
     end
     subgraph Meta["On Meta servers"]
-        Wonder["Muse Wonder writes one<br/>option per promise, from<br/>the facts and my promises only"]
+        Wonder["Muse Wonder writes one<br/>option per promise,<br/>from the facts and<br/>my promises only"]
         Hear["Transcription hears<br/>my voice note"]
         Compile["Muse Spark compiles it<br/>into one typed edit<br/>to my list"]
     end
